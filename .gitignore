@@ -1,0 +1,34 @@
+*.iml
+.gradle
+/local.properties
+/.idea/
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.claude/settings.local.json
+.DS_Store
+build/
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+# ---------------------------------------------------------------- secrets --
+#
+# None of these are in the repository, and none of them can be: this project is
+# public, and a signing key in a public history is the right for anyone to sign
+# an update to the app people already have installed.
+#
+# Copy the .sample beside each one and fill it in. Without them a debug build
+# still works, which is what keeps a fresh clone usable; a release build is
+# unsigned, and push notifications are simply absent.
+/keystore.properties
+/signup.properties
+*.keystore
+*.jks
+/app/google-services.json
+
+# Gradle/IDE
+.kotlin/

@@ -1,0 +1,781 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  繁體中文。譯自 values-zh-rCN（文案的源語言），用語按臺灣慣例：
+  登入、設定、預設、影片、搜尋、貼文、訊息。
+-->
+<resources>
+    <string name="app_name">NodeLoc</string>
+
+    <!-- 通用 -->
+    <string name="common_back">返回</string>
+    <string name="common_close">關閉</string>
+    <string name="common_cancel">取消</string>
+    <string name="common_confirm">確認</string>
+    <string name="common_done">完成</string>
+    <string name="common_save">儲存</string>
+    <string name="common_continue">繼續</string>
+    <string name="common_retry">重試</string>
+    <string name="link_blocked">無法開啟此連結</string>
+    <string name="session_expired">登入已過期，請重新登入</string>
+    <string name="common_more">更多</string>
+    <string name="common_share">分享</string>
+    <string name="common_refresh">重新整理</string>
+    <string name="common_menu">選單</string>
+    <string name="common_settings">設定</string>
+    <string name="common_login">登入</string>
+    <string name="common_signup">註冊</string>
+    <string name="common_delete">刪除</string>
+    <string name="common_clear">清除</string>
+    <string name="common_clear_all">全部清除</string>
+    <string name="common_expand">展開</string>
+    <string name="common_collapse">收合</string>
+    <string name="common_loading">載入中</string>
+    <string name="common_checking">檢查中…</string>
+    <string name="common_add">新增</string>
+    <string name="common_or">或</string>
+    <string name="common_empty">尚無內容</string>
+    <string name="common_empty_hint">晚點再來看看</string>
+    <string name="common_play">播放</string>
+    <string name="common_undo">復原</string>
+    <string name="common_guest">未登入</string>
+    <string name="common_me">我</string>
+
+    <!-- 底部導覽 -->
+    <string name="tab_home">首頁</string>
+    <string name="tab_nodes">節點</string>
+    <string name="tab_inbox">訊息</string>
+    <string name="tab_search">搜尋</string>
+    <string name="tab_profile">我的</string>
+
+    <!-- 錯誤文案：永遠不出現狀態碼 -->
+    <string name="error_unauthorized">沒有權限或登入已失效，請重新登入後再試</string>
+    <string name="error_not_found">內容不存在或已被刪除</string>
+    <string name="error_rate_limited">操作太頻繁，請稍後再試</string>
+    <string name="error_rate_limited_wait">操作太頻繁，請 %1$d 秒後重試</string>
+    <string name="error_server">伺服器忙不過來，請稍後再試</string>
+    <string name="error_generic_request">請求失敗，請稍後重試</string>
+    <string name="error_challenged">請求被站台安全防護攔截，請稍後再試</string>
+    <string name="error_decoding">資料載入出錯，請稍後重試</string>
+    <string name="error_offline">網路無法使用，請檢查連線</string>
+    <string name="error_timeout">連線逾時，請稍後重試</string>
+    <string name="error_transport">網路異常，請稍後重試</string>
+    <string name="error_action_failed">操作失敗，請稍後重試</string>
+
+    <!-- 首頁與資訊流 -->
+    <string name="feed_compose">發文</string>
+    <string name="feed_reading_mode">閱讀模式</string>
+    <string name="feed_pinned">置頂</string>
+    <string name="reading_mode_compact">緊湊</string>
+    <string name="reading_mode_expand">展開</string>
+    <string name="reading_mode_card">卡片</string>
+
+    <!-- 節點 -->
+    <string name="node_create">新增節點</string>
+    <string name="node_browse">瀏覽節點</string>
+    <string name="node_create_title">建立節點</string>
+    <string name="node_join">加入</string>
+    <string name="node_joined">已加入</string>
+    <string name="node_join_success">已加入節點</string>
+    <string name="node_leave_success">已退出節點</string>
+    <string name="node_empty_topics">這個節點還沒有主題</string>
+    <string name="node_not_found">該節點不存在</string>
+    <string name="node_empty">尚無節點</string>
+    <string name="node_search_in">在此節點內搜尋</string>
+    <string name="node_notification_level">通知等級：%1$s</string>
+    <string name="node_level_set">已設為「%1$s」</string>
+    <string name="node_name">名稱</string>
+    <string name="node_name_hint">節點名稱</string>
+    <string name="node_slug">路徑 (slug)</string>
+    <string name="node_slug_hint">english-slug</string>
+    <string name="node_slug_available">這個路徑可以用</string>
+    <string name="node_slug_taken">這個路徑已被使用</string>
+    <string name="node_description">簡介</string>
+    <string name="node_description_hint">一句話說明這個節點</string>
+    <string name="node_parent">所屬分區</string>
+    <string name="node_color">顏色</string>
+    <string name="node_create_footer">建立後即可在該節點下發布主題。</string>
+    <string name="node_created">節點已建立</string>
+    <string name="node_recent">最近造訪</string>
+
+    <!-- 排序 -->
+    <string name="sort_latest">最新</string>
+    <string name="sort_new">新</string>
+    <string name="sort_hot">熱門</string>
+    <string name="sort_featured">精選</string>
+    <string name="sort_top">熱門榜</string>
+    <string name="sort_latest_detail">有新貼文的主題</string>
+    <string name="sort_new_detail">最近幾天建立或回覆的主題</string>
+    <string name="sort_hot_detail">最近熱門主題</string>
+    <string name="sort_featured_detail">精選主題</string>
+    <string name="sort_top_detail">依讚數排列的熱門主題</string>
+
+    <!-- 節點通知等級（數值是 Discourse 自己的） -->
+    <string name="level_muted">已設為靜音</string>
+    <string name="level_regular">一般</string>
+    <string name="level_tracking">追蹤</string>
+    <string name="level_watching">關注</string>
+    <string name="level_watching_first">只關注第一篇</string>
+    <string name="level_muted_detail">您不會收到這個節點中新主題的任何通知，它們也不會出現在最新主題頁面。</string>
+    <string name="level_regular_detail">有人 @ 您或回覆您時，您會收到通知。</string>
+    <string name="level_tracking_detail">您會自動追蹤這個節點中的所有主題。有人 @ 您或回覆您時會收到通知，並顯示新回覆數量。</string>
+    <string name="level_watching_detail">您會自動關注這個節點中的所有主題。每一篇新貼文都會通知您，並顯示新回覆數量。</string>
+    <string name="level_watching_first_detail">您會收到這個節點中新主題的通知，但不會收到主題回覆的通知。</string>
+
+    <!-- 閱讀器 -->
+    <string name="reader_reply_sort">回覆排序</string>
+    <string name="reply_sort_top">最多讚</string>
+    <string name="reply_sort_new">最新</string>
+    <string name="reply_sort_old">最早</string>
+    <string name="reader_copy_link">複製連結</string>
+    <string name="reader_link_copied">已複製連結</string>
+    <string name="reader_bookmark">加入書籤</string>
+    <string name="reader_bookmarked">已加入書籤</string>
+    <string name="reader_bookmark_removed">已取消書籤</string>
+    <string name="reader_unbookmark">取消書籤</string>
+    <string name="reader_report">檢舉</string>
+    <string name="reader_pin">置頂</string>
+    <string name="reader_unpin">取消置頂</string>
+    <string name="reader_pinned">已置頂</string>
+    <string name="reader_unpinned">已取消置頂</string>
+    <string name="reader_pinned_badge">置頂</string>
+    <string name="reader_edit">編輯</string>
+    <string name="reader_edit_first">編輯主題</string>
+    <string name="reader_edit_title">編輯貼文</string>
+    <string name="reader_edit_saved">已儲存</string>
+    <string name="reader_delete">刪除</string>
+    <string name="reader_delete_done">已刪除</string>
+    <string name="reader_delete_confirm">刪除這篇貼文？</string>
+    <string name="reader_delete_confirm_body">它會從主題裡隱藏。管理員可以還原。</string>
+    <string name="reader_deleted_badge">已刪除</string>
+    <string name="reader_recover">還原</string>
+    <string name="reader_recover_done">已還原</string>
+    <string name="reader_lock">鎖定編輯</string>
+    <string name="reader_unlock">解除鎖定</string>
+    <string name="reader_locked">已鎖定編輯</string>
+    <string name="reader_unlocked">已解除鎖定</string>
+    <string name="reader_locked_badge">已鎖定</string>
+    <string name="reader_topic_close">關閉主題</string>
+    <string name="reader_topic_reopen">重新開放</string>
+    <string name="reader_topic_closed">主題已關閉</string>
+    <string name="reader_topic_reopened">主題已重新開放</string>
+    <string name="reader_topic_delete">刪除主題</string>
+    <string name="reader_topic_deleted">主題已刪除</string>
+    <string name="reader_topic_delete_confirm">刪除這個主題？</string>
+    <string name="reader_topic_delete_confirm_body">整串連同回覆一起刪除。管理員可以在網頁端還原。</string>
+    <string name="reader_repost">轉發</string>
+    <string name="reader_reposted">已轉發</string>
+    <string name="reader_repost_to">已轉發到 %1$s</string>
+    <string name="reader_comment">留言</string>
+    <string name="reader_like">讚</string>
+    <string name="vote_upvote">讚同</string>
+    <string name="vote_undo_upvote">取消讚同</string>
+    <string name="vote_downvote">反對</string>
+    <string name="vote_undo_downvote">取消反對</string>
+    <string name="vote_down_not_allowed">你還沒有反對的權限。</string>
+    <string name="vote_expand">仍要查看</string>
+    <string name="vote_pick_upvote">用哪個表情讚同</string>
+    <string name="vote_pick_downvote">用哪個表情反對</string>
+    <string name="reaction_none">還沒有人用表情回應。</string>
+    <string name="reaction_all">全部</string>
+    <string name="reader_reply">回覆</string>
+    <string name="reader_reply_to">回覆 @%1$s</string>
+    <string name="reader_cancel_reply">取消回覆</string>
+    <string name="reader_reply_hint">寫下你的回覆…</string>
+    <string name="reader_replies_failed">無法載入回覆</string>
+    <string name="reader_code_copied">已複製程式碼</string>
+    <string name="reader_code_copy_hint">長按複製</string>
+    <string name="reader_reply_one_media">一則回覆只能帶一個附件</string>
+    <string name="reader_reply_guest">登入後參與討論</string>
+    <string name="reader_send">傳送</string>
+    <string name="reader_reward">打賞</string>
+    <string name="reader_reward_energy">打賞能量</string>
+    <string name="reader_reward_amount">打賞 %1$d 能量</string>
+    <string name="reader_reward_done">已打賞 %1$d 能量</string>
+    <string name="reader_reward_detail">打賞明細</string>
+    <string name="reader_reward_note_hint">留言（可略）</string>
+    <string name="reader_reward_empty">還沒有人打賞</string>
+    <string name="reader_claimed_points">領取了 %1$d 能量</string>
+    <string name="reader_spoiler">劇透內容，點一下顯示</string>
+
+    <!-- 外掛 -->
+    <string name="poll_title">投票</string>
+    <string name="poll_closed">已結束</string>
+    <string name="poll_multiple">多選</string>
+    <string name="poll_vote">投票</string>
+    <string name="poll_revoke">收回投票</string>
+    <string name="poll_create">建立投票</string>
+    <string name="poll_option_hint">選項 %1$d</string>
+    <string name="poll_add_option">新增選項</string>
+    <string name="poll_single_choice">單選</string>
+    <string name="poll_multi_choice">多選 ✓</string>
+    <string name="poll_insert">插入投票</string>
+
+    <string name="lottery_title">抽獎</string>
+    <string name="lottery_drawn">已開獎</string>
+    <string name="lottery_prize">獎項</string>
+    <string name="lottery_quantity">×%1$d</string>
+    <string name="lottery_random">隨機票號</string>
+    <string name="lottery_join">參加</string>
+    <string name="lottery_add">追加</string>
+    <string name="lottery_winners">中獎名單</string>
+    <string name="lottery_join_failed">參加失敗。</string>
+    <string name="lottery_create_failed">抽獎建立失敗，貼文已發布</string>
+    <string name="lottery_default_level">頭獎</string>
+
+    <string name="envelope_title">紅包 · %1$d 能量 / %2$s</string>
+    <string name="envelope_exhausted">已被搶光</string>
+    <string name="envelope_remaining">回覆本文即可領取，剩餘 %1$d 個</string>
+    <string name="envelope_chip">紅包 %1$d/%2$d ×</string>
+    <string name="envelope_create_failed">紅包建立失敗，貼文已發布</string>
+
+    <!-- 撰寫 -->
+    <string name="compose_publish">發布</string>
+    <string name="compose_discard_title">離開編輯器？</string>
+    <string name="compose_discard_detail">草稿會保留；選擇捨棄則已寫的內容不再保存。</string>
+    <string name="compose_discard_confirm">捨棄</string>
+    <string name="compose_edit_discard_title">捨棄修改？</string>
+    <string name="compose_edit_discard_detail">這次改動不會儲存。</string>
+    <string name="compose_draft_keep">保留草稿</string>
+    <string name="compose_draft_restored">已還原草稿</string>
+    <string name="compose_draft_untitled">沒有標題</string>
+    <string name="compose_draft_on_site">站台上的草稿</string>
+    <string name="compose_draft_on_phone">本機草稿</string>
+    <string name="compose_draft_new">寫一篇新的</string>
+    <string name="compose_draft_choose">接著之前的草稿？</string>
+    <string name="compose_published">已發布</string>
+    <string name="compose_select_node">選擇節點</string>
+    <string name="compose_search_node">搜尋節點</string>
+    <string name="compose_node_none">沒有符合的節點。</string>
+    <string name="compose_emoji">表情</string>
+    <string name="compose_emoji_search">搜尋表情</string>
+    <string name="compose_emoji_failed">表情載入失敗。</string>
+    <string name="compose_title_hint">標題（至少 5 個字）</string>
+    <string name="compose_body_hint">內文，支援 Markdown</string>
+    <string name="compose_media_edit">編輯</string>
+    <string name="compose_media_remove">移除</string>
+    <string name="compose_image">圖片</string>
+    <string name="compose_video">影片</string>
+    <string name="compose_gif">GIF</string>
+    <string name="compose_media_one_kind">一篇貼文只能帶圖片、影片或 GIF 其中一種</string>
+    <string name="compose_gif_search">搜尋 GIF</string>
+    <string name="compose_lottery_chip">抽獎 ×</string>
+    <string name="compose_envelope">紅包</string>
+    <string name="envelope_total_points">總能量</string>
+    <string name="envelope_total_count">紅包個數</string>
+    <string name="lottery_field_title">標題</string>
+    <string name="lottery_field_prize">獎品</string>
+    <string name="lottery_field_quantity">數量</string>
+    <string name="lottery_field_min">開獎人數</string>
+    <string name="lottery_field_max_tickets">每人上限</string>
+    <string name="lottery_field_draw_days">開獎天數</string>
+
+    <!-- 訊息 -->
+    <string name="inbox_title">收件匣</string>
+    <string name="inbox_notifications">通知</string>
+    <string name="inbox_messages">私訊</string>
+    <string name="inbox_chats">聊天</string>
+    <string name="inbox_mark_all_read">全部標為已讀</string>
+    <string name="inbox_guest">登入後查看通知與私訊</string>
+    <string name="inbox_guest_detail">瀏覽不用登入，參與討論才需要帳號</string>
+    <string name="inbox_empty_notifications">沒有通知</string>
+    <string name="inbox_empty_messages">沒有私訊</string>
+    <string name="inbox_empty_chats">沒有聊天</string>
+    <string name="inbox_personal">個人</string>
+
+    <!-- 通知文案（與站內一致） -->
+    <string name="notif_system">系統通知</string>
+    <string name="notif_group_inbox">您的 %1$s 收件匣有新訊息</string>
+    <string name="notif_group_fallback">群組</string>
+    <string name="notif_private_message">傳了一則私訊給你</string>
+    <string name="notif_liked">對你在 %1$s 的內容按了讚</string>
+    <string name="notif_replied">回覆了 %1$s</string>
+    <string name="notif_badge">授予你 %1$s 徽章</string>
+    <string name="notif_generic">傳來一則通知</string>
+
+    <!-- 聊天 -->
+    <string name="chat_title">聊天</string>
+    <string name="chat_thread">討論串</string>
+    <string name="chat_leave_thread">退出討論串</string>
+    <string name="chat_message_hint">傳訊息…</string>
+    <string name="chat_attach">附加</string>
+    <string name="chat_channel">頻道</string>
+
+    <!-- 搜尋 -->
+    <string name="search_hint">搜尋貼文、節點、使用者</string>
+    <string name="search_scope_all">全部</string>
+    <string name="search_scope_nodes">節點</string>
+    <string name="search_scope_posts">貼文</string>
+    <string name="search_scope_users">使用者</string>
+    <string name="search_scope_apps">應用</string>
+    <string name="search_scope_media">媒體</string>
+    <string name="search_recent">最近搜尋</string>
+    <string name="search_hot">熱門搜尋</string>
+    <string name="search_empty">沒有找到相關內容</string>
+    <string name="search_failed">搜尋沒能完成</string>
+    <string name="chat_load_failed">無法載入這個對話</string>
+    <string name="chat_unread_divider">以下是新訊息</string>
+    <string name="chat_typing_one">%1$s 正在輸入…</string>
+    <string name="chat_copy">複製文字</string>
+    <string name="chat_copied">已複製</string>
+    <string name="chat_edit">編輯</string>
+    <string name="chat_editing">正在編輯</string>
+    <string name="chat_replying_to">回覆 %1$s</string>
+    <string name="chat_react">加上表情</string>
+    <string name="chat_edited">已編輯</string>
+    <string name="chat_sending">傳送中…</string>
+    <string name="chat_profile">查看資料</string>
+    <string name="chat_members">成員</string>
+    <string name="chat_notification_level">通知等級</string>
+    <string name="chat_level_always">每則訊息</string>
+    <string name="chat_level_always_detail">每一則新訊息都通知我。</string>
+    <string name="chat_level_mention">只在被提及時</string>
+    <string name="chat_level_mention_detail">只有別人 @ 我或引用我時才通知。</string>
+    <string name="chat_level_never">從不</string>
+    <string name="chat_level_never_detail">不通知，也不顯示未讀數。</string>
+    <string name="chat_leave">退出對話</string>
+    <string name="chat_leave_title">退出這個對話？</string>
+    <string name="chat_leave_detail">它會從清單裡消失。對方再傳訊息時會重新出現，紀錄不會不見。</string>
+    <string name="chat_delete_title">刪除這則訊息？</string>
+    <string name="chat_delete_detail">對話裡的所有人都會看不到它。</string>
+    <string name="apps_load_failed">無法載入這個應用</string>
+    <string name="search_empty_detail">換個關鍵字試試</string>
+    <string name="search_node_empty">這個節點裡沒有找到內容</string>
+    <string name="search_nodes_capped">節點 · 顯示 %1$d / 共 %2$d</string>
+
+    <!-- 我的 -->
+    <string name="profile_guest">登入後查看你的資料</string>
+    <string name="profile_follow">追蹤</string>
+    <string name="profile_following">已追蹤</string>
+    <string name="profile_admin">管理員</string>
+    <string name="profile_moderator">版主</string>
+    <string name="profile_last_seen">最近活躍 %1$s</string>
+    <string name="profile_joined">加入於 %1$s</string>
+    <string name="profile_energy">能量</string>
+    <string name="profile_reputation">聲望</string>
+    <string name="profile_topics">主題</string>
+    <string name="profile_posts">貼文</string>
+    <string name="profile_likes">讚</string>
+    <string name="profile_bookmarks">書籤</string>
+    <string name="profile_empty_points">尚無能量紀錄</string>
+
+    <!-- 設定 -->
+    <string name="settings_account">帳戶</string>
+    <string name="settings_preferences">偏好設定</string>
+    <string name="settings_account_section">這個應用</string>
+    <string name="settings_profile">個人資料</string>
+    <string name="settings_associated">已連結的帳號</string>
+    <string name="settings_security">安全性</string>
+    <string name="settings_interface">介面</string>
+    <string name="settings_notifications">通知</string>
+    <string name="settings_email">電子郵件</string>
+    <string name="settings_privacy">隱私</string>
+    <string name="settings_web">開啟網頁端偏好設定</string>
+    <string name="settings_push">推播通知</string>
+    <string name="settings_sign_out">登出</string>
+    <string name="settings_appearance">外觀</string>
+    <string name="settings_other">其他</string>
+    <string name="settings_color_mode">色彩模式</string>
+    <string name="settings_text_size">文字大小</string>
+    <string name="settings_default_home">預設首頁</string>
+    <string name="settings_external_links">在新分頁開啟外部連結</string>
+    <string name="settings_quoting">啟用引用回覆</string>
+    <string name="settings_in_app_notifications">站內通知</string>
+    <string name="settings_like_frequency">收到讚時通知我</string>
+    <string name="settings_new_topic_duration">主題視為新的時間</string>
+    <string name="settings_track_on_reply">自動追蹤我回覆過的主題</string>
+    <string name="settings_email_notifications">郵件通知</string>
+    <string name="settings_email_replies">回覆時寄信給我</string>
+    <string name="settings_email_messages">私訊時寄信給我</string>
+    <string name="settings_email_previous">附上先前的回覆</string>
+    <string name="settings_email_digest">寄送活動摘要</string>
+    <string name="settings_hide_profile">隱藏我的公開資料</string>
+    <string name="settings_hide_presence">隱藏在線狀態</string>
+
+    <string name="color_mode_auto">自動</string>
+    <string name="color_mode_light">淺色</string>
+    <string name="color_mode_dark">深色</string>
+    <string name="text_size_smallest">最小</string>
+    <string name="text_size_smaller">較小</string>
+    <string name="text_size_normal">正常</string>
+    <string name="text_size_larger">較大</string>
+    <string name="text_size_largest">最大</string>
+    <string name="email_level_always">總是</string>
+    <string name="email_level_away">只在離開時</string>
+    <string name="email_level_never">從不</string>
+    <string name="previous_replies_always">總是</string>
+    <string name="previous_replies_unless">除非先前已寄送過</string>
+    <string name="previous_replies_never">從不</string>
+    <string name="like_freq_always">總是</string>
+    <string name="like_freq_first_daily">首次及每日</string>
+    <string name="like_freq_first">只有首次</string>
+    <string name="like_freq_never">從不</string>
+    <string name="duration_last_visit">自上次造訪</string>
+    <string name="duration_one_day">1 天</string>
+    <string name="duration_two_days">2 天</string>
+    <string name="duration_one_week">1 週</string>
+    <string name="duration_two_weeks">2 週</string>
+
+    <!-- 推播 -->
+    <string name="push_enable">推播通知</string>
+    <string name="push_enable_detail">在背景檢查新通知</string>
+    <string name="push_permission_footer">系統通知權限未開啟，開啟後才收得到推播。</string>
+    <string name="push_filter_footer">關掉的類型仍會出現在站內訊息裡。</string>
+    <string name="push_open_system_settings">前往系統設定</string>
+    <string name="push_types">通知類型</string>
+    <string name="push_replies">回覆與提及</string>
+    <string name="push_replies_detail">有人回覆、引用或提及你</string>
+    <string name="push_likes">讚</string>
+    <string name="push_likes_detail">有人對你的貼文或回覆按讚</string>
+    <string name="push_messages">私訊</string>
+    <string name="push_messages_detail">收到新的私訊</string>
+    <string name="push_other">徽章與系統通知</string>
+    <string name="push_other_detail">徽章授予、群組訊息之類</string>
+
+    <!-- 安全 -->
+    <string name="security_password">密碼</string>
+    <string name="security_send_reset">寄送重設密碼郵件</string>
+    <string name="security_reset_sent">重設密碼的郵件已寄出</string>
+    <string name="security_two_factor">兩步驟驗證</string>
+    <string name="security_two_factor_footer">開啟後登入時還需要輸入動態驗證碼。</string>
+    <string name="security_status">狀態</string>
+    <string name="security_enabled">已開啟</string>
+    <string name="security_disabled">未開啟</string>
+    <string name="security_backup_codes">備用碼</string>
+    <string name="security_generate_backup">產生備用碼</string>
+    <string name="security_backup_footer">請妥善保存，每個備用碼只能用一次。</string>
+    <string name="security_enable_totp">開啟兩步驟驗證</string>
+    <string name="security_disable_totp">關閉兩步驟驗證</string>
+    <string name="security_totp_enabled">兩步驟驗證已開啟</string>
+    <string name="security_totp_disabled">兩步驟驗證已關閉</string>
+    <string name="security_scan_key">掃描或輸入金鑰</string>
+    <string name="security_key">金鑰</string>
+    <string name="security_totp_footer">在驗證器應用中新增後，輸入 6 位驗證碼完成綁定。</string>
+    <string name="security_totp_code_hint">6 位驗證碼</string>
+    <string name="security_finish_binding">完成綁定</string>
+    <string name="security_sessions">登入工作階段</string>
+    <string name="security_session_fallback">工作階段 #%1$d</string>
+    <string name="security_current_device">目前的裝置</string>
+    <string name="security_sign_out_session">登出</string>
+    <string name="security_session_revoked">已登出該工作階段</string>
+    <string name="security_confirm_identity">確認是本人</string>
+    <string name="security_confirm_detail">敏感操作需要重新輸入密碼。</string>
+    <string name="security_wrong_password">密碼不正確，請重試</string>
+    <string name="security_no_associated">尚無連結的帳號</string>
+    <string name="security_associated_footer">連結後可以用它登入網站。</string>
+    <string name="security_unlink">解除連結</string>
+    <string name="security_unlink_confirm_title">解除 %1$s 的連結？</string>
+    <string name="security_unlink_confirm_detail">在重新連結之前，將無法用它登入。</string>
+
+    <!-- 資料編輯 -->
+    <string name="profile_edit_avatar">更換大頭貼</string>
+    <string name="profile_edit_section">資料</string>
+    <string name="profile_edit_name">顯示名稱</string>
+    <string name="profile_edit_name_hint">你的名字怎麼顯示</string>
+    <string name="profile_edit_title">頭銜</string>
+    <string name="profile_edit_title_none">沒有頭銜</string>
+    <string name="profile_edit_title_locked">頭銜來自你獲得的徽章</string>
+    <string name="profile_edit_bio">關於我</string>
+    <string name="profile_edit_bio_hint">介紹一下自己</string>
+    <string name="profile_edit_website">網站</string>
+    <string name="profile_edit_location">所在地</string>
+    <string name="profile_edit_saved">資料已儲存</string>
+    <string name="profile_edit_load_failed">無法載入資料</string>
+    <string name="profile_edit_load_failed_detail">請檢查網路後重試。</string>
+    <string name="profile_avatar_updated">大頭貼已更新</string>
+    <string name="profile_edit_background">更換背景</string>
+    <string name="profile_edit_background_remove">移除背景</string>
+    <string name="profile_background_updated">背景已更新</string>
+
+    <!-- 登入註冊 -->
+    <string name="auth_terms">登入即表示你接受 NODELOC 的服務條款與隱私權政策。</string>
+    <string name="auth_website">透過 NodeLoc 網站繼續</string>
+    <string name="auth_identifier">電子郵件或使用者名稱</string>
+    <string name="auth_identifier_hint">you@example.com</string>
+    <string name="auth_password">密碼</string>
+    <string name="auth_code">驗證碼</string>
+    <string name="auth_code_hint">6 位動態驗證碼</string>
+    <string name="auth_backup_code">備用碼</string>
+    <string name="auth_use_backup">使用備用碼</string>
+    <string name="auth_use_totp">使用驗證器驗證碼</string>
+    <string name="auth_forgot">忘記密碼？</string>
+    <string name="auth_email_step">你的電子郵件</string>
+    <string name="auth_email">電子郵件</string>
+    <string name="auth_username_step">取個使用者名稱</string>
+    <string name="auth_username">使用者名稱</string>
+    <string name="auth_username_hint">3–20 個字元</string>
+    <string name="auth_email_invalid">請輸入有效的電子郵件地址</string>
+    <string name="auth_email_ok">格式正確</string>
+    <string name="auth_username_available">好名字！這個名稱可以用</string>
+    <string name="auth_username_taken">這個名稱已被使用</string>
+    <string name="auth_username_suggestion">試試「%1$s」</string>
+    <string name="auth_password_step">設定密碼</string>
+    <string name="auth_password_hint">至少 10 個字元</string>
+    <string name="auth_password_short">至少需要 10 個字元</string>
+    <string name="auth_password_ok">長度符合要求</string>
+    <string name="auth_gender_step">你的性別</string>
+    <string name="auth_gender_footer">只存在這台裝置上，用於個人化推薦。</string>
+    <string name="auth_gender_male">男</string>
+    <string name="auth_gender_female">女</string>
+    <string name="auth_gender_other">其他</string>
+    <string name="auth_gender_private">不想透露</string>
+    <string name="auth_interests_step">感興趣的節點</string>
+    <string name="auth_interests_footer">最多選 3 個，之後會自動加入。</string>
+    <string name="auth_shuffle">換一批</string>
+    <string name="auth_finish_signup">建立帳號</string>
+    <string name="auth_check_email">請查收郵件</string>
+    <string name="auth_activation_detail">我們已寄了一封啟用信到 %1$s，打開裡面的連結即可完成註冊。</string>
+    <string name="auth_activation_hint">啟用後回到這裡登入，你選的節點會自動加入。</string>
+    <string name="auth_back_to_login">返回登入</string>
+    <string name="auth_gate_title">加入 NODELOC</string>
+    <string name="auth_gate_detail">登入後即可發文、回覆、按讚與收藏。瀏覽不用登入。</string>
+
+    <string name="auth_error_key_generation">無法產生安全金鑰。</string>
+    <string name="auth_error_missing_payload">登入回應不完整。</string>
+    <string name="auth_error_lost_keypair">登入過程被中斷，請重新登入。</string>
+    <string name="auth_error_decrypt">無法驗證登入回應。</string>
+    <string name="auth_error_nonce">登入驗證失敗，請重試。</string>
+    <string name="auth_error_cancelled">登入已取消。</string>
+    <string name="auth_error_missing_fields">請填寫每一個欄位。</string>
+    <string name="auth_error_second_factor">這個帳號開了兩步驟驗證，請輸入驗證碼。</string>
+    <string name="auth_error_incomplete">登入沒有完成，請重試。</string>
+    <string name="auth_error_no_session">登入沒有回傳網站工作階段。</string>
+    <string name="auth_error_session_start">無法開始登入工作階段。</string>
+    <string name="auth_error_bad_code">驗證碼不正確，請重試。</string>
+    <string name="auth_error_login_failed">登入失敗，請稍後重試</string>
+    <string name="auth_error_signup_failed">註冊失敗，請稍後重試</string>
+    <string name="auth_signup_activation_needed">帳號已建立，請查收郵件完成啟用。</string>
+
+    <!-- 歡迎頁 -->
+    <string name="welcome_tagline">自由、平等、友善、開放、有趣</string>
+    <string name="welcome_start">開始使用</string>
+    <string name="welcome_have_account">我已經有帳號了</string>
+    <string name="welcome_browse">先隨便逛逛</string>
+
+    <!-- 瀏覽器與媒體 -->
+    <string name="browser_open_external">用瀏覽器開啟</string>
+    <string name="web_session_api_only_title">這個頁面需要網頁登入</string>
+    <string name="web_session_api_only_detail">你是透過網站授權登入的。應用內可以開啟這個頁面，但任何修改都存不了。請在瀏覽器裡繼續——你在那邊已經是登入狀態。</string>
+    <string name="web_session_continue_anyway">仍在應用內開啟</string>
+    <string name="browser_text_size">文字大小 %1$d%%</string>
+    <string name="media_mute">靜音</string>
+    <string name="media_unmute">取消靜音</string>
+    <string name="editor_crop">裁切</string>
+    <string name="editor_brush">塗鴉</string>
+    <string name="editor_mosaic">馬賽克</string>
+    <string name="editor_mosaic_solid">色塊遮擋</string>
+    <string name="editor_mosaic_blur">模糊</string>
+    <string name="editor_mosaic_fine">細馬賽克</string>
+    <string name="editor_mosaic_pixel">像素化</string>
+    <string name="editor_mosaic_blocks">馬賽克</string>
+    <string name="editor_text">文字</string>
+    <string name="editor_rotate">旋轉</string>
+    <string name="editor_add_text">加上文字</string>
+    <string name="editor_crop_free">自由</string>
+    <string name="editor_crop_square">1:1</string>
+    <string name="editor_crop_portrait">4:5</string>
+    <string name="editor_crop_landscape">16:9</string>
+    <string name="editor_filter_faded">褪色</string>
+    <string name="editor_filter_mono">黑白</string>
+    <string name="editor_filter_cool">冷調</string>
+    <string name="editor_filter_warm">暖調</string>
+    <string name="editor_filter_vivid">鮮明</string>
+    <string name="editor_filter_none">原圖</string>
+    <string name="editor_text_filled">底色</string>
+    <string name="editor_text_outlined">描邊</string>
+    <string name="editor_text_plain">一般</string>
+    <string name="editor_filter">濾鏡</string>
+    <string name="editor_sticker">貼紙</string>
+    <string name="editor_flip">翻轉</string>
+    <string name="editor_redo">重做</string>
+    <string name="editor_reset">重設</string>
+    <string name="trim_gif_limit">GIF 最長 %1$d 秒，超出的部分會被截掉</string>
+    <string name="trim_failed">影片處理失敗，請重試</string>
+    <string name="trim_too_large">這段影片太大了，剪短一點再試。</string>
+
+    <!-- 應用目錄 -->
+    <string name="apps_title">應用目錄</string>
+    <string name="apps_more">更多應用</string>
+    <string name="apps_recent">最近使用</string>
+    <string name="apps_empty">尚無應用</string>
+    <string name="apps_open">開啟應用</string>
+    <string name="apps_web_only">這個應用只能在網頁端執行。</string>
+    <string name="apps_permissions">權限</string>
+    <string name="apps_discussion">查看討論</string>
+
+    <!-- 可數名詞：中文只有一種形式 -->
+    <plurals name="common_members">
+        <item quantity="other">%1$s 成員</item>
+    </plurals>
+    <plurals name="common_topics">
+        <item quantity="other">%1$s 主題</item>
+    </plurals>
+    <plurals name="chat_member_count">
+        <item quantity="other">%1$d 位成員</item>
+    </plurals>
+    <plurals name="chat_typing_many">
+        <item quantity="other">%1$d 人正在輸入…</item>
+    </plurals>
+    <plurals name="common_replies_count">
+        <item quantity="other">%1$d 則回覆</item>
+    </plurals>
+    <plurals name="reader_load_more_replies">
+        <item quantity="other">另外 %1$d 則回覆</item>
+    </plurals>
+    <plurals name="apps_installs">
+        <item quantity="other">%1$d 次安裝</item>
+    </plurals>
+    <plurals name="poll_voters">
+        <item quantity="other">%1$d 人投票</item>
+    </plurals>
+    <plurals name="lottery_my_tickets">
+        <item quantity="other">你持有 %1$d 張票</item>
+    </plurals>
+    <string name="profile_tab_load_failed">無法載入這個分頁</string>
+    <plurals name="lottery_entrants">
+        <item quantity="other">%1$d 人參加</item>
+    </plurals>
+    <plurals name="lottery_tickets">
+        <item quantity="other">%1$d 張票</item>
+    </plurals>
+    <plurals name="lottery_min_participants">
+        <item quantity="other">滿 %1$d 人開獎</item>
+    </plurals>
+    <plurals name="lottery_max_participants">
+        <item quantity="other">上限 %1$d 人</item>
+    </plurals>
+    <plurals name="envelope_packets">
+        <item quantity="other">%1$d 個</item>
+    </plurals>
+    <plurals name="notif_group_inbox_count">
+        <item quantity="other">您的 %1$s 收件匣有 %2$d 則訊息</item>
+    </plurals>
+    <string name="image_load_failed">無法載入這張圖片</string>
+    <string name="viewer_save_image">儲存圖片</string>
+    <string name="viewer_save_video">儲存影片</string>
+    <string name="viewer_save_video_failed">影片儲存失敗</string>
+    <string name="report_title">檢舉這篇貼文</string>
+    <string name="report_note_hint">說明一下問題在哪裡</string>
+    <string name="report_sent">已送出，管理員會看到</string>
+    <string name="viewer_saved">已儲存到相簿</string>
+    <string name="viewer_save_failed">圖片儲存失敗</string>
+    <string name="viewer_more">更多</string>
+    <string name="viewer_previous">上一張</string>
+    <string name="viewer_next">下一張</string>
+    <string name="media_video_failed">無法播放這個影片</string>
+    <string name="media_no_more_videos">暫時沒有更多影片了</string>
+    <string name="common_pause">暫停</string>
+    <string name="profile_message">私訊</string>
+    <string name="profile_chat">聊天</string>
+    <string name="profile_notification_level">通知方式</string>
+    <string name="profile_notify_normal">一般</string>
+    <string name="profile_notify_muted">靜音</string>
+    <string name="profile_notify_ignored">忽略</string>
+    <string name="profile_notify_normal_detail">照常接收這個人的通知。</string>
+    <string name="profile_notify_muted_detail">不再接收這個人的通知。</string>
+    <string name="profile_notify_ignored_detail">連他的貼文也一起隱藏。</string>
+    <string name="profile_notify_saved">已儲存</string>
+    <string name="auth_failed">登入沒有完成</string>
+    <string name="auth_continue_with">透過 %1$s 繼續</string>
+    <string name="auth_or_password">或用密碼登入</string>
+
+    <!-- 更新 -->
+    <string name="update_check">檢查更新</string>
+    <string name="update_up_to_date">已經是最新版本</string>
+    <string name="update_available_title">有新版本 %1$s</string>
+    <string name="update_available_required">要繼續使用就必須更新這個版本。</string>
+    <string name="update_install">下載並安裝</string>
+    <string name="update_later">稍後</string>
+    <string name="update_downloading">下載中…</string>
+    <string name="update_download_failed">更新下載失敗，請稍後再試。</string>
+    <string name="update_install_failed">無法開啟安裝程式</string>
+    <string name="update_needs_install_permission">請允許 NodeLoc 安裝應用</string>
+
+    <!-- 抽獎編輯器 -->
+    <string name="lottery_field_max_participants">最多參加人數（留空不限）</string>
+    <string name="lottery_field_min_tickets">每人最少張數</string>
+    <string name="lottery_field_trust_level">最低信任等級</string>
+    <string name="lottery_field_levels">獎項</string>
+    <string name="lottery_add_level">新增獎項</string>
+    <string name="lottery_remove_level">移除</string>
+    <string name="lottery_level_name_hint">獎項名稱，例如「頭獎」</string>
+    <string name="lottery_draws_at">將於 %1$s 開獎</string>
+    <string name="lottery_error_title">請填寫抽獎標題</string>
+    <string name="lottery_error_prize">至少填寫一個獎品</string>
+    <string name="lottery_error_min_participants">最少參加人數不能小於 1</string>
+    <string name="lottery_error_max_below_min">最多參加人數要大於最少參加人數</string>
+    <string name="lottery_error_min_tickets">每人最少張數不能大於最多張數</string>
+    <string name="lottery_error_draw_days">開獎天數需在 1–%1$d 天之間</string>
+    <string name="lottery_condition_min_tickets">每人至少 %1$d 張</string>
+    <string name="lottery_condition_max_tickets">每人最多 %1$d 張</string>
+    <string name="lottery_condition_trust_level">需 TL%1$d 以上</string>
+
+    <!-- 每日簽到 -->
+    <string name="checkin_action">簽到</string>
+    <string name="checkin_done">今天已經簽到了</string>
+    <string name="checkin_success">簽到成功，獲得 %1$d 能量</string>
+
+    <!-- 升級進度 -->
+    <string name="upgrade_title">升級進度</string>
+    <string name="upgrade_load_failed">升級進度載入失敗</string>
+    <string name="upgrade_next_level">下一等級：%1$s</string>
+    <string name="upgrade_met_count">已滿足 %1$d / %2$d 項</string>
+    <string name="upgrade_all_met">晉升下一等級的條件全部滿足了。</string>
+    <string name="upgrade_maintaining">維持中</string>
+    <string name="upgrade_retention_title">保級要求</string>
+    <string name="upgrade_locked">信任等級已鎖定，不會自動升降。</string>
+    <string name="upgrade_group_standing">帳號狀態</string>
+    <string name="upgrade_group_activity">活躍度</string>
+    <string name="upgrade_group_recent">近 %1$d 天</string>
+    <string name="upgrade_group_recent_plain">近期活躍度</string>
+    <string name="upgrade_group_all_time">累計</string>
+    <string name="upgrade_target">目標 %1$d</string>
+    <string name="upgrade_limit">上限 %1$d</string>
+    <string name="upgrade_condition_met">已達標</string>
+    <string name="upgrade_condition_over">已超出</string>
+    <string name="upgrade_condition_remaining">還差 %1$d</string>
+
+    <!-- 發文來源 -->
+    <string name="post_source_title">發文來源</string>
+    <string name="post_source_explain">選擇你的貼文可以顯示這台手機的多少資訊。預設顯示手機型號，選「不顯示」就什麼都不顯示；這個選擇跟著帳號走，不是跟著這台裝置。</string>
+    <string name="post_source_footer">來源是誰都能自己填的，所以它只是裝飾 —— 不代表任何權限，也證明不了什麼。</string>
+    <string name="post_source_from">來自 %1$s</string>
+    <string name="post_source_level_off">不顯示</string>
+    <string name="post_source_level_client">只顯示應用</string>
+    <string name="post_source_level_platform">顯示應用與平台</string>
+    <string name="post_source_level_brand">顯示到手機品牌</string>
+    <string name="post_source_level_model">顯示到手機型號</string>
+    <string name="post_source_history_title">已經發過的貼文</string>
+    <string name="post_source_history_detail">調低層級只影響以後發的貼文。這裡是把已發貼文上的來源刪掉，不能復原。</string>
+    <string name="post_source_clear">從舊貼文移除</string>
+    <string name="post_source_cleared">已移除</string>
+    <string name="video_quality">清晰度</string>
+    <string name="video_quality_480">480p</string>
+    <string name="video_quality_720">720p</string>
+    <string name="video_quality_1080">1080p</string>
+    <string name="video_quality_original">原畫</string>
+    <string name="video_sound">聲音</string>
+    <string name="video_gif">GIF</string>
+    <string name="video_play">播放</string>
+    <string name="video_pause">暫停</string>
+    <string name="video_summary">%1$s · ~%2$s</string>
+    <string name="sort_best">最佳</string>
+    <string name="sort_best_detail">為你推薦的話題</string>
+    <string name="block_user_title">封鎖這個人？</string>
+    <string name="block_user_message">你將不再看到 %1$s 發布的內容，對方也無法私訊你。可以在設定裡取消。</string>
+    <string name="block_user_confirm">封鎖</string>
+    <string name="block_user_done">已封鎖</string>
+    <string name="unblock_user">取消封鎖</string>
+    <string name="unblock_user_done">已取消封鎖</string>
+    <string name="settings_blocked">已封鎖的人</string>
+    <string name="blocked_empty">還沒有封鎖任何人。</string>
+    <string name="blocked_not_allowed">本站尚未允許你的帳號封鎖他人。</string>
+    <string name="post_more_bookmark">收藏</string>
+    <string name="post_more_watch">關注</string>
+    <string name="post_more_watching">已關注</string>
+    <string name="post_more_author">查看作者</string>
+    <string name="post_more_block_author">封鎖作者</string>
+    <string name="post_more_repost">轉發</string>
+    <string name="profile_report">檢舉此人</string>
+    <string name="profile_block">封鎖此人</string>
+    <string name="profile_report_title">檢舉使用者 @%1$s</string>
+</resources>

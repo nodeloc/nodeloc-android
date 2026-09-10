@@ -1,0 +1,826 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Українська. Ключі та порядок підстановок мають збігатися з values/strings.xml.
+  Множина має чотири форми: one / few / many / other.
+-->
+<resources>
+    <string name="app_name">NodeLoc</string>
+
+    <!-- Загальне -->
+    <string name="common_back">Назад</string>
+    <string name="common_close">Закрити</string>
+    <string name="common_cancel">Скасувати</string>
+    <string name="common_confirm">Підтвердити</string>
+    <string name="common_done">Готово</string>
+    <string name="common_save">Зберегти</string>
+    <string name="common_continue">Продовжити</string>
+    <string name="common_retry">Повторити</string>
+    <string name="link_blocked">Це посилання не вдалося відкрити.</string>
+    <string name="session_expired">Сеанс завершився. Увійдіть ще раз.</string>
+    <string name="common_more">Ще</string>
+    <string name="common_share">Поділитися</string>
+    <string name="common_refresh">Оновити</string>
+    <string name="common_menu">Меню</string>
+    <string name="common_settings">Налаштування</string>
+    <string name="common_login">Увійти</string>
+    <string name="common_signup">Реєстрація</string>
+    <string name="common_delete">Видалити</string>
+    <string name="common_clear">Очистити</string>
+    <string name="common_clear_all">Очистити все</string>
+    <string name="common_expand">Розгорнути</string>
+    <string name="common_collapse">Згорнути</string>
+    <string name="common_loading">Завантаження</string>
+    <string name="common_checking">Перевіряємо…</string>
+    <string name="common_add">Додати</string>
+    <string name="common_or">або</string>
+    <string name="common_empty">Тут поки порожньо</string>
+    <string name="common_empty_hint">Зазирніть пізніше</string>
+    <string name="common_play">Відтворити</string>
+    <string name="common_undo">Скасувати дію</string>
+    <string name="common_guest">Ви не увійшли</string>
+    <string name="common_me">Я</string>
+
+    <!-- Нижня навігація -->
+    <string name="tab_home">Головна</string>
+    <string name="tab_nodes">Ноди</string>
+    <string name="tab_inbox">Вхідні</string>
+    <string name="tab_search">Пошук</string>
+    <string name="tab_profile">Профіль</string>
+
+    <!-- Помилки: код стану користувачеві не показуємо -->
+    <string name="error_unauthorized">Немає прав, або сеанс завершився. Увійдіть ще раз.</string>
+    <string name="error_not_found">Такого вмісту немає або його видалено</string>
+    <string name="error_rate_limited">Забагато запитів — спробуйте трохи згодом</string>
+    <string name="error_rate_limited_wait">Забагато запитів — спробуйте через %1$d с</string>
+    <string name="error_server">На сервері негаразди. Спробуйте пізніше.</string>
+    <string name="error_generic_request">Запит не вдався, спробуйте ще раз</string>
+    <string name="error_challenged">Захист сайту заблокував цей запит. Спробуйте пізніше.</string>
+    <string name="error_decoding">Під час завантаження щось пішло не так. Спробуйте ще раз.</string>
+    <string name="error_offline">Немає зʼєднання — перевірте мережу та повторіть</string>
+    <string name="error_timeout">Час очікування вичерпано, спробуйте ще раз</string>
+    <string name="error_transport">Проблема з мережею, спробуйте ще раз</string>
+    <string name="error_action_failed">Не вийшло. Спробуйте ще раз.</string>
+
+    <!-- Стрічка -->
+    <string name="feed_compose">Нова тема</string>
+    <string name="feed_reading_mode">Режим читання</string>
+    <string name="feed_pinned">Закріплено</string>
+    <string name="reading_mode_compact">Компактно</string>
+    <string name="reading_mode_expand">Розгорнуто</string>
+    <string name="reading_mode_card">Картки</string>
+
+    <!-- Ноди -->
+    <string name="node_create">Нова нода</string>
+    <string name="node_browse">Переглянути ноди</string>
+    <string name="node_create_title">Створити ноду</string>
+    <string name="node_join">Приєднатися</string>
+    <string name="node_joined">Ви учасник</string>
+    <string name="node_join_success">Ви приєдналися до ноди</string>
+    <string name="node_leave_success">Ви покинули ноду</string>
+    <string name="node_empty_topics">У цій ноді ще немає тем</string>
+    <string name="node_not_found">Такої ноди не існує</string>
+    <string name="node_empty">Нод немає</string>
+    <string name="node_search_in">Шукати в цій ноді</string>
+    <string name="node_notification_level">Сповіщення: %1$s</string>
+    <string name="node_level_set">Обрано «%1$s»</string>
+    <string name="node_name">Назва</string>
+    <string name="node_name_hint">Назва ноди</string>
+    <string name="node_slug">Шлях (slug)</string>
+    <string name="node_slug_hint">english-slug</string>
+    <string name="node_slug_available">Цей шлях вільний</string>
+    <string name="node_slug_taken">Цей шлях зайнято</string>
+    <string name="node_description">Опис</string>
+    <string name="node_description_hint">Один рядок про цю ноду</string>
+    <string name="node_parent">Розділ</string>
+    <string name="node_color">Колір</string>
+    <string name="node_create_footer">Після створення в цій ноді можна публікувати теми.</string>
+    <string name="node_created">Ноду створено</string>
+    <string name="node_recent">Нещодавні</string>
+
+    <!-- Сортування -->
+    <string name="sort_latest">Свіже</string>
+    <string name="sort_new">Нове</string>
+    <string name="sort_hot">Гаряче</string>
+    <string name="sort_featured">Обране</string>
+    <string name="sort_top">Найкраще</string>
+    <string name="sort_latest_detail">Теми зі свіжими дописами</string>
+    <string name="sort_new_detail">Створені або з відповідями за останні дні</string>
+    <string name="sort_hot_detail">Те, що обговорюють просто зараз</string>
+    <string name="sort_featured_detail">Дібрані вручну теми</string>
+    <string name="sort_top_detail">Теми з найбільшою кількістю вподобань</string>
+
+    <!-- Рівні сповіщень ноди (значення самого Discourse) -->
+    <string name="level_muted">Без звуку</string>
+    <string name="level_regular">Звичайний</string>
+    <string name="level_tracking">Стеження</string>
+    <string name="level_watching">Спостереження</string>
+    <string name="level_watching_first">Лише перший допис</string>
+    <string name="level_muted_detail">Ви не отримуватимете сповіщень про нові теми в цій ноді, і вони не зʼявлятимуться у «Свіжому».</string>
+    <string name="level_regular_detail">Вас сповістять, якщо хтось згадає ваш @нік або відповість вам.</string>
+    <string name="level_tracking_detail">Ви автоматично стежите за всіма темами цієї ноди. Вас сповістять про згадки та відповіді, а кількість нових відповідей буде показано.</string>
+    <string name="level_watching_detail">Ви автоматично спостерігаєте за всіма темами цієї ноди. Вас сповістять про кожен новий допис, а кількість нових відповідей буде показано.</string>
+    <string name="level_watching_first_detail">Вас сповістять про нові теми в цій ноді, але не про відповіді в них.</string>
+
+    <!-- Читання -->
+    <string name="reader_reply_sort">Порядок відповідей</string>
+    <string name="reply_sort_top">Найкращі</string>
+    <string name="reply_sort_new">Спершу нові</string>
+    <string name="reply_sort_old">Спершу давні</string>
+    <string name="reader_copy_link">Скопіювати посилання</string>
+    <string name="reader_link_copied">Посилання скопійовано</string>
+    <string name="reader_bookmark">У закладки</string>
+    <string name="reader_bookmarked">Закладку збережено</string>
+    <string name="reader_bookmark_removed">Закладку прибрано</string>
+    <string name="reader_unbookmark">Прибрати з закладок</string>
+    <string name="reader_report">Поскаржитися</string>
+    <string name="reader_pin">Закріпити вгорі</string>
+    <string name="reader_unpin">Відкріпити</string>
+    <string name="reader_pinned">Закріплено вгорі</string>
+    <string name="reader_unpinned">Відкріплено</string>
+    <string name="reader_pinned_badge">Закріплено</string>
+    <string name="reader_edit">Змінити</string>
+    <string name="reader_edit_first">Змінити тему</string>
+    <string name="reader_edit_title">Змінити допис</string>
+    <string name="reader_edit_saved">Збережено</string>
+    <string name="reader_delete">Видалити</string>
+    <string name="reader_delete_done">Видалено</string>
+    <string name="reader_delete_confirm">Видалити цей допис?</string>
+    <string name="reader_delete_confirm_body">Він зникне з теми. Модератори зможуть його повернути.</string>
+    <string name="reader_deleted_badge">Видалено</string>
+    <string name="reader_recover">Відновити</string>
+    <string name="reader_recover_done">Відновлено</string>
+    <string name="reader_lock">Заборонити редагування</string>
+    <string name="reader_unlock">Дозволити редагування</string>
+    <string name="reader_locked">Редагування заборонено</string>
+    <string name="reader_unlocked">Редагування дозволено</string>
+    <string name="reader_locked_badge">Заблоковано</string>
+    <string name="reader_topic_close">Закрити тему</string>
+    <string name="reader_topic_reopen">Відкрити тему знову</string>
+    <string name="reader_topic_closed">Тему закрито</string>
+    <string name="reader_topic_reopened">Тему відкрито знову</string>
+    <string name="reader_topic_delete">Видалити тему</string>
+    <string name="reader_topic_deleted">Тему видалено</string>
+    <string name="reader_topic_delete_confirm">Видалити цю тему?</string>
+    <string name="reader_topic_delete_confirm_body">Зникне вся гілка разом із відповідями. Модератори зможуть повернути її з сайту.</string>
+    <string name="reader_repost">Репост</string>
+    <string name="reader_reposted">Репост зроблено</string>
+    <string name="reader_repost_to">Репост у %1$s</string>
+    <string name="reader_comment">Коментарі</string>
+    <string name="reader_like">Подобається</string>
+    <string name="vote_upvote">За</string>
+    <string name="vote_undo_upvote">Прибрати голос «за»</string>
+    <string name="vote_downvote">Проти</string>
+    <string name="vote_undo_downvote">Прибрати голос «проти»</string>
+    <string name="vote_down_not_allowed">Голосувати проти вам поки не можна.</string>
+    <string name="vote_expand">Усе одно показати</string>
+    <string name="vote_pick_upvote">Голос «за» з емодзі</string>
+    <string name="vote_pick_downvote">Голос «проти» з емодзі</string>
+    <string name="reaction_none">Реакцій поки немає.</string>
+    <string name="reaction_all">Усі</string>
+    <string name="reader_reply">Відповісти</string>
+    <string name="reader_reply_to">Відповідь @%1$s</string>
+    <string name="reader_cancel_reply">Скасувати відповідь</string>
+    <string name="reader_reply_hint">Напишіть відповідь…</string>
+    <string name="reader_replies_failed">Не вдалося завантажити відповіді</string>
+    <string name="reader_code_copied">Код скопійовано</string>
+    <string name="reader_code_copy_hint">утримуйте, щоб скопіювати</string>
+    <string name="reader_reply_one_media">До відповіді можна додати лише один файл</string>
+    <string name="reader_reply_guest">Увійдіть, щоб долучитися до обговорення</string>
+    <string name="reader_send">Надіслати</string>
+    <string name="reader_reward">Винагорода</string>
+    <string name="reader_reward_energy">Нагородити енергією</string>
+    <string name="reader_reward_amount">Нагородити: %1$d енергії</string>
+    <string name="reader_reward_done">Винагороду надіслано: %1$d енергії</string>
+    <string name="reader_reward_detail">Винагороди</string>
+    <string name="reader_reward_note_hint">Записка (необовʼязково)</string>
+    <string name="reader_reward_empty">Винагород поки немає</string>
+    <string name="reader_claimed_points">Отримано %1$d енергії</string>
+    <string name="reader_spoiler">Спойлер — торкніться, щоб відкрити</string>
+
+    <!-- Плагіни -->
+    <string name="poll_title">Опитування</string>
+    <string name="poll_closed">Завершено</string>
+    <string name="poll_multiple">Кілька варіантів</string>
+    <string name="poll_vote">Голосувати</string>
+    <string name="poll_revoke">Відкликати голос</string>
+    <string name="poll_create">Створити опитування</string>
+    <string name="poll_option_hint">Варіант %1$d</string>
+    <string name="poll_add_option">Додати варіант</string>
+    <string name="poll_single_choice">Один варіант</string>
+    <string name="poll_multi_choice">Кілька ✓</string>
+    <string name="poll_insert">Вставити опитування</string>
+
+    <string name="lottery_title">Розіграш</string>
+    <string name="lottery_drawn">Розіграно</string>
+    <string name="lottery_prize">Приз</string>
+    <string name="lottery_quantity">×%1$d</string>
+    <string name="lottery_random">Випадковий квиток</string>
+    <string name="lottery_join">Узяти участь</string>
+    <string name="lottery_add">Узяти ще</string>
+    <string name="lottery_winners">Переможці</string>
+    <string name="lottery_join_failed">Не вдалося взяти участь.</string>
+    <string name="lottery_create_failed">Розіграш не створився, але допис опубліковано</string>
+    <string name="lottery_default_level">Головний приз</string>
+
+    <string name="envelope_title">Конверт · %1$d енергії / %2$s</string>
+    <string name="envelope_exhausted">Усе розібрали</string>
+    <string name="envelope_remaining">Відповідайте, щоб отримати — лишилося %1$d</string>
+    <string name="envelope_chip">Конверт %1$d/%2$d ×</string>
+    <string name="envelope_create_failed">Конверт не створився, але допис опубліковано</string>
+
+    <!-- Редактор -->
+    <string name="compose_publish">Опублікувати</string>
+    <string name="compose_discard_title">Вийти з редактора?</string>
+    <string name="compose_discard_detail">Чернетка збережеться. Якщо відмовитися від неї, написане зникне.</string>
+    <string name="compose_discard_confirm">Відмовитися</string>
+    <string name="compose_edit_discard_title">Скасувати зміни?</string>
+    <string name="compose_edit_discard_detail">Те, що ви тут змінили, не збережеться.</string>
+    <string name="compose_draft_keep">Зберегти чернетку</string>
+    <string name="compose_draft_restored">Чернетку відновлено</string>
+    <string name="compose_draft_untitled">Без заголовка</string>
+    <string name="compose_draft_on_site">Збережено на сайті</string>
+    <string name="compose_draft_on_phone">На цьому телефоні</string>
+    <string name="compose_draft_new">Почати нове</string>
+    <string name="compose_draft_choose">Продовжити чернетку?</string>
+    <string name="compose_published">Опубліковано</string>
+    <string name="compose_select_node">Оберіть ноду</string>
+    <string name="compose_search_node">Пошук ноди</string>
+    <string name="compose_node_none">Відповідних нод немає.</string>
+    <string name="compose_emoji">Емодзі</string>
+    <string name="compose_emoji_search">Пошук емодзі</string>
+    <string name="compose_emoji_failed">Не вдалося завантажити емодзі.</string>
+    <string name="compose_title_hint">Заголовок (від 5 символів)</string>
+    <string name="compose_body_hint">Текст — підтримується Markdown</string>
+    <string name="compose_media_edit">Змінити</string>
+    <string name="compose_media_remove">Прибрати</string>
+    <string name="compose_image">Зображення</string>
+    <string name="compose_video">Відео</string>
+    <string name="compose_gif">GIF</string>
+    <string name="compose_media_one_kind">У дописі може бути або зображення, або відео, або GIF — не впереміш</string>
+    <string name="compose_gif_search">Пошук GIF</string>
+    <string name="compose_lottery_chip">Розіграш ×</string>
+    <string name="compose_envelope">Конверт</string>
+    <string name="envelope_total_points">Усього енергії</string>
+    <string name="envelope_total_count">Конвертів</string>
+    <string name="lottery_field_title">Заголовок</string>
+    <string name="lottery_field_prize">Приз</string>
+    <string name="lottery_field_quantity">Кількість</string>
+    <string name="lottery_field_min">Розіграти за</string>
+    <string name="lottery_field_max_tickets">Максимум на людину</string>
+    <string name="lottery_field_draw_days">Розіграш через (днів)</string>
+
+    <!-- Вхідні -->
+    <string name="inbox_title">Вхідні</string>
+    <string name="inbox_notifications">Сповіщення</string>
+    <string name="inbox_messages">Повідомлення</string>
+    <string name="inbox_chats">Чат</string>
+    <string name="inbox_mark_all_read">Позначити все прочитаним</string>
+    <string name="inbox_guest">Увійдіть, щоб бачити сповіщення та повідомлення</string>
+    <string name="inbox_guest_detail">Читати можна без облікового запису, дописувати — ні</string>
+    <string name="inbox_empty_notifications">Сповіщень немає</string>
+    <string name="inbox_empty_messages">Повідомлень немає</string>
+    <string name="inbox_empty_chats">Чатів немає</string>
+    <string name="inbox_personal">Особисте</string>
+
+    <!-- Формулювання сповіщень (як на сайті) -->
+    <string name="notif_system">Система</string>
+    <string name="notif_group_inbox">У вашій скриньці %1$s є нові повідомлення</string>
+    <string name="notif_group_fallback">група</string>
+    <string name="notif_private_message">надіслав(ла) вам повідомлення</string>
+    <string name="notif_liked">оцінив(ла) ваш допис у %1$s</string>
+    <string name="notif_replied">відповів(ла) у %1$s</string>
+    <string name="notif_badge">вручив(ла) вам нагороду %1$s</string>
+    <string name="notif_generic">надіслав(ла) вам сповіщення</string>
+
+    <!-- Чат -->
+    <string name="chat_title">Чат</string>
+    <string name="chat_thread">Гілка</string>
+    <string name="chat_leave_thread">Покинути гілку</string>
+    <string name="chat_message_hint">Повідомлення…</string>
+    <string name="chat_attach">Прикріпити</string>
+    <string name="chat_channel">Канал</string>
+
+    <!-- Пошук -->
+    <string name="search_hint">Пошук дописів, нод і людей</string>
+    <string name="search_scope_all">Усе</string>
+    <string name="search_scope_nodes">Ноди</string>
+    <string name="search_scope_posts">Дописи</string>
+    <string name="search_scope_users">Люди</string>
+    <string name="search_scope_apps">Застосунки</string>
+    <string name="search_scope_media">Медіа</string>
+    <string name="search_recent">Нещодавні запити</string>
+    <string name="search_hot">Популярне</string>
+    <string name="search_empty">Нічого не знайдено</string>
+    <string name="search_failed">Пошук не виконався</string>
+    <string name="chat_load_failed">Не вдалося завантажити цю розмову</string>
+    <string name="chat_unread_divider">Нові повідомлення</string>
+    <string name="chat_typing_one">%1$s пише…</string>
+    <string name="chat_copy">Скопіювати текст</string>
+    <string name="chat_copied">Скопійовано</string>
+    <string name="chat_edit">Змінити</string>
+    <string name="chat_editing">Змінення</string>
+    <string name="chat_replying_to">Відповідь %1$s</string>
+    <string name="chat_react">Додати реакцію</string>
+    <string name="chat_edited">змінено</string>
+    <string name="chat_sending">Надсилання…</string>
+    <string name="chat_profile">Відкрити профіль</string>
+    <string name="chat_members">Учасники</string>
+    <string name="chat_notification_level">Сповіщення</string>
+    <string name="chat_level_always">Кожне повідомлення</string>
+    <string name="chat_level_always_detail">Сповіщати про кожне нове повідомлення.</string>
+    <string name="chat_level_mention">Лише згадки</string>
+    <string name="chat_level_mention_detail">Сповіщати, лише коли мене згадують через @ або цитують.</string>
+    <string name="chat_level_never">Ніколи</string>
+    <string name="chat_level_never_detail">Ні сповіщень, ні лічильника непрочитаного.</string>
+    <string name="chat_leave">Покинути розмову</string>
+    <string name="chat_leave_title">Покинути цю розмову?</string>
+    <string name="chat_leave_detail">Вона зникне зі списку. Нове повідомлення поверне її, і нічого не видаляється.</string>
+    <string name="chat_delete_title">Видалити це повідомлення?</string>
+    <string name="chat_delete_detail">Воно зникне в усіх учасників розмови.</string>
+    <string name="apps_load_failed">Не вдалося завантажити цей застосунок</string>
+    <string name="search_empty_detail">Спробуйте інше слово</string>
+    <string name="search_node_empty">У цій ноді нічого не знайшлося</string>
+    <string name="search_nodes_capped">Ноди · %1$d з %2$d</string>
+
+    <!-- Профіль -->
+    <string name="profile_guest">Увійдіть, щоб побачити свій профіль</string>
+    <string name="profile_follow">Стежити</string>
+    <string name="profile_following">Ви стежите</string>
+    <string name="profile_admin">Адміністратор</string>
+    <string name="profile_moderator">Модератор</string>
+    <string name="profile_last_seen">Був(ла) %1$s</string>
+    <string name="profile_joined">З нами від %1$s</string>
+    <string name="profile_energy">Енергія</string>
+    <string name="profile_reputation">Репутація</string>
+    <string name="profile_topics">Теми</string>
+    <string name="profile_posts">Дописи</string>
+    <string name="profile_likes">Вподобання</string>
+    <string name="profile_bookmarks">Закладки</string>
+    <string name="profile_empty_points">Історії енергії немає</string>
+
+    <!-- Налаштування -->
+    <string name="settings_account">Обліковий запис</string>
+    <string name="settings_preferences">Уподобання</string>
+    <string name="settings_account_section">Цей застосунок</string>
+    <string name="settings_profile">Профіль</string>
+    <string name="settings_associated">Повʼязані акаунти</string>
+    <string name="settings_security">Безпека</string>
+    <string name="settings_interface">Інтерфейс</string>
+    <string name="settings_notifications">Сповіщення</string>
+    <string name="settings_email">Пошта</string>
+    <string name="settings_privacy">Приватність</string>
+    <string name="settings_web">Відкрити вебналаштування</string>
+    <string name="settings_push">Push-сповіщення</string>
+    <string name="settings_sign_out">Вийти</string>
+    <string name="settings_appearance">Вигляд</string>
+    <string name="settings_other">Інше</string>
+    <string name="settings_color_mode">Кольорова схема</string>
+    <string name="settings_text_size">Розмір тексту</string>
+    <string name="settings_default_home">Стартовий екран</string>
+    <string name="settings_external_links">Відкривати зовнішні посилання в новій вкладці</string>
+    <string name="settings_quoting">Увімкнути відповіді з цитатою</string>
+    <string name="settings_in_app_notifications">Сповіщення в застосунку</string>
+    <string name="settings_like_frequency">Сповіщати про вподобання</string>
+    <string name="settings_new_topic_duration">Вважати теми новими</string>
+    <string name="settings_track_on_reply">Стежити за темами, де я відповів(ла)</string>
+    <string name="settings_email_notifications">Сповіщення поштою</string>
+    <string name="settings_email_replies">Листи про відповіді</string>
+    <string name="settings_email_messages">Листи про повідомлення</string>
+    <string name="settings_email_previous">Додавати попередні відповіді</string>
+    <string name="settings_email_digest">Надсилати добірки</string>
+    <string name="settings_hide_profile">Сховати мій публічний профіль</string>
+    <string name="settings_hide_presence">Сховати мою присутність</string>
+
+    <string name="color_mode_auto">Автоматично</string>
+    <string name="color_mode_light">Світла</string>
+    <string name="color_mode_dark">Темна</string>
+    <string name="text_size_smallest">Найдрібніший</string>
+    <string name="text_size_smaller">Дрібніший</string>
+    <string name="text_size_normal">Звичайний</string>
+    <string name="text_size_larger">Більший</string>
+    <string name="text_size_largest">Найбільший</string>
+    <string name="email_level_always">Завжди</string>
+    <string name="email_level_away">Лише коли мене немає</string>
+    <string name="email_level_never">Ніколи</string>
+    <string name="previous_replies_always">Завжди</string>
+    <string name="previous_replies_unless">Якщо ще не надсилали</string>
+    <string name="previous_replies_never">Ніколи</string>
+    <string name="like_freq_always">Завжди</string>
+    <string name="like_freq_first_daily">Уперше та щодня</string>
+    <string name="like_freq_first">Лише вперше</string>
+    <string name="like_freq_never">Ніколи</string>
+    <string name="duration_last_visit">Від минулого візиту</string>
+    <string name="duration_one_day">1 день</string>
+    <string name="duration_two_days">2 дні</string>
+    <string name="duration_one_week">1 тиждень</string>
+    <string name="duration_two_weeks">2 тижні</string>
+
+    <!-- Push -->
+    <string name="push_enable">Push-сповіщення</string>
+    <string name="push_enable_detail">Перевіряє нові сповіщення у фоні</string>
+    <string name="push_permission_footer">Сповіщення вимкнено в системних налаштуваннях — доки їх не увімкнути, нічого не надійде.</string>
+    <string name="push_filter_footer">Вимкнені типи все одно видно у вхідних усередині застосунку.</string>
+    <string name="push_open_system_settings">Відкрити системні налаштування</string>
+    <string name="push_types">Типи</string>
+    <string name="push_replies">Відповіді та згадки</string>
+    <string name="push_replies_detail">Хтось відповів, процитував або згадав вас</string>
+    <string name="push_likes">Вподобання</string>
+    <string name="push_likes_detail">Комусь сподобався ваш допис або відповідь</string>
+    <string name="push_messages">Повідомлення</string>
+    <string name="push_messages_detail">Вам надійшло особисте повідомлення</string>
+    <string name="push_other">Нагороди та системні оголошення</string>
+    <string name="push_other_detail">Вручення нагород, групові повідомлення тощо</string>
+
+    <!-- Безпека -->
+    <string name="security_password">Пароль</string>
+    <string name="security_send_reset">Надіслати лист для зміни пароля</string>
+    <string name="security_reset_sent">Лист для зміни пароля надіслано</string>
+    <string name="security_two_factor">Двофакторний захист</string>
+    <string name="security_two_factor_footer">Після ввімкнення під час входу також запитають одноразовий код.</string>
+    <string name="security_status">Стан</string>
+    <string name="security_enabled">Увімкнено</string>
+    <string name="security_disabled">Вимкнено</string>
+    <string name="security_backup_codes">Резервні коди</string>
+    <string name="security_generate_backup">Створити резервні коди</string>
+    <string name="security_backup_footer">Зберігайте їх у надійному місці — кожен код спрацьовує один раз.</string>
+    <string name="security_enable_totp">Увімкнути двофакторний захист</string>
+    <string name="security_disable_totp">Вимкнути двофакторний захист</string>
+    <string name="security_totp_enabled">Двофакторний захист увімкнено</string>
+    <string name="security_totp_disabled">Двофакторний захист вимкнено</string>
+    <string name="security_scan_key">Відскануйте або введіть ключ</string>
+    <string name="security_key">Ключ</string>
+    <string name="security_totp_footer">Додайте його до застосунку-автентифікатора й уведіть 6-значний код, щоб завершити.</string>
+    <string name="security_totp_code_hint">6-значний код</string>
+    <string name="security_finish_binding">Завершити налаштування</string>
+    <string name="security_sessions">Сеанси</string>
+    <string name="security_session_fallback">Сеанс №%1$d</string>
+    <string name="security_current_device">Цей пристрій</string>
+    <string name="security_sign_out_session">Завершити</string>
+    <string name="security_session_revoked">Сеанс завершено</string>
+    <string name="security_confirm_identity">Підтвердіть, що це ви</string>
+    <string name="security_confirm_detail">Для важливих змін треба знову ввести пароль.</string>
+    <string name="security_wrong_password">Хибний пароль, спробуйте ще раз</string>
+    <string name="security_no_associated">Повʼязаних акаунтів немає</string>
+    <string name="security_associated_footer">Через повʼязані акаунти можна входити на сайт.</string>
+    <string name="security_unlink">Відвʼязати</string>
+    <string name="security_unlink_confirm_title">Відвʼязати %1$s?</string>
+    <string name="security_unlink_confirm_detail">Увійти через нього не вийде, доки ви не привʼяжете його знову.</string>
+
+    <!-- Редагування профілю -->
+    <string name="profile_edit_avatar">Змінити аватар</string>
+    <string name="profile_edit_section">Профіль</string>
+    <string name="profile_edit_name">Показуване імʼя</string>
+    <string name="profile_edit_name_hint">Як виглядає ваше імʼя</string>
+    <string name="profile_edit_title">Звання</string>
+    <string name="profile_edit_title_none">Без звання</string>
+    <string name="profile_edit_title_locked">Звання беруться з отриманих вами нагород</string>
+    <string name="profile_edit_bio">Про себе</string>
+    <string name="profile_edit_bio_hint">Розкажіть про себе</string>
+    <string name="profile_edit_website">Сайт</string>
+    <string name="profile_edit_location">Звідки ви</string>
+    <string name="profile_edit_saved">Профіль збережено</string>
+    <string name="profile_edit_load_failed">Не вдалося завантажити ваш профіль</string>
+    <string name="profile_edit_load_failed_detail">Перевірте зʼєднання та спробуйте ще раз.</string>
+    <string name="profile_avatar_updated">Аватар оновлено</string>
+    <string name="profile_edit_background">Змінити тло</string>
+    <string name="profile_edit_background_remove">Прибрати тло</string>
+    <string name="profile_background_updated">Тло оновлено</string>
+
+    <!-- Вхід і реєстрація -->
+    <string name="auth_terms">Входячи, ви приймаєте умови та політику конфіденційності NODELOC.</string>
+    <string name="auth_website">Продовжити через сайт NodeLoc</string>
+    <string name="auth_identifier">Пошта або імʼя користувача</string>
+    <string name="auth_identifier_hint">you@example.com</string>
+    <string name="auth_password">Пароль</string>
+    <string name="auth_code">Код</string>
+    <string name="auth_code_hint">6-значний код</string>
+    <string name="auth_backup_code">Резервний код</string>
+    <string name="auth_use_backup">Скористатися резервним кодом</string>
+    <string name="auth_use_totp">Скористатися кодом автентифікатора</string>
+    <string name="auth_forgot">Забули пароль?</string>
+    <string name="auth_email_step">Ваша пошта</string>
+    <string name="auth_email">Пошта</string>
+    <string name="auth_username_step">Оберіть імʼя користувача</string>
+    <string name="auth_username">Імʼя користувача</string>
+    <string name="auth_username_hint">3–20 символів</string>
+    <string name="auth_email_invalid">Уведіть коректну адресу пошти</string>
+    <string name="auth_email_ok">З поштою все гаразд</string>
+    <string name="auth_username_available">Гарне імʼя — воно вільне</string>
+    <string name="auth_username_taken">Це імʼя вже зайняте</string>
+    <string name="auth_username_suggestion">Спробуйте «%1$s»</string>
+    <string name="auth_password_step">Придумайте пароль</string>
+    <string name="auth_password_hint">Щонайменше 10 символів</string>
+    <string name="auth_password_short">Потрібно щонайменше 10 символів</string>
+    <string name="auth_password_ok">Довжини достатньо</string>
+    <string name="auth_gender_step">Ваша стать</string>
+    <string name="auth_gender_footer">Зберігається лише на цьому пристрої, для рекомендацій.</string>
+    <string name="auth_gender_male">Чоловіча</string>
+    <string name="auth_gender_female">Жіноча</string>
+    <string name="auth_gender_other">Інша</string>
+    <string name="auth_gender_private">Не хочу відповідати</string>
+    <string name="auth_interests_step">Цікаві вам ноди</string>
+    <string name="auth_interests_footer">Оберіть до 3 — ви приєднаєтеся до них автоматично.</string>
+    <string name="auth_shuffle">Інші</string>
+    <string name="auth_finish_signup">Створити обліковий запис</string>
+    <string name="auth_check_email">Перевірте пошту</string>
+    <string name="auth_activation_detail">Ми надіслали посилання для активації на %1$s — відкрийте його, щоб завершити реєстрацію.</string>
+    <string name="auth_activation_hint">Після цього поверніться та увійдіть; обрані ноди приєднаються самі.</string>
+    <string name="auth_back_to_login">Повернутися до входу</string>
+    <string name="auth_gate_title">Долучайтеся до NODELOC</string>
+    <string name="auth_gate_detail">Увійдіть, щоб писати, відповідати, ставити вподобання й додавати в закладки. Читати можна без облікового запису.</string>
+
+    <string name="auth_error_key_generation">Не вдалося створити ключі безпеки.</string>
+    <string name="auth_error_missing_payload">Відповідь на вхід виявилася неповною.</string>
+    <string name="auth_error_lost_keypair">Вхід було перервано. Почніть спочатку.</string>
+    <string name="auth_error_decrypt">Не вдалося перевірити відповідь на вхід.</string>
+    <string name="auth_error_nonce">Перевірка входу не пройшла. Спробуйте ще раз.</string>
+    <string name="auth_error_cancelled">Вхід скасовано.</string>
+    <string name="auth_error_missing_fields">Заповніть, будь ласка, всі поля.</string>
+    <string name="auth_error_second_factor">У цьому обліковому записі увімкнено двофакторний захист — уведіть код.</string>
+    <string name="auth_error_incomplete">Вхід не завершився. Спробуйте ще раз.</string>
+    <string name="auth_error_no_session">Вхід не повернув сеанс сайту.</string>
+    <string name="auth_error_session_start">Не вдалося почати сеанс входу.</string>
+    <string name="auth_error_bad_code">Код хибний. Спробуйте ще раз.</string>
+    <string name="auth_error_login_failed">Увійти не вдалося, спробуйте ще раз</string>
+    <string name="auth_error_signup_failed">Зареєструватися не вдалося, спробуйте ще раз</string>
+    <string name="auth_signup_activation_needed">Обліковий запис створено — перевірте пошту й активуйте його.</string>
+
+    <!-- Вітання -->
+    <string name="welcome_tagline">Вільно, на рівних, приязно, відкрито, весело</string>
+    <string name="welcome_start">Почати</string>
+    <string name="welcome_have_account">У мене вже є обліковий запис</string>
+    <string name="welcome_browse">Поки просто подивлюся</string>
+
+    <!-- Браузер і медіа -->
+    <string name="browser_open_external">Відкрити у браузері</string>
+    <string name="web_session_api_only_title">Для цієї сторінки потрібен вхід на сайті</string>
+    <string name="web_session_api_only_detail">Ви увійшли через сайт, тож сторінка тут відкриється, але зміни не збережуться. Продовжте у браузері — там ви вже увійшли.</string>
+    <string name="web_session_continue_anyway">Усе одно відкрити тут</string>
+    <string name="browser_text_size">Розмір тексту %1$d%%</string>
+    <string name="media_mute">Вимкнути звук</string>
+    <string name="media_unmute">Увімкнути звук</string>
+    <string name="editor_crop">Обрізати</string>
+    <string name="editor_brush">Малювати</string>
+    <string name="editor_mosaic">Мозаїка</string>
+    <string name="editor_mosaic_solid">Заливка</string>
+    <string name="editor_mosaic_blur">Розмиття</string>
+    <string name="editor_mosaic_fine">Дрібна</string>
+    <string name="editor_mosaic_pixel">Пікселі</string>
+    <string name="editor_mosaic_blocks">Мозаїка</string>
+    <string name="editor_text">Текст</string>
+    <string name="editor_rotate">Повернути</string>
+    <string name="editor_add_text">Додати текст</string>
+    <string name="editor_crop_free">Вільно</string>
+    <string name="editor_crop_square">1:1</string>
+    <string name="editor_crop_portrait">4:5</string>
+    <string name="editor_crop_landscape">16:9</string>
+    <string name="editor_filter_faded">Вицвілий</string>
+    <string name="editor_filter_mono">Чорно-білий</string>
+    <string name="editor_filter_cool">Холодний</string>
+    <string name="editor_filter_warm">Теплий</string>
+    <string name="editor_filter_vivid">Яскравий</string>
+    <string name="editor_filter_none">Оригінал</string>
+    <string name="editor_text_filled">З підкладкою</string>
+    <string name="editor_text_outlined">З обведенням</string>
+    <string name="editor_text_plain">Звичайний</string>
+    <string name="editor_filter">Фільтр</string>
+    <string name="editor_sticker">Стікер</string>
+    <string name="editor_flip">Віддзеркалити</string>
+    <string name="editor_redo">Повернути</string>
+    <string name="editor_reset">Скинути</string>
+    <string name="trim_gif_limit">GIF обмежено %1$d с; решту буде обрізано</string>
+    <string name="trim_failed">Не вдалося обробити це відео, спробуйте ще раз</string>
+    <string name="trim_too_large">Цей ролик завеликий. Обріжте його коротше й спробуйте ще раз.</string>
+
+    <!-- Каталог застосунків -->
+    <string name="apps_title">Каталог застосунків</string>
+    <string name="apps_more">Ще застосунки</string>
+    <string name="apps_recent">Нещодавні застосунки</string>
+    <string name="apps_empty">Застосунків немає</string>
+    <string name="apps_open">Відкрити застосунок</string>
+    <string name="apps_web_only">Цей застосунок працює лише на сайті.</string>
+    <string name="apps_permissions">Дозволи</string>
+    <string name="apps_discussion">Відкрити обговорення</string>
+
+    <!-- Лічильні іменники -->
+    <plurals name="common_members">
+        <item quantity="one">%1$s учасник</item>
+        <item quantity="few">%1$s учасники</item>
+        <item quantity="many">%1$s учасників</item>
+        <item quantity="other">%1$s учасника</item>
+    </plurals>
+    <plurals name="common_topics">
+        <item quantity="one">%1$s тема</item>
+        <item quantity="few">%1$s теми</item>
+        <item quantity="many">%1$s тем</item>
+        <item quantity="other">%1$s теми</item>
+    </plurals>
+    <plurals name="chat_member_count">
+        <item quantity="one">%1$d учасник</item>
+        <item quantity="few">%1$d учасники</item>
+        <item quantity="many">%1$d учасників</item>
+        <item quantity="other">%1$d учасника</item>
+    </plurals>
+    <plurals name="chat_typing_many">
+        <item quantity="one">%1$d людина пише…</item>
+        <item quantity="few">%1$d людини пишуть…</item>
+        <item quantity="many">%1$d людей пишуть…</item>
+        <item quantity="other">%1$d людини пишуть…</item>
+    </plurals>
+    <plurals name="common_replies_count">
+        <item quantity="one">%1$d відповідь</item>
+        <item quantity="few">%1$d відповіді</item>
+        <item quantity="many">%1$d відповідей</item>
+        <item quantity="other">%1$d відповіді</item>
+    </plurals>
+    <plurals name="reader_load_more_replies">
+        <item quantity="one">ще %1$d відповідь</item>
+        <item quantity="few">ще %1$d відповіді</item>
+        <item quantity="many">ще %1$d відповідей</item>
+        <item quantity="other">ще %1$d відповіді</item>
+    </plurals>
+    <plurals name="apps_installs">
+        <item quantity="one">%1$d встановлення</item>
+        <item quantity="few">%1$d встановлення</item>
+        <item quantity="many">%1$d встановлень</item>
+        <item quantity="other">%1$d встановлення</item>
+    </plurals>
+    <plurals name="poll_voters">
+        <item quantity="one">%1$d голос</item>
+        <item quantity="few">%1$d голоси</item>
+        <item quantity="many">%1$d голосів</item>
+        <item quantity="other">%1$d голоса</item>
+    </plurals>
+    <plurals name="lottery_my_tickets">
+        <item quantity="one">У вас %1$d квиток</item>
+        <item quantity="few">У вас %1$d квитки</item>
+        <item quantity="many">У вас %1$d квитків</item>
+        <item quantity="other">У вас %1$d квитка</item>
+    </plurals>
+    <string name="profile_tab_load_failed">Не вдалося завантажити цю вкладку</string>
+    <plurals name="lottery_entrants">
+        <item quantity="one">%1$d учасник</item>
+        <item quantity="few">%1$d учасники</item>
+        <item quantity="many">%1$d учасників</item>
+        <item quantity="other">%1$d учасника</item>
+    </plurals>
+    <plurals name="lottery_tickets">
+        <item quantity="one">%1$d квиток</item>
+        <item quantity="few">%1$d квитки</item>
+        <item quantity="many">%1$d квитків</item>
+        <item quantity="other">%1$d квитка</item>
+    </plurals>
+    <plurals name="lottery_min_participants">
+        <item quantity="one">розіграш за %1$d учасника</item>
+        <item quantity="few">розіграш за %1$d учасників</item>
+        <item quantity="many">розіграш за %1$d учасників</item>
+        <item quantity="other">розіграш за %1$d учасників</item>
+    </plurals>
+    <plurals name="lottery_max_participants">
+        <item quantity="one">не більше %1$d учасника</item>
+        <item quantity="few">не більше %1$d учасників</item>
+        <item quantity="many">не більше %1$d учасників</item>
+        <item quantity="other">не більше %1$d учасників</item>
+    </plurals>
+    <plurals name="envelope_packets">
+        <item quantity="one">%1$d конверт</item>
+        <item quantity="few">%1$d конверти</item>
+        <item quantity="many">%1$d конвертів</item>
+        <item quantity="other">%1$d конверта</item>
+    </plurals>
+    <plurals name="notif_group_inbox_count">
+        <item quantity="one">У вашій скриньці %1$s %2$d повідомлення</item>
+        <item quantity="few">У вашій скриньці %1$s %2$d повідомлення</item>
+        <item quantity="many">У вашій скриньці %1$s %2$d повідомлень</item>
+        <item quantity="other">У вашій скриньці %1$s %2$d повідомлення</item>
+    </plurals>
+    <string name="image_load_failed">Не вдалося завантажити це зображення</string>
+    <string name="viewer_save_image">Зберегти зображення</string>
+    <string name="viewer_save_video">Зберегти відео</string>
+    <string name="viewer_save_video_failed">Не вдалося зберегти це відео</string>
+    <string name="report_title">Поскаржитися на допис</string>
+    <string name="report_note_hint">Розкажіть модераторам, що не так</string>
+    <string name="report_sent">Надіслано — модератори подивляться</string>
+    <string name="viewer_saved">Збережено до галереї</string>
+    <string name="viewer_save_failed">Не вдалося зберегти це зображення</string>
+    <string name="viewer_more">Ще</string>
+    <string name="viewer_previous">Попереднє зображення</string>
+    <string name="viewer_next">Наступне зображення</string>
+    <string name="media_video_failed">Не вдалося відтворити це відео</string>
+    <string name="media_no_more_videos">Поки що відео більше немає</string>
+    <string name="common_pause">Пауза</string>
+    <string name="profile_message">Написати</string>
+    <string name="profile_chat">Чат</string>
+    <string name="profile_notification_level">Сповіщення</string>
+    <string name="profile_notify_normal">Звичайні</string>
+    <string name="profile_notify_muted">Без звуку</string>
+    <string name="profile_notify_ignored">Ігнорувати</string>
+    <string name="profile_notify_normal_detail">Сповіщення надходять як завжди.</string>
+    <string name="profile_notify_muted_detail">Сповіщень від цієї людини не буде.</string>
+    <string name="profile_notify_ignored_detail">Її дописи теж будуть сховані.</string>
+    <string name="profile_notify_saved">Збережено</string>
+    <string name="auth_failed">Вхід не завершився</string>
+    <string name="auth_continue_with">Продовжити через %1$s</string>
+    <string name="auth_or_password">або увійти за паролем</string>
+
+    <!-- Оновлення -->
+    <string name="update_check">Перевірити оновлення</string>
+    <string name="update_up_to_date">У вас найновіша версія</string>
+    <string name="update_available_title">Доступна версія %1$s</string>
+    <string name="update_available_required">Без цього оновлення застосунком користуватися не можна.</string>
+    <string name="update_install">Завантажити та встановити</string>
+    <string name="update_later">Пізніше</string>
+    <string name="update_downloading">Завантаження…</string>
+    <string name="update_download_failed">Не вдалося завантажити оновлення. Спробуйте пізніше.</string>
+    <string name="update_install_failed">Не вдалося відкрити встановлювач</string>
+    <string name="update_needs_install_permission">Дозвольте NodeLoc встановлювати застосунки</string>
+
+    <!-- Створення розіграшу -->
+    <string name="lottery_field_max_participants">Максимум учасників (порожньо — без обмеження)</string>
+    <string name="lottery_field_min_tickets">Мінімум квитків на людину</string>
+    <string name="lottery_field_trust_level">Мінімальний рівень довіри</string>
+    <string name="lottery_field_levels">Призи</string>
+    <string name="lottery_add_level">Додати приз</string>
+    <string name="lottery_remove_level">Прибрати</string>
+    <string name="lottery_level_name_hint">Назва, наприклад «Головний приз»</string>
+    <string name="lottery_draws_at">Розіграш %1$s</string>
+    <string name="lottery_error_title">Дайте розіграшу назву</string>
+    <string name="lottery_error_prize">Опишіть хоча б один приз</string>
+    <string name="lottery_error_min_participants">Мінімум учасників — не менше 1</string>
+    <string name="lottery_error_max_below_min">Максимум учасників має бути більшим за мінімум</string>
+    <string name="lottery_error_min_tickets">Мінімум квитків не може перевищувати максимум</string>
+    <string name="lottery_error_draw_days">Розіграш має бути через 1–%1$d днів</string>
+    <string name="lottery_condition_min_tickets">не менше %1$d квитків на людину</string>
+    <string name="lottery_condition_max_tickets">не більше %1$d квитків на людину</string>
+    <string name="lottery_condition_trust_level">TL%1$d і вище</string>
+
+    <!-- Щоденна відмітка -->
+    <string name="checkin_action">Відмітитися</string>
+    <string name="checkin_done">Сьогодні ви вже відмітилися</string>
+    <string name="checkin_success">Відмітку зараховано — %1$d енергії</string>
+
+    <!-- Поступ рівня -->
+    <string name="upgrade_title">Поступ рівня</string>
+    <string name="upgrade_load_failed">Не вдалося завантажити поступ рівня</string>
+    <string name="upgrade_next_level">Наступний рівень: %1$s</string>
+    <string name="upgrade_met_count">Виконано %1$d з %2$d</string>
+    <string name="upgrade_all_met">Усі вимоги для наступного рівня виконано.</string>
+    <string name="upgrade_maintaining">Утримання</string>
+    <string name="upgrade_retention_title">Що потрібно, щоб утримати рівень</string>
+    <string name="upgrade_locked">Рівень довіри зафіксовано, сам він не зміниться.</string>
+    <string name="upgrade_group_standing">Стан облікового запису</string>
+    <string name="upgrade_group_activity">Активність</string>
+    <string name="upgrade_group_recent">Останні %1$d днів</string>
+    <string name="upgrade_group_recent_plain">Нещодавня активність</string>
+    <string name="upgrade_group_all_time">За весь час</string>
+    <string name="upgrade_target">Мета %1$d</string>
+    <string name="upgrade_limit">Межа %1$d</string>
+    <string name="upgrade_condition_met">Виконано</string>
+    <string name="upgrade_condition_over">Межу перевищено</string>
+    <string name="upgrade_condition_remaining">Лишилося %1$d</string>
+
+    <!-- Джерело допису -->
+    <string name="post_source_title">Джерело допису</string>
+    <string name="post_source_explain">Оберіть, скільки про цей телефон можуть показувати ваші дописи. Типово видно модель; оберіть «Не показувати» — і не буде видно нічого. Вибір привʼязано до облікового запису, а не до пристрою.</string>
+    <string name="post_source_footer">Тут кожен може написати що завгодно, тож джерело — просто оздоба: воно нічого не дає й нічого не доводить.</string>
+    <string name="post_source_from">з %1$s</string>
+    <string name="post_source_level_off">Не показувати</string>
+    <string name="post_source_level_client">Лише застосунок</string>
+    <string name="post_source_level_platform">Застосунок і платформа</string>
+    <string name="post_source_level_brand">Аж до марки</string>
+    <string name="post_source_level_model">Аж до моделі</string>
+    <string name="post_source_history_title">Уже написані дописи</string>
+    <string name="post_source_history_detail">Нижчий рівень діє лише на майбутні дописи. Тут джерело видаляється з усього вже опублікованого, і це незворотно.</string>
+    <string name="post_source_clear">Видалити зі старих дописів</string>
+    <string name="post_source_cleared">Видалено</string>
+    <string name="video_quality">Якість</string>
+    <string name="video_quality_480">480p</string>
+    <string name="video_quality_720">720p</string>
+    <string name="video_quality_1080">1080p</string>
+    <string name="video_quality_original">Оригінал</string>
+    <string name="video_sound">Звук</string>
+    <string name="video_gif">GIF</string>
+    <string name="video_play">Відтворити</string>
+    <string name="video_pause">Пауза</string>
+    <string name="video_summary">%1$s · ~%2$s</string>
+    <string name="sort_best">Найкраще</string>
+    <string name="sort_best_detail">Теми, дібрані для вас</string>
+    <string name="block_user_title">Заблокувати цю людину?</string>
+    <string name="block_user_message">Ви більше не побачите дописи %1$s, і вона не зможе вам писати. Скасувати можна в налаштуваннях.</string>
+    <string name="block_user_confirm">Заблокувати</string>
+    <string name="block_user_done">Заблоковано</string>
+    <string name="unblock_user">Розблокувати</string>
+    <string name="unblock_user_done">Розблоковано</string>
+    <string name="settings_blocked">Заблоковані</string>
+    <string name="blocked_empty">Нікого не заблоковано.</string>
+    <string name="blocked_not_allowed">Сайт поки не дозволяє вашому обліковому запису блокувати інших.</string>
+    <string name="post_more_bookmark">У закладки</string>
+    <string name="post_more_watch">Стежити</string>
+    <string name="post_more_watching">Стежу</string>
+    <string name="post_more_author">Відкрити автора</string>
+    <string name="post_more_block_author">Заблокувати автора</string>
+    <string name="post_more_repost">Репост</string>
+    <string name="profile_report">Поскаржитися на цю людину</string>
+    <string name="profile_block">Заблокувати цю людину</string>
+    <string name="profile_report_title">Скарга на @%1$s</string>
+</resources>

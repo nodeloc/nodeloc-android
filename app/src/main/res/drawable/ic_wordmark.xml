@@ -1,0 +1,70 @@
+<!--
+  The site's own wordmark, converted stroke-for-stroke from the SVG served at
+  /uploads/default/original/3X/d/2/d2dbcb26…svg. The brand colours are literal
+  here on purpose: a logo is the one thing that must not follow the theme.
+
+  The SVG's two circles are drawn as arc pairs because VectorDrawable has no
+  circle primitive; everything else is the source path data unchanged.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="28dp"
+    android:viewportWidth="960"
+    android:viewportHeight="280">
+    <group android:translateX="30">
+        <path
+            android:pathData="M0,222 L0,172 A50,50 0 0 1 100,172 L100,222"
+            android:strokeColor="#009966"
+            android:strokeWidth="26"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:pathData="M150,172 A50,50 0 1 0 250,172 A50,50 0 1 0 150,172"
+            android:strokeColor="#009966"
+            android:strokeWidth="26"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:pathData="M300,172 A50,50 0 1 0 400,172 A50,50 0 1 0 300,172"
+            android:strokeColor="#009966"
+            android:strokeWidth="26"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:pathData="M400,58 L400,222"
+            android:strokeColor="#009966"
+            android:strokeWidth="26"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:pathData="M450,172 L550,172"
+            android:strokeColor="#009966"
+            android:strokeWidth="26"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:pathData="M550,172 A50,50 0 1 0 541,201"
+            android:strokeColor="#009966"
+            android:strokeWidth="26"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:pathData="M600,58 L600,222"
+            android:strokeColor="#FF9933"
+            android:strokeWidth="26"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:pathData="M650,172 A50,50 0 1 0 750,172 A50,50 0 1 0 650,172"
+            android:strokeColor="#FF9933"
+            android:strokeWidth="26"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:pathData="M891,143 A50,50 0 1 0 891,201"
+            android:strokeColor="#FF9933"
+            android:strokeWidth="26"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+    </group>
+</vector>

@@ -1,0 +1,796 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  فارسی. کلیدها و ترتیب جای‌نگه‌دارها باید دقیقاً مثل values/strings.xml باشد.
+  جمع در فارسی دو صورت دارد: one و other. چیدمان راست‌به‌چپ در برنامه فعال است.
+-->
+<resources>
+    <string name="app_name">NodeLoc</string>
+
+    <!-- عمومی -->
+    <string name="common_back">بازگشت</string>
+    <string name="common_close">بستن</string>
+    <string name="common_cancel">لغو</string>
+    <string name="common_confirm">تأیید</string>
+    <string name="common_done">انجام شد</string>
+    <string name="common_save">ذخیره</string>
+    <string name="common_continue">ادامه</string>
+    <string name="common_retry">تلاش دوباره</string>
+    <string name="link_blocked">این پیوند باز نشد.</string>
+    <string name="session_expired">نشست شما منقضی شد. دوباره وارد شوید.</string>
+    <string name="common_more">بیشتر</string>
+    <string name="common_share">هم‌رسانی</string>
+    <string name="common_refresh">بارگذاری دوباره</string>
+    <string name="common_menu">منو</string>
+    <string name="common_settings">تنظیمات</string>
+    <string name="common_login">ورود</string>
+    <string name="common_signup">ثبت‌نام</string>
+    <string name="common_delete">حذف</string>
+    <string name="common_clear">پاک کردن</string>
+    <string name="common_clear_all">پاک کردن همه</string>
+    <string name="common_expand">باز کردن</string>
+    <string name="common_collapse">جمع کردن</string>
+    <string name="common_loading">در حال بارگذاری</string>
+    <string name="common_checking">در حال بررسی…</string>
+    <string name="common_add">افزودن</string>
+    <string name="common_or">یا</string>
+    <string name="common_empty">هنوز چیزی اینجا نیست</string>
+    <string name="common_empty_hint">بعداً سر بزنید</string>
+    <string name="common_play">پخش</string>
+    <string name="common_undo">واگردانی</string>
+    <string name="common_guest">وارد نشده‌اید</string>
+    <string name="common_me">من</string>
+
+    <!-- ناوبری پایین -->
+    <string name="tab_home">خانه</string>
+    <string name="tab_nodes">گره‌ها</string>
+    <string name="tab_inbox">صندوق ورودی</string>
+    <string name="tab_search">جست‌وجو</string>
+    <string name="tab_profile">نمایه</string>
+
+    <!-- خطاها: کد وضعیت هرگز نمایش داده نمی‌شود -->
+    <string name="error_unauthorized">اجازه ندارید، یا نشست شما منقضی شده است. دوباره وارد شوید.</string>
+    <string name="error_not_found">این محتوا وجود ندارد یا حذف شده است</string>
+    <string name="error_rate_limited">درخواست‌ها بیش از حد است — کمی بعد دوباره تلاش کنید</string>
+    <string name="error_rate_limited_wait">درخواست‌ها بیش از حد است — %1$d ثانیه دیگر تلاش کنید</string>
+    <string name="error_server">سرور مشکل دارد. بعداً تلاش کنید.</string>
+    <string name="error_generic_request">درخواست ناموفق بود، دوباره تلاش کنید</string>
+    <string name="error_challenged">بررسی امنیتی سایت جلوی این درخواست را گرفت. بعداً تلاش کنید.</string>
+    <string name="error_decoding">هنگام بارگذاری مشکلی پیش آمد. دوباره تلاش کنید.</string>
+    <string name="error_offline">اتصال شبکه‌ای نیست — بررسی کنید و دوباره تلاش کنید</string>
+    <string name="error_timeout">زمان اتصال تمام شد، دوباره تلاش کنید</string>
+    <string name="error_transport">مشکل شبکه، دوباره تلاش کنید</string>
+    <string name="error_action_failed">انجام نشد. دوباره تلاش کنید.</string>
+
+    <!-- خوراک -->
+    <string name="feed_compose">نوشتهٔ تازه</string>
+    <string name="feed_reading_mode">حالت خواندن</string>
+    <string name="feed_pinned">سنجاق‌شده</string>
+    <string name="reading_mode_compact">فشرده</string>
+    <string name="reading_mode_expand">گسترده</string>
+    <string name="reading_mode_card">کارتی</string>
+
+    <!-- گره‌ها -->
+    <string name="node_create">گره تازه</string>
+    <string name="node_browse">مرور گره‌ها</string>
+    <string name="node_create_title">ساخت گره</string>
+    <string name="node_join">پیوستن</string>
+    <string name="node_joined">پیوسته‌اید</string>
+    <string name="node_join_success">به گره پیوستید</string>
+    <string name="node_leave_success">از گره بیرون آمدید</string>
+    <string name="node_empty_topics">این گره هنوز موضوعی ندارد</string>
+    <string name="node_not_found">این گره وجود ندارد</string>
+    <string name="node_empty">گره‌ای نیست</string>
+    <string name="node_search_in">جست‌وجو در این گره</string>
+    <string name="node_notification_level">اعلان‌ها: %1$s</string>
+    <string name="node_level_set">روی «%1$s» تنظیم شد</string>
+    <string name="node_name">نام</string>
+    <string name="node_name_hint">نام گره</string>
+    <string name="node_slug">مسیر (slug)</string>
+    <string name="node_slug_hint">english-slug</string>
+    <string name="node_slug_available">این مسیر آزاد است</string>
+    <string name="node_slug_taken">این مسیر گرفته شده است</string>
+    <string name="node_description">درباره</string>
+    <string name="node_description_hint">یک خط دربارهٔ این گره</string>
+    <string name="node_parent">بخش</string>
+    <string name="node_color">رنگ</string>
+    <string name="node_create_footer">پس از ساخت می‌توانید در این گره موضوع بفرستید.</string>
+    <string name="node_created">گره ساخته شد</string>
+    <string name="node_recent">بازدیدهای اخیر</string>
+
+    <!-- مرتب‌سازی -->
+    <string name="sort_latest">تازه‌ترین</string>
+    <string name="sort_new">تازه</string>
+    <string name="sort_hot">داغ</string>
+    <string name="sort_featured">برگزیده</string>
+    <string name="sort_top">برترین</string>
+    <string name="sort_latest_detail">موضوع‌هایی با نوشته‌های تازه</string>
+    <string name="sort_new_detail">در چند روز اخیر ساخته یا پاسخ داده شده</string>
+    <string name="sort_hot_detail">همین حالا داغ است</string>
+    <string name="sort_featured_detail">موضوع‌های دست‌چین‌شده</string>
+    <string name="sort_top_detail">موضوع‌هایی با بیشترین پسند</string>
+
+    <!-- سطح اعلان گره (مقدارها از خود Discourse) -->
+    <string name="level_muted">بی‌صدا</string>
+    <string name="level_regular">عادی</string>
+    <string name="level_tracking">پیگیری</string>
+    <string name="level_watching">دیده‌بانی</string>
+    <string name="level_watching_first">فقط نخستین نوشته</string>
+    <string name="level_muted_detail">دربارهٔ موضوع‌های تازهٔ این گره خبری نمی‌گیرید و در فهرست تازه‌ها هم نمایش داده نمی‌شوند.</string>
+    <string name="level_regular_detail">اگر کسی با @ نام شما را بیاورد یا پاسختان دهد، خبردار می‌شوید.</string>
+    <string name="level_tracking_detail">همهٔ موضوع‌های این گره را خودکار پیگیری می‌کنید. از نام‌بردن‌ها و پاسخ‌ها خبردار می‌شوید و شمار پاسخ‌های تازه نشان داده می‌شود.</string>
+    <string name="level_watching_detail">همهٔ موضوع‌های این گره را خودکار دیده‌بانی می‌کنید. از هر نوشتهٔ تازه خبردار می‌شوید و شمار پاسخ‌های تازه نشان داده می‌شود.</string>
+    <string name="level_watching_first_detail">از موضوع‌های تازهٔ این گره خبردار می‌شوید، اما از پاسخ‌ها نه.</string>
+
+    <!-- خواننده -->
+    <string name="reader_reply_sort">ترتیب پاسخ‌ها</string>
+    <string name="reply_sort_top">برترین</string>
+    <string name="reply_sort_new">تازه‌ترین</string>
+    <string name="reply_sort_old">قدیمی‌ترین</string>
+    <string name="reader_copy_link">رونوشت پیوند</string>
+    <string name="reader_link_copied">پیوند رونوشت شد</string>
+    <string name="reader_bookmark">نشانک</string>
+    <string name="reader_bookmarked">نشانک ذخیره شد</string>
+    <string name="reader_bookmark_removed">نشانک برداشته شد</string>
+    <string name="reader_unbookmark">برداشتن نشانک</string>
+    <string name="reader_report">گزارش</string>
+    <string name="reader_pin">سنجاق به بالا</string>
+    <string name="reader_unpin">برداشتن سنجاق</string>
+    <string name="reader_pinned">به بالا سنجاق شد</string>
+    <string name="reader_unpinned">سنجاق برداشته شد</string>
+    <string name="reader_pinned_badge">سنجاق‌شده</string>
+    <string name="reader_edit">ویرایش</string>
+    <string name="reader_edit_first">ویرایش موضوع</string>
+    <string name="reader_edit_title">ویرایش نوشته</string>
+    <string name="reader_edit_saved">ذخیره شد</string>
+    <string name="reader_delete">حذف</string>
+    <string name="reader_delete_done">حذف شد</string>
+    <string name="reader_delete_confirm">این نوشته حذف شود؟</string>
+    <string name="reader_delete_confirm_body">از موضوع پنهان می‌شود. کارکنان می‌توانند بازش گردانند.</string>
+    <string name="reader_deleted_badge">حذف‌شده</string>
+    <string name="reader_recover">بازگردانی</string>
+    <string name="reader_recover_done">بازگردانده شد</string>
+    <string name="reader_lock">قفل ویرایش</string>
+    <string name="reader_unlock">باز کردن قفل ویرایش</string>
+    <string name="reader_locked">ویرایش قفل شد</string>
+    <string name="reader_unlocked">قفل ویرایش باز شد</string>
+    <string name="reader_locked_badge">قفل‌شده</string>
+    <string name="reader_topic_close">بستن موضوع</string>
+    <string name="reader_topic_reopen">بازگشایی موضوع</string>
+    <string name="reader_topic_closed">موضوع بسته شد</string>
+    <string name="reader_topic_reopened">موضوع بازگشایی شد</string>
+    <string name="reader_topic_delete">حذف موضوع</string>
+    <string name="reader_topic_deleted">موضوع حذف شد</string>
+    <string name="reader_topic_delete_confirm">این موضوع حذف شود؟</string>
+    <string name="reader_topic_delete_confirm_body">کل رشته همراه با پاسخ‌ها می‌رود. کارکنان می‌توانند از وب‌سایت بازش گردانند.</string>
+    <string name="reader_repost">بازنشر</string>
+    <string name="reader_reposted">بازنشر شد</string>
+    <string name="reader_repost_to">در %1$s بازنشر شد</string>
+    <string name="reader_comment">دیدگاه‌ها</string>
+    <string name="reader_like">پسند</string>
+    <string name="vote_upvote">موافق</string>
+    <string name="vote_undo_upvote">برداشتن رأی موافق</string>
+    <string name="vote_downvote">مخالف</string>
+    <string name="vote_undo_downvote">برداشتن رأی مخالف</string>
+    <string name="vote_down_not_allowed">هنوز اجازهٔ رأی مخالف ندارید.</string>
+    <string name="vote_expand">با این حال نشان بده</string>
+    <string name="vote_pick_upvote">رأی موافق با</string>
+    <string name="vote_pick_downvote">رأی مخالف با</string>
+    <string name="reaction_none">هنوز واکنشی نیست.</string>
+    <string name="reaction_all">همه</string>
+    <string name="reader_reply">پاسخ</string>
+    <string name="reader_reply_to">پاسخ به ‎@%1$s</string>
+    <string name="reader_cancel_reply">لغو پاسخ</string>
+    <string name="reader_reply_hint">پاسخی بنویسید…</string>
+    <string name="reader_replies_failed">پاسخ‌ها بارگذاری نشد</string>
+    <string name="reader_code_copied">کد رونوشت شد</string>
+    <string name="reader_code_copy_hint">برای رونوشت نگه دارید</string>
+    <string name="reader_reply_one_media">هر پاسخ فقط یک پیوست می‌گیرد</string>
+    <string name="reader_reply_guest">برای شرکت در گفت‌وگو وارد شوید</string>
+    <string name="reader_send">فرستادن</string>
+    <string name="reader_reward">انعام</string>
+    <string name="reader_reward_energy">انعام انرژی</string>
+    <string name="reader_reward_amount">%1$d انرژی انعام بده</string>
+    <string name="reader_reward_done">%1$d انرژی انعام داده شد</string>
+    <string name="reader_reward_detail">انعام‌ها</string>
+    <string name="reader_reward_note_hint">یادداشت (اختیاری)</string>
+    <string name="reader_reward_empty">هنوز انعامی نیست</string>
+    <string name="reader_claimed_points">%1$d انرژی گرفتید</string>
+    <string name="reader_spoiler">لو رفتن داستان — برای دیدن بزنید</string>
+
+    <!-- افزونه‌ها -->
+    <string name="poll_title">نظرسنجی</string>
+    <string name="poll_closed">بسته</string>
+    <string name="poll_multiple">چندگزینه‌ای</string>
+    <string name="poll_vote">رأی</string>
+    <string name="poll_revoke">پس‌گرفتن رأی</string>
+    <string name="poll_create">ساخت نظرسنجی</string>
+    <string name="poll_option_hint">گزینهٔ %1$d</string>
+    <string name="poll_add_option">افزودن گزینه</string>
+    <string name="poll_single_choice">تک‌گزینه‌ای</string>
+    <string name="poll_multi_choice">چندگزینه‌ای ✓</string>
+    <string name="poll_insert">درج نظرسنجی</string>
+
+    <string name="lottery_title">قرعه‌کشی</string>
+    <string name="lottery_drawn">قرعه کشیده شد</string>
+    <string name="lottery_prize">جایزه</string>
+    <string name="lottery_quantity">×%1$d</string>
+    <string name="lottery_random">بلیت تصادفی</string>
+    <string name="lottery_join">شرکت</string>
+    <string name="lottery_add">بیشتر بخر</string>
+    <string name="lottery_winners">برندگان</string>
+    <string name="lottery_join_failed">شرکت در قرعه‌کشی انجام نشد.</string>
+    <string name="lottery_create_failed">ساخت قرعه‌کشی انجام نشد، اما نوشتهٔ شما منتشر شد</string>
+    <string name="lottery_default_level">جایزهٔ نخست</string>
+
+    <string name="envelope_title">پاکت · %1$d انرژی / %2$s</string>
+    <string name="envelope_exhausted">همه برداشته شد</string>
+    <string name="envelope_remaining">برای گرفتن پاسخ دهید — %1$d باقی مانده</string>
+    <string name="envelope_chip">پاکت %1$d/%2$d ×</string>
+    <string name="envelope_create_failed">ساخت پاکت انجام نشد، اما نوشتهٔ شما منتشر شد</string>
+
+    <!-- نگارش -->
+    <string name="compose_publish">انتشار</string>
+    <string name="compose_discard_title">از ویرایشگر بیرون می‌روید؟</string>
+    <string name="compose_discard_detail">پیش‌نویس نگه داشته می‌شود. اگر دورش بیندازید، نوشته‌تان از بین می‌رود.</string>
+    <string name="compose_discard_confirm">دور بینداز</string>
+    <string name="compose_edit_discard_title">تغییرها دور ریخته شود؟</string>
+    <string name="compose_edit_discard_detail">آنچه اینجا تغییر داده‌اید ذخیره نمی‌شود.</string>
+    <string name="compose_draft_keep">نگه‌داشتن پیش‌نویس</string>
+    <string name="compose_draft_restored">پیش‌نویس بازگردانده شد</string>
+    <string name="compose_draft_untitled">بی‌عنوان</string>
+    <string name="compose_draft_on_site">ذخیره‌شده روی سایت</string>
+    <string name="compose_draft_on_phone">روی همین گوشی</string>
+    <string name="compose_draft_new">چیز تازه‌ای بنویسید</string>
+    <string name="compose_draft_choose">از پیش‌نویس ادامه می‌دهید؟</string>
+    <string name="compose_published">منتشر شد</string>
+    <string name="compose_select_node">گره را انتخاب کنید</string>
+    <string name="compose_search_node">جست‌وجوی گره</string>
+    <string name="compose_node_none">گرهی با این نام نیست.</string>
+    <string name="compose_emoji">ایموجی</string>
+    <string name="compose_emoji_search">جست‌وجوی ایموجی</string>
+    <string name="compose_emoji_failed">ایموجی‌ها بارگذاری نشد.</string>
+    <string name="compose_title_hint">عنوان (دست‌کم ۵ نویسه)</string>
+    <string name="compose_body_hint">متن — از Markdown پشتیبانی می‌شود</string>
+    <string name="compose_media_edit">ویرایش</string>
+    <string name="compose_media_remove">حذف</string>
+    <string name="compose_image">تصویر</string>
+    <string name="compose_video">ویدیو</string>
+    <string name="compose_gif">GIF</string>
+    <string name="compose_media_one_kind">هر نوشته تصویر، ویدیو یا GIF می‌گیرد — نه ترکیبی از آن‌ها</string>
+    <string name="compose_gif_search">جست‌وجوی GIF</string>
+    <string name="compose_lottery_chip">قرعه‌کشی ×</string>
+    <string name="compose_envelope">پاکت</string>
+    <string name="envelope_total_points">مجموع انرژی</string>
+    <string name="envelope_total_count">شمار پاکت‌ها</string>
+    <string name="lottery_field_title">عنوان</string>
+    <string name="lottery_field_prize">جایزه</string>
+    <string name="lottery_field_quantity">تعداد</string>
+    <string name="lottery_field_min">قرعه‌کشی در</string>
+    <string name="lottery_field_max_tickets">بیشینه برای هر نفر</string>
+    <string name="lottery_field_draw_days">قرعه‌کشی پس از (روز)</string>
+
+    <!-- صندوق ورودی -->
+    <string name="inbox_title">صندوق ورودی</string>
+    <string name="inbox_notifications">اعلان‌ها</string>
+    <string name="inbox_messages">پیام‌ها</string>
+    <string name="inbox_chats">گپ</string>
+    <string name="inbox_mark_all_read">علامت‌زدن همه به‌عنوان خوانده‌شده</string>
+    <string name="inbox_guest">برای دیدن اعلان‌ها و پیام‌ها وارد شوید</string>
+    <string name="inbox_guest_detail">خواندن حساب نمی‌خواهد، مشارکت می‌خواهد</string>
+    <string name="inbox_empty_notifications">اعلانی نیست</string>
+    <string name="inbox_empty_messages">پیامی نیست</string>
+    <string name="inbox_empty_chats">گپی نیست</string>
+    <string name="inbox_personal">شخصی</string>
+
+    <!-- متن اعلان‌ها (مطابق سایت) -->
+    <string name="notif_system">سامانه</string>
+    <string name="notif_group_inbox">صندوق %1$s شما پیام تازه دارد</string>
+    <string name="notif_group_fallback">گروه</string>
+    <string name="notif_private_message">برایتان پیامی فرستاد</string>
+    <string name="notif_liked">نوشتهٔ شما در %1$s را پسندید</string>
+    <string name="notif_replied">به %1$s پاسخ داد</string>
+    <string name="notif_badge">نشان %1$s را به شما داد</string>
+    <string name="notif_generic">برایتان اعلانی فرستاد</string>
+
+    <!-- گپ -->
+    <string name="chat_title">گپ</string>
+    <string name="chat_thread">رشته</string>
+    <string name="chat_leave_thread">بیرون رفتن از رشته</string>
+    <string name="chat_message_hint">پیام…</string>
+    <string name="chat_attach">پیوست</string>
+    <string name="chat_channel">کانال</string>
+
+    <!-- جست‌وجو -->
+    <string name="search_hint">جست‌وجوی نوشته‌ها، گره‌ها و آدم‌ها</string>
+    <string name="search_scope_all">همه</string>
+    <string name="search_scope_nodes">گره‌ها</string>
+    <string name="search_scope_posts">نوشته‌ها</string>
+    <string name="search_scope_users">آدم‌ها</string>
+    <string name="search_scope_apps">برنامه‌ها</string>
+    <string name="search_scope_media">رسانه</string>
+    <string name="search_recent">جست‌وجوهای اخیر</string>
+    <string name="search_hot">پرطرفدار</string>
+    <string name="search_empty">چیزی پیدا نشد</string>
+    <string name="search_failed">جست‌وجو انجام نشد</string>
+    <string name="chat_load_failed">این گفت‌وگو بارگذاری نشد</string>
+    <string name="chat_unread_divider">پیام‌های تازه</string>
+    <string name="chat_typing_one">%1$s در حال نوشتن است…</string>
+    <string name="chat_copy">رونوشت متن</string>
+    <string name="chat_copied">رونوشت شد</string>
+    <string name="chat_edit">ویرایش</string>
+    <string name="chat_editing">در حال ویرایش</string>
+    <string name="chat_replying_to">پاسخ به %1$s</string>
+    <string name="chat_react">افزودن واکنش</string>
+    <string name="chat_edited">ویرایش‌شده</string>
+    <string name="chat_sending">در حال فرستادن…</string>
+    <string name="chat_profile">دیدن نمایه</string>
+    <string name="chat_members">اعضا</string>
+    <string name="chat_notification_level">اعلان‌ها</string>
+    <string name="chat_level_always">هر پیام</string>
+    <string name="chat_level_always_detail">هر پیام تازه را به من خبر بده.</string>
+    <string name="chat_level_mention">فقط نام‌بردن‌ها</string>
+    <string name="chat_level_mention_detail">فقط وقتی کسی با @ نام مرا می‌آورد یا نقل‌قولم می‌کند خبر بده.</string>
+    <string name="chat_level_never">هرگز</string>
+    <string name="chat_level_never_detail">نه اعلانی، نه شمار نخوانده‌ها.</string>
+    <string name="chat_leave">بیرون رفتن از گفت‌وگو</string>
+    <string name="chat_leave_title">از این گفت‌وگو بیرون می‌روید؟</string>
+    <string name="chat_leave_detail">از فهرست شما ناپدید می‌شود. پیام تازه بازش می‌گرداند و چیزی حذف نمی‌شود.</string>
+    <string name="chat_delete_title">این پیام حذف شود؟</string>
+    <string name="chat_delete_detail">برای همهٔ کسانی که در گفت‌وگو هستند ناپدید می‌شود.</string>
+    <string name="apps_load_failed">این برنامه بارگذاری نشد</string>
+    <string name="search_empty_detail">کلیدواژهٔ دیگری را امتحان کنید</string>
+    <string name="search_node_empty">در این گره چیزی پیدا نشد</string>
+    <string name="search_nodes_capped">گره‌ها · %1$d از %2$d</string>
+
+    <!-- نمایه -->
+    <string name="profile_guest">برای دیدن نمایه‌تان وارد شوید</string>
+    <string name="profile_follow">دنبال کردن</string>
+    <string name="profile_following">دنبال می‌کنید</string>
+    <string name="profile_admin">مدیر</string>
+    <string name="profile_moderator">ناظم</string>
+    <string name="profile_last_seen">آخرین بازدید %1$s</string>
+    <string name="profile_joined">پیوسته از %1$s</string>
+    <string name="profile_energy">انرژی</string>
+    <string name="profile_reputation">اعتبار</string>
+    <string name="profile_topics">موضوع‌ها</string>
+    <string name="profile_posts">نوشته‌ها</string>
+    <string name="profile_likes">پسندها</string>
+    <string name="profile_bookmarks">نشانک‌ها</string>
+    <string name="profile_empty_points">تاریخچهٔ انرژی نیست</string>
+
+    <!-- تنظیمات -->
+    <string name="settings_account">حساب</string>
+    <string name="settings_preferences">ترجیحات</string>
+    <string name="settings_account_section">این برنامه</string>
+    <string name="settings_profile">نمایه</string>
+    <string name="settings_associated">حساب‌های متصل</string>
+    <string name="settings_security">امنیت</string>
+    <string name="settings_interface">رابط</string>
+    <string name="settings_notifications">اعلان‌ها</string>
+    <string name="settings_email">رایانامه</string>
+    <string name="settings_privacy">حریم خصوصی</string>
+    <string name="settings_web">گشودن ترجیحات وب</string>
+    <string name="settings_push">اعلان‌های فوری</string>
+    <string name="settings_sign_out">خروج</string>
+    <string name="settings_appearance">ظاهر</string>
+    <string name="settings_other">دیگر</string>
+    <string name="settings_color_mode">حالت رنگ</string>
+    <string name="settings_text_size">اندازهٔ متن</string>
+    <string name="settings_default_home">صفحهٔ آغازین</string>
+    <string name="settings_external_links">پیوندهای بیرونی در زبانهٔ تازه باز شوند</string>
+    <string name="settings_quoting">فعال‌سازی پاسخ با نقل‌قول</string>
+    <string name="settings_in_app_notifications">اعلان‌های درون‌برنامه</string>
+    <string name="settings_like_frequency">دربارهٔ پسندها خبرم کن</string>
+    <string name="settings_new_topic_duration">موضوع‌ها تا این مدت تازه بمانند</string>
+    <string name="settings_track_on_reply">موضوع‌هایی که پاسخ می‌دهم را پیگیری کن</string>
+    <string name="settings_email_notifications">اعلان‌های رایانامه</string>
+    <string name="settings_email_replies">دربارهٔ پاسخ‌ها برایم رایانامه بفرست</string>
+    <string name="settings_email_messages">دربارهٔ پیام‌ها برایم رایانامه بفرست</string>
+    <string name="settings_email_previous">پاسخ‌های پیشین را هم بیاور</string>
+    <string name="settings_email_digest">چکیدهٔ فعالیت بفرست</string>
+    <string name="settings_hide_profile">نمایهٔ عمومی‌ام را پنهان کن</string>
+    <string name="settings_hide_presence">حضورم را پنهان کن</string>
+
+    <string name="color_mode_auto">خودکار</string>
+    <string name="color_mode_light">روشن</string>
+    <string name="color_mode_dark">تیره</string>
+    <string name="text_size_smallest">کوچک‌ترین</string>
+    <string name="text_size_smaller">کوچک‌تر</string>
+    <string name="text_size_normal">عادی</string>
+    <string name="text_size_larger">بزرگ‌تر</string>
+    <string name="text_size_largest">بزرگ‌ترین</string>
+    <string name="email_level_always">همیشه</string>
+    <string name="email_level_away">فقط وقتی نیستم</string>
+    <string name="email_level_never">هرگز</string>
+    <string name="previous_replies_always">همیشه</string>
+    <string name="previous_replies_unless">مگر پیش‌تر فرستاده شده باشد</string>
+    <string name="previous_replies_never">هرگز</string>
+    <string name="like_freq_always">همیشه</string>
+    <string name="like_freq_first_daily">بار نخست و روزانه</string>
+    <string name="like_freq_first">فقط بار نخست</string>
+    <string name="like_freq_never">هرگز</string>
+    <string name="duration_last_visit">از بازدید پیشین</string>
+    <string name="duration_one_day">۱ روز</string>
+    <string name="duration_two_days">۲ روز</string>
+    <string name="duration_one_week">۱ هفته</string>
+    <string name="duration_two_weeks">۲ هفته</string>
+
+    <!-- اعلان فوری -->
+    <string name="push_enable">اعلان‌های فوری</string>
+    <string name="push_enable_detail">در پس‌زمینه اعلان‌های تازه را بررسی می‌کند</string>
+    <string name="push_permission_footer">اعلان‌ها در تنظیمات سامانه خاموش است — تا روشن نشود چیزی نمی‌رسد.</string>
+    <string name="push_filter_footer">نوع‌هایی که خاموش می‌کنید همچنان در صندوق درون‌برنامه دیده می‌شوند.</string>
+    <string name="push_open_system_settings">گشودن تنظیمات سامانه</string>
+    <string name="push_types">نوع‌ها</string>
+    <string name="push_replies">پاسخ‌ها و نام‌بردن‌ها</string>
+    <string name="push_replies_detail">کسی پاسخ می‌دهد، نقل‌قول می‌کند یا نامتان را می‌آورد</string>
+    <string name="push_likes">پسندها</string>
+    <string name="push_likes_detail">کسی نوشته یا پاسخ شما را می‌پسندد</string>
+    <string name="push_messages">پیام‌ها</string>
+    <string name="push_messages_detail">پیام خصوصی می‌گیرید</string>
+    <string name="push_other">نشان‌ها و اعلان‌های سامانه</string>
+    <string name="push_other_detail">دادن نشان، پیام‌های گروهی و مانند آن</string>
+
+    <!-- امنیت -->
+    <string name="security_password">گذرواژه</string>
+    <string name="security_send_reset">رایانامهٔ بازنشانی گذرواژه برایم بفرست</string>
+    <string name="security_reset_sent">رایانامهٔ بازنشانی گذرواژه فرستاده شد</string>
+    <string name="security_two_factor">ورود دومرحله‌ای</string>
+    <string name="security_two_factor_footer">پس از فعال‌سازی، هنگام ورود یک رمز یک‌بارمصرف هم خواسته می‌شود.</string>
+    <string name="security_status">وضعیت</string>
+    <string name="security_enabled">روشن</string>
+    <string name="security_disabled">خاموش</string>
+    <string name="security_backup_codes">رمزهای پشتیبان</string>
+    <string name="security_generate_backup">ساخت رمزهای پشتیبان</string>
+    <string name="security_backup_footer">جایی امن نگه‌شان دارید — هر رمز یک بار کار می‌کند.</string>
+    <string name="security_enable_totp">روشن کردن ورود دومرحله‌ای</string>
+    <string name="security_disable_totp">خاموش کردن ورود دومرحله‌ای</string>
+    <string name="security_totp_enabled">ورود دومرحله‌ای روشن است</string>
+    <string name="security_totp_disabled">ورود دومرحله‌ای خاموش است</string>
+    <string name="security_scan_key">کلید را پویش یا وارد کنید</string>
+    <string name="security_key">کلید</string>
+    <string name="security_totp_footer">آن را به برنامهٔ احرازهویت بیفزایید، سپس رمز ۶رقمی را وارد کنید تا کار تمام شود.</string>
+    <string name="security_totp_code_hint">رمز ۶رقمی</string>
+    <string name="security_finish_binding">پایان راه‌اندازی</string>
+    <string name="security_sessions">نشست‌ها</string>
+    <string name="security_session_fallback">نشست شمارهٔ %1$d</string>
+    <string name="security_current_device">همین دستگاه</string>
+    <string name="security_sign_out_session">خروج</string>
+    <string name="security_session_revoked">از نشست خارج شدید</string>
+    <string name="security_confirm_identity">تأیید کنید خودتان هستید</string>
+    <string name="security_confirm_detail">تغییرهای حساس دوباره گذرواژه می‌خواهند.</string>
+    <string name="security_wrong_password">گذرواژه نادرست است، دوباره تلاش کنید</string>
+    <string name="security_no_associated">حساب متصلی نیست</string>
+    <string name="security_associated_footer">با حساب‌های متصل می‌توانید وارد وب‌سایت شوید.</string>
+    <string name="security_unlink">قطع اتصال</string>
+    <string name="security_unlink_confirm_title">اتصال %1$s قطع شود؟</string>
+    <string name="security_unlink_confirm_detail">تا دوباره وصلش نکنید نمی‌توانید با آن وارد شوید.</string>
+
+    <!-- ویرایش نمایه -->
+    <string name="profile_edit_avatar">تغییر تصویر نمایه</string>
+    <string name="profile_edit_section">نمایه</string>
+    <string name="profile_edit_name">نام نمایشی</string>
+    <string name="profile_edit_name_hint">نامتان چگونه دیده شود</string>
+    <string name="profile_edit_title">عنوان</string>
+    <string name="profile_edit_title_none">بدون عنوان</string>
+    <string name="profile_edit_title_locked">عنوان‌ها از نشان‌هایی می‌آیند که گرفته‌اید</string>
+    <string name="profile_edit_bio">دربارهٔ من</string>
+    <string name="profile_edit_bio_hint">از خودتان بگویید</string>
+    <string name="profile_edit_website">وب‌سایت</string>
+    <string name="profile_edit_location">مکان</string>
+    <string name="profile_edit_saved">نمایه ذخیره شد</string>
+    <string name="profile_edit_load_failed">نمایهٔ شما بارگذاری نشد</string>
+    <string name="profile_edit_load_failed_detail">اتصال را بررسی و دوباره تلاش کنید.</string>
+    <string name="profile_avatar_updated">تصویر نمایه به‌روز شد</string>
+    <string name="profile_edit_background">تغییر پس‌زمینه</string>
+    <string name="profile_edit_background_remove">حذف پس‌زمینه</string>
+    <string name="profile_background_updated">پس‌زمینه به‌روز شد</string>
+
+    <!-- ورود و ثبت‌نام -->
+    <string name="auth_terms">با ورود، شرایط و سیاست حریم خصوصی NODELOC را می‌پذیرید.</string>
+    <string name="auth_website">ادامه با وب‌سایت NodeLoc</string>
+    <string name="auth_identifier">رایانامه یا نام کاربری</string>
+    <string name="auth_identifier_hint">you@example.com</string>
+    <string name="auth_password">گذرواژه</string>
+    <string name="auth_code">رمز</string>
+    <string name="auth_code_hint">رمز ۶رقمی</string>
+    <string name="auth_backup_code">رمز پشتیبان</string>
+    <string name="auth_use_backup">استفاده از رمز پشتیبان</string>
+    <string name="auth_use_totp">استفاده از رمز برنامهٔ احرازهویت</string>
+    <string name="auth_forgot">گذرواژه را فراموش کرده‌اید؟</string>
+    <string name="auth_email_step">رایانامهٔ شما</string>
+    <string name="auth_email">رایانامه</string>
+    <string name="auth_username_step">نام کاربری بردارید</string>
+    <string name="auth_username">نام کاربری</string>
+    <string name="auth_username_hint">۳ تا ۲۰ نویسه</string>
+    <string name="auth_email_invalid">نشانی رایانامهٔ درستی وارد کنید</string>
+    <string name="auth_email_ok">رایانامه درست به نظر می‌رسد</string>
+    <string name="auth_username_available">نام خوبی است — آزاد است</string>
+    <string name="auth_username_taken">این نام گرفته شده است</string>
+    <string name="auth_username_suggestion">«%1$s» را امتحان کنید</string>
+    <string name="auth_password_step">گذرواژه بگذارید</string>
+    <string name="auth_password_hint">دست‌کم ۱۰ نویسه</string>
+    <string name="auth_password_short">دست‌کم ۱۰ نویسه لازم است</string>
+    <string name="auth_password_ok">طولش بس است</string>
+    <string name="auth_gender_step">جنسیت شما</string>
+    <string name="auth_gender_footer">فقط روی همین دستگاه نگه داشته می‌شود، برای پیشنهادها.</string>
+    <string name="auth_gender_male">مرد</string>
+    <string name="auth_gender_female">زن</string>
+    <string name="auth_gender_other">دیگر</string>
+    <string name="auth_gender_private">ترجیح می‌دهم نگویم</string>
+    <string name="auth_interests_step">گره‌هایی که می‌پسندید</string>
+    <string name="auth_interests_footer">تا ۳ تا بردارید — خودکار به آن‌ها می‌پیوندید.</string>
+    <string name="auth_shuffle">دستهٔ دیگر</string>
+    <string name="auth_finish_signup">ساخت حساب</string>
+    <string name="auth_check_email">رایانامه‌تان را ببینید</string>
+    <string name="auth_activation_detail">پیوند فعال‌سازی را به %1$s فرستادیم — بازش کنید تا ثبت‌نام تمام شود.</string>
+    <string name="auth_activation_hint">بعد برگردید و وارد شوید؛ گره‌هایی که برگزیده‌اید خودکار اضافه می‌شوند.</string>
+    <string name="auth_back_to_login">بازگشت به ورود</string>
+    <string name="auth_gate_title">به NODELOC بپیوندید</string>
+    <string name="auth_gate_detail">برای نوشتن، پاسخ دادن، پسندیدن و نشانک‌گذاری وارد شوید. خواندن حساب نمی‌خواهد.</string>
+
+    <string name="auth_error_key_generation">کلیدهای امنیتی ساخته نشد.</string>
+    <string name="auth_error_missing_payload">پاسخ ورود ناقص بود.</string>
+    <string name="auth_error_lost_keypair">ورود نیمه‌کاره ماند. از نو شروع کنید.</string>
+    <string name="auth_error_decrypt">پاسخ ورود تأیید نشد.</string>
+    <string name="auth_error_nonce">راستی‌آزمایی ورود ناموفق بود. دوباره تلاش کنید.</string>
+    <string name="auth_error_cancelled">ورود لغو شد.</string>
+    <string name="auth_error_missing_fields">لطفاً همهٔ فیلدها را پر کنید.</string>
+    <string name="auth_error_second_factor">این حساب ورود دومرحله‌ای دارد — رمزتان را وارد کنید.</string>
+    <string name="auth_error_incomplete">ورود کامل نشد. دوباره تلاش کنید.</string>
+    <string name="auth_error_no_session">ورود هیچ نشست وبی برنگرداند.</string>
+    <string name="auth_error_session_start">نشست ورود آغاز نشد.</string>
+    <string name="auth_error_bad_code">این رمز درست نیست. دوباره تلاش کنید.</string>
+    <string name="auth_error_login_failed">ورود ناموفق بود، دوباره تلاش کنید</string>
+    <string name="auth_error_signup_failed">ثبت‌نام ناموفق بود، دوباره تلاش کنید</string>
+    <string name="auth_signup_activation_needed">حساب ساخته شد — برای فعال‌سازی رایانامه‌تان را ببینید.</string>
+
+    <!-- خوش‌آمد -->
+    <string name="welcome_tagline">آزاد، برابر، دوستانه، باز، بامزه</string>
+    <string name="welcome_start">شروع کنیم</string>
+    <string name="welcome_have_account">از پیش حساب دارم</string>
+    <string name="welcome_browse">فعلاً فقط می‌گردم</string>
+
+    <!-- مرورگر و رسانه -->
+    <string name="browser_open_external">گشودن در مرورگر</string>
+    <string name="web_session_api_only_title">این صفحه ورود از راه وب‌سایت می‌خواهد</string>
+    <string name="web_session_api_only_detail">شما از راه وب‌سایت وارد شده‌اید، پس این صفحه اینجا باز می‌شود اما هیچ تغییری ذخیره نمی‌شود. در مرورگرتان ادامه دهید — آنجا از پیش وارد شده‌اید.</string>
+    <string name="web_session_continue_anyway">با این حال اینجا باز کن</string>
+    <string name="browser_text_size">اندازهٔ متن %1$d%%</string>
+    <string name="media_mute">بی‌صدا</string>
+    <string name="media_unmute">باصدا</string>
+    <string name="editor_crop">برش</string>
+    <string name="editor_brush">نقاشی</string>
+    <string name="editor_mosaic">موزاییک</string>
+    <string name="editor_mosaic_solid">پوشش کامل</string>
+    <string name="editor_mosaic_blur">محو</string>
+    <string name="editor_mosaic_fine">ریز</string>
+    <string name="editor_mosaic_pixel">پیکسلی</string>
+    <string name="editor_mosaic_blocks">موزاییک</string>
+    <string name="editor_text">متن</string>
+    <string name="editor_rotate">چرخش</string>
+    <string name="editor_add_text">افزودن متن</string>
+    <string name="editor_crop_free">آزاد</string>
+    <string name="editor_crop_square">1:1</string>
+    <string name="editor_crop_portrait">4:5</string>
+    <string name="editor_crop_landscape">16:9</string>
+    <string name="editor_filter_faded">کم‌رنگ</string>
+    <string name="editor_filter_mono">سیاه‌وسفید</string>
+    <string name="editor_filter_cool">سرد</string>
+    <string name="editor_filter_warm">گرم</string>
+    <string name="editor_filter_vivid">پرمایه</string>
+    <string name="editor_filter_none">اصلی</string>
+    <string name="editor_text_filled">پس‌زمینه‌دار</string>
+    <string name="editor_text_outlined">خط‌دار</string>
+    <string name="editor_text_plain">ساده</string>
+    <string name="editor_filter">فیلتر</string>
+    <string name="editor_sticker">برچسب</string>
+    <string name="editor_flip">برگرداندن</string>
+    <string name="editor_redo">انجام دوباره</string>
+    <string name="editor_reset">بازنشانی</string>
+    <string name="trim_gif_limit">GIF تا %1$d ثانیه است؛ باقی بریده می‌شود</string>
+    <string name="trim_failed">این ویدیو پردازش نشد، دوباره تلاش کنید</string>
+    <string name="trim_too_large">این ویدیو خیلی بزرگ است. کوتاه‌ترش کنید و دوباره تلاش کنید.</string>
+
+    <!-- فهرست برنامه‌ها -->
+    <string name="apps_title">فهرست برنامه‌ها</string>
+    <string name="apps_more">برنامه‌های بیشتر</string>
+    <string name="apps_recent">برنامه‌های اخیر</string>
+    <string name="apps_empty">برنامه‌ای نیست</string>
+    <string name="apps_open">گشودن برنامه</string>
+    <string name="apps_web_only">این برنامه فقط روی وب‌سایت کار می‌کند.</string>
+    <string name="apps_permissions">دسترسی‌ها</string>
+    <string name="apps_discussion">گشودن گفت‌وگو</string>
+
+    <!-- اسم‌های شمارشی -->
+    <plurals name="common_members">
+        <item quantity="one">%1$s عضو</item>
+        <item quantity="other">%1$s عضو</item>
+    </plurals>
+    <plurals name="common_topics">
+        <item quantity="one">%1$s موضوع</item>
+        <item quantity="other">%1$s موضوع</item>
+    </plurals>
+    <plurals name="chat_member_count">
+        <item quantity="one">%1$d عضو</item>
+        <item quantity="other">%1$d عضو</item>
+    </plurals>
+    <plurals name="chat_typing_many">
+        <item quantity="one">%1$d نفر در حال نوشتن است…</item>
+        <item quantity="other">%1$d نفر در حال نوشتن‌اند…</item>
+    </plurals>
+    <plurals name="common_replies_count">
+        <item quantity="one">%1$d پاسخ</item>
+        <item quantity="other">%1$d پاسخ</item>
+    </plurals>
+    <plurals name="reader_load_more_replies">
+        <item quantity="one">%1$d پاسخ دیگر</item>
+        <item quantity="other">%1$d پاسخ دیگر</item>
+    </plurals>
+    <plurals name="apps_installs">
+        <item quantity="one">%1$d نصب</item>
+        <item quantity="other">%1$d نصب</item>
+    </plurals>
+    <plurals name="poll_voters">
+        <item quantity="one">%1$d رأی‌دهنده</item>
+        <item quantity="other">%1$d رأی‌دهنده</item>
+    </plurals>
+    <plurals name="lottery_my_tickets">
+        <item quantity="one">%1$d بلیت دارید</item>
+        <item quantity="other">%1$d بلیت دارید</item>
+    </plurals>
+    <string name="profile_tab_load_failed">این زبانه بارگذاری نشد</string>
+    <plurals name="lottery_entrants">
+        <item quantity="one">%1$d شرکت‌کننده</item>
+        <item quantity="other">%1$d شرکت‌کننده</item>
+    </plurals>
+    <plurals name="lottery_tickets">
+        <item quantity="one">%1$d بلیت</item>
+        <item quantity="other">%1$d بلیت</item>
+    </plurals>
+    <plurals name="lottery_min_participants">
+        <item quantity="one">قرعه‌کشی با %1$d شرکت‌کننده</item>
+        <item quantity="other">قرعه‌کشی با %1$d شرکت‌کننده</item>
+    </plurals>
+    <plurals name="lottery_max_participants">
+        <item quantity="one">بیشینه %1$d شرکت‌کننده</item>
+        <item quantity="other">بیشینه %1$d شرکت‌کننده</item>
+    </plurals>
+    <plurals name="envelope_packets">
+        <item quantity="one">%1$d پاکت</item>
+        <item quantity="other">%1$d پاکت</item>
+    </plurals>
+    <plurals name="notif_group_inbox_count">
+        <item quantity="one">صندوق %1$s شما %2$d پیام دارد</item>
+        <item quantity="other">صندوق %1$s شما %2$d پیام دارد</item>
+    </plurals>
+    <string name="image_load_failed">این تصویر بارگذاری نشد</string>
+    <string name="viewer_save_image">ذخیرهٔ تصویر</string>
+    <string name="viewer_save_video">ذخیرهٔ ویدیو</string>
+    <string name="viewer_save_video_failed">آن ویدیو ذخیره نشد</string>
+    <string name="report_title">گزارش این نوشته</string>
+    <string name="report_note_hint">به ناظمان بگویید ایراد کجاست</string>
+    <string name="report_sent">فرستاده شد — ناظمان نگاه می‌کنند</string>
+    <string name="viewer_saved">در گالری ذخیره شد</string>
+    <string name="viewer_save_failed">آن تصویر ذخیره نشد</string>
+    <string name="viewer_more">بیشتر</string>
+    <string name="viewer_previous">تصویر پیشین</string>
+    <string name="viewer_next">تصویر بعدی</string>
+    <string name="media_video_failed">آن ویدیو پخش نشد</string>
+    <string name="media_no_more_videos">فعلاً ویدیوی دیگری نیست</string>
+    <string name="common_pause">مکث</string>
+    <string name="profile_message">پیام</string>
+    <string name="profile_chat">گپ</string>
+    <string name="profile_notification_level">اعلان‌ها</string>
+    <string name="profile_notify_normal">عادی</string>
+    <string name="profile_notify_muted">بی‌صدا</string>
+    <string name="profile_notify_ignored">نادیده</string>
+    <string name="profile_notify_normal_detail">مثل همیشه خبردار می‌شوید.</string>
+    <string name="profile_notify_muted_detail">از این شخص اعلانی نمی‌گیرید.</string>
+    <string name="profile_notify_ignored_detail">نوشته‌هایش هم پنهان می‌شود.</string>
+    <string name="profile_notify_saved">ذخیره شد</string>
+    <string name="auth_failed">ورود کامل نشد</string>
+    <string name="auth_continue_with">ادامه با %1$s</string>
+    <string name="auth_or_password">یا با گذرواژه وارد شوید</string>
+
+    <!-- به‌روزرسانی -->
+    <string name="update_check">بررسی به‌روزرسانی</string>
+    <string name="update_up_to_date">تازه‌ترین نسخه را دارید</string>
+    <string name="update_available_title">نسخهٔ %1$s در دسترس است</string>
+    <string name="update_available_required">برای ادامهٔ استفاده از برنامه این به‌روزرسانی لازم است.</string>
+    <string name="update_install">دریافت و نصب</string>
+    <string name="update_later">بعداً</string>
+    <string name="update_downloading">در حال دریافت…</string>
+    <string name="update_download_failed">به‌روزرسانی دریافت نشد. بعداً تلاش کنید.</string>
+    <string name="update_install_failed">نصب‌کننده باز نشد</string>
+    <string name="update_needs_install_permission">به NodeLoc اجازهٔ نصب برنامه بدهید</string>
+
+    <!-- ساخت قرعه‌کشی -->
+    <string name="lottery_field_max_participants">بیشترین شرکت‌کننده (خالی یعنی بی‌حد)</string>
+    <string name="lottery_field_min_tickets">کمترین بلیت هر نفر</string>
+    <string name="lottery_field_trust_level">کمترین سطح اعتماد</string>
+    <string name="lottery_field_levels">جایزه‌ها</string>
+    <string name="lottery_add_level">افزودن جایزه</string>
+    <string name="lottery_remove_level">حذف</string>
+    <string name="lottery_level_name_hint">نام رتبه، مثلاً «جایزهٔ نخست»</string>
+    <string name="lottery_draws_at">قرعه‌کشی %1$s</string>
+    <string name="lottery_error_title">برای قرعه‌کشی عنوانی بگذارید</string>
+    <string name="lottery_error_prize">دست‌کم یک جایزه را شرح دهید</string>
+    <string name="lottery_error_min_participants">کمترین شرکت‌کننده باید دست‌کم ۱ باشد</string>
+    <string name="lottery_error_max_below_min">بیشترین شرکت‌کننده باید از کمترین بیشتر باشد</string>
+    <string name="lottery_error_min_tickets">کمترین بلیت نمی‌تواند از بیشترین بالاتر باشد</string>
+    <string name="lottery_error_draw_days">قرعه‌کشی باید ۱ تا %1$d روز دیگر باشد</string>
+    <string name="lottery_condition_min_tickets">دست‌کم %1$d بلیت برای هر نفر</string>
+    <string name="lottery_condition_max_tickets">حداکثر %1$d بلیت برای هر نفر</string>
+    <string name="lottery_condition_trust_level">TL%1$d و بالاتر</string>
+
+    <!-- حضور روزانه -->
+    <string name="checkin_action">ثبت حضور</string>
+    <string name="checkin_done">امروز حضورتان ثبت شده است</string>
+    <string name="checkin_success">حضور ثبت شد — %1$d انرژی</string>
+
+    <!-- پیشرفت ارتقا -->
+    <string name="upgrade_title">پیشرفت ارتقا</string>
+    <string name="upgrade_load_failed">پیشرفت ارتقا بارگذاری نشد</string>
+    <string name="upgrade_next_level">سطح بعدی: %1$s</string>
+    <string name="upgrade_met_count">%1$d از %2$d برآورده شد</string>
+    <string name="upgrade_all_met">همهٔ شرط‌های سطح بعدی برآورده شده است.</string>
+    <string name="upgrade_maintaining">در حال نگه‌داشتن</string>
+    <string name="upgrade_retention_title">شرط‌های نگه‌داشتن این سطح</string>
+    <string name="upgrade_locked">سطح اعتماد قفل است؛ خودبه‌خود تغییر نمی‌کند.</string>
+    <string name="upgrade_group_standing">وضعیت حساب</string>
+    <string name="upgrade_group_activity">فعالیت</string>
+    <string name="upgrade_group_recent">%1$d روز گذشته</string>
+    <string name="upgrade_group_recent_plain">فعالیت اخیر</string>
+    <string name="upgrade_group_all_time">از آغاز</string>
+    <string name="upgrade_target">هدف %1$d</string>
+    <string name="upgrade_limit">حد %1$d</string>
+    <string name="upgrade_condition_met">برآورده</string>
+    <string name="upgrade_condition_over">فراتر از حد</string>
+    <string name="upgrade_condition_remaining">%1$d مانده</string>
+
+    <!-- منبع نوشته -->
+    <string name="post_source_title">منبع نوشته</string>
+    <string name="post_source_explain">انتخاب کنید نوشته‌هایتان چقدر از این گوشی را نشان دهند. به‌طور پیش‌فرض مدل نشان داده می‌شود؛ «نشان نده» را بردارید تا هیچ چیز نشان داده نشود. این انتخاب به حساب شما می‌چسبد، نه به این دستگاه.</string>
+    <string name="post_source_footer">اینجا هر کسی هر چه بخواهد می‌تواند بنویسد، پس منبع فقط تزیین است — نه امتیازی می‌دهد و نه چیزی را ثابت می‌کند.</string>
+    <string name="post_source_from">از %1$s</string>
+    <string name="post_source_level_off">نشان نده</string>
+    <string name="post_source_level_client">فقط برنامه</string>
+    <string name="post_source_level_platform">برنامه و سکو</string>
+    <string name="post_source_level_brand">تا برند</string>
+    <string name="post_source_level_model">تا مدل</string>
+    <string name="post_source_history_title">نوشته‌هایی که پیش‌تر فرستاده‌اید</string>
+    <string name="post_source_history_detail">پایین آوردن سطح فقط بر نوشته‌های بعدی اثر دارد. این کار منبع را از هر آنچه پیش‌تر فرستاده‌اید پاک می‌کند و برگشت‌پذیر نیست.</string>
+    <string name="post_source_clear">پاک کردن از نوشته‌های گذشته</string>
+    <string name="post_source_cleared">پاک شد</string>
+    <string name="video_quality">کیفیت</string>
+    <string name="video_quality_480">480p</string>
+    <string name="video_quality_720">720p</string>
+    <string name="video_quality_1080">1080p</string>
+    <string name="video_quality_original">اصلی</string>
+    <string name="video_sound">صدا</string>
+    <string name="video_gif">GIF</string>
+    <string name="video_play">پخش</string>
+    <string name="video_pause">مکث</string>
+    <string name="video_summary">%1$s · ~%2$s</string>
+    <string name="sort_best">بهترین</string>
+    <string name="sort_best_detail">موضوعات پیشنهادی برای شما</string>
+    <string name="block_user_title">این شخص مسدود شود؟</string>
+    <string name="block_user_message">دیگر نوشته‌های %1$s را نمی‌بینید و او نمی‌تواند به شما پیام دهد. از تنظیمات قابل لغو است.</string>
+    <string name="block_user_confirm">مسدود کردن</string>
+    <string name="block_user_done">مسدود شد</string>
+    <string name="unblock_user">رفع مسدودیت</string>
+    <string name="unblock_user_done">مسدودیت برداشته شد</string>
+    <string name="settings_blocked">افراد مسدودشده</string>
+    <string name="blocked_empty">کسی مسدود نشده است.</string>
+    <string name="blocked_not_allowed">این سایت هنوز به حساب شما اجازهٔ مسدود کردن نمی‌دهد.</string>
+    <string name="post_more_bookmark">نشان‌گذاری</string>
+    <string name="post_more_watch">دنبال کردن</string>
+    <string name="post_more_watching">در حال دنبال کردن</string>
+    <string name="post_more_author">دیدن نویسنده</string>
+    <string name="post_more_block_author">مسدود کردن نویسنده</string>
+    <string name="post_more_repost">بازنشر</string>
+    <string name="profile_report">گزارش این شخص</string>
+    <string name="profile_block">مسدود کردن این شخص</string>
+    <string name="profile_report_title">گزارش ‎@%1$s</string>
+</resources>

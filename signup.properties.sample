@@ -1,0 +1,8 @@
+# Copy to signup.properties (untracked) to let the app register accounts on a
+# site whose `invite_code` site setting is set.
+#
+# Discourse checks this against `SiteSetting.invite_code`; anyone holding it can
+# register from anywhere, so it belongs out of the repository — and it is still
+# readable in the APK, which is the honest limit of what it buys.
+# Leave it unset and the app simply does not send the field.
+inviteCode=

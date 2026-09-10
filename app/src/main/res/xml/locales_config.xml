@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The languages the app ships strings for.
+
+    Read by the system on Android 13+, which is where the per-app language
+    picker in Settings comes from; below that it is inert and AppLocale does
+    the same job by hand. Adding a values-xx folder without a line here means
+    the folder works but the picker never offers it.
+-->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en" />
+    <locale android:name="zh-CN" />
+    <locale android:name="zh-TW" />
+    <locale android:name="vi" />
+    <locale android:name="ja" />
+    <locale android:name="ar" />
+    <locale android:name="ru" />
+    <locale android:name="uk" />
+    <!-- "in", not "id": the Indonesian resource folder is values-in, the code
+         Java has used since before the rename, and this list is matched
+         against folder qualifiers rather than against BCP-47. -->
+    <locale android:name="in" />
+    <locale android:name="fa" />
+</locale-config>

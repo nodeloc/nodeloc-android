@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The adaptive icon's foreground: the "nl" ribbon.
+
+  Sized by the artwork's *outer radius*, not by its bounding box — the same rule
+  the previous mark was placed by. A round mask keeps a 72dp circle of the 108dp
+  canvas, so the farthest point of the artwork may sit at most 36dp from the
+  centre. Here that point is the foot of the n, 155.55 units out in the source's
+  360x300 space, which fixes the scale at 36 / 155.55 = 0.2314 and lands the
+  mark at 63 x 35dp. Filling the 72dp safe *square* instead would push that foot
+  outside the circle on every launcher that uses one.
+
+  Gradient coordinates are in the same space as the path data — the source's,
+  not the canvas's — because they are read inside this group's transform.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <group
+        android:translateX="13.7304"
+        android:translateY="20.0948"
+        android:scaleX="0.23143"
+        android:scaleY="0.23143">
+
+        <path android:pathData="M38,222 C46,155 52,122 76,99 C106,71 156,77 170,129 C174,151 172,186 170,214 L136,214 C138,187 140,156 136,139 C127,112 98,112 88,139 C80,159 76,190 72,222 L55,202 L38,222 Z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:type="linear"
+                    android:startX="30"
+                    android:startY="230"
+                    android:endX="312"
+                    android:endY="70">
+                    <item android:offset="0" android:color="#009966" />
+                    <item android:offset="0.55" android:color="#22A35A" />
+                    <item android:offset="1" android:color="#FF9933" />
+                </gradient>
+            </aapt:attr>
+        </path>
+
+        <path android:pathData="M138,206 C185,158 240,112 287,71 L289,93 L310,97 C262,140 210,182 170,215 L136,215 L138,206 Z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:type="linear"
+                    android:startX="30"
+                    android:startY="230"
+                    android:endX="312"
+                    android:endY="70">
+                    <item android:offset="0" android:color="#009966" />
+                    <item android:offset="0.55" android:color="#22A35A" />
+                    <item android:offset="1" android:color="#FF9933" />
+                </gradient>
+            </aapt:attr>
+        </path>
+    </group>
+</vector>

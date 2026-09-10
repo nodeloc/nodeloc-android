@@ -1,0 +1,780 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  日本語。キーとプレースホルダーの順序は values/strings.xml と同一に保つこと。
+-->
+<resources>
+    <string name="app_name">NodeLoc</string>
+
+    <!-- 共通 -->
+    <string name="common_back">戻る</string>
+    <string name="common_close">閉じる</string>
+    <string name="common_cancel">キャンセル</string>
+    <string name="common_confirm">確認</string>
+    <string name="common_done">完了</string>
+    <string name="common_save">保存</string>
+    <string name="common_continue">続ける</string>
+    <string name="common_retry">再試行</string>
+    <string name="link_blocked">このリンクは開けません</string>
+    <string name="session_expired">セッションの有効期限が切れました。もう一度ログインしてください。</string>
+    <string name="common_more">もっと見る</string>
+    <string name="common_share">共有</string>
+    <string name="common_refresh">再読み込み</string>
+    <string name="common_menu">メニュー</string>
+    <string name="common_settings">設定</string>
+    <string name="common_login">ログイン</string>
+    <string name="common_signup">新規登録</string>
+    <string name="common_delete">削除</string>
+    <string name="common_clear">消去</string>
+    <string name="common_clear_all">すべて消去</string>
+    <string name="common_expand">展開</string>
+    <string name="common_collapse">折りたたむ</string>
+    <string name="common_loading">読み込み中</string>
+    <string name="common_checking">確認中…</string>
+    <string name="common_add">追加</string>
+    <string name="common_or">または</string>
+    <string name="common_empty">まだ何もありません</string>
+    <string name="common_empty_hint">またあとで見てみてください</string>
+    <string name="common_play">再生</string>
+    <string name="common_undo">元に戻す</string>
+    <string name="common_guest">未ログイン</string>
+    <string name="common_me">自分</string>
+
+    <!-- ボトムナビゲーション -->
+    <string name="tab_home">ホーム</string>
+    <string name="tab_nodes">ノード</string>
+    <string name="tab_inbox">受信箱</string>
+    <string name="tab_search">検索</string>
+    <string name="tab_profile">マイページ</string>
+
+    <!-- エラー：ステータスコードは決して表示しない -->
+    <string name="error_unauthorized">権限がないか、セッションが切れています。もう一度ログインしてください。</string>
+    <string name="error_not_found">そのコンテンツは存在しないか、削除されました</string>
+    <string name="error_rate_limited">リクエストが多すぎます。少し待ってからお試しください</string>
+    <string name="error_rate_limited_wait">リクエストが多すぎます。%1$d 秒後にお試しください</string>
+    <string name="error_server">サーバーで問題が起きています。しばらくしてからお試しください。</string>
+    <string name="error_generic_request">リクエストに失敗しました。もう一度お試しください</string>
+    <string name="error_challenged">サイトのセキュリティチェックによりブロックされました。しばらくしてからお試しください。</string>
+    <string name="error_decoding">読み込み中に問題が発生しました。もう一度お試しください。</string>
+    <string name="error_offline">ネットワークに接続できません。接続を確認してください</string>
+    <string name="error_timeout">接続がタイムアウトしました。もう一度お試しください</string>
+    <string name="error_transport">ネットワークの問題です。もう一度お試しください</string>
+    <string name="error_action_failed">うまくいきませんでした。もう一度お試しください。</string>
+
+    <!-- フィード -->
+    <string name="feed_compose">新規投稿</string>
+    <string name="feed_reading_mode">表示モード</string>
+    <string name="feed_pinned">固定</string>
+    <string name="reading_mode_compact">コンパクト</string>
+    <string name="reading_mode_expand">展開</string>
+    <string name="reading_mode_card">カード</string>
+
+    <!-- ノード -->
+    <string name="node_create">ノードを作成</string>
+    <string name="node_browse">ノードを見る</string>
+    <string name="node_create_title">ノードを作成</string>
+    <string name="node_join">参加</string>
+    <string name="node_joined">参加中</string>
+    <string name="node_join_success">ノードに参加しました</string>
+    <string name="node_leave_success">ノードから退出しました</string>
+    <string name="node_empty_topics">このノードにはまだトピックがありません</string>
+    <string name="node_not_found">このノードは存在しません</string>
+    <string name="node_empty">ノードがありません</string>
+    <string name="node_search_in">このノード内を検索</string>
+    <string name="node_notification_level">通知：%1$s</string>
+    <string name="node_level_set">「%1$s」に設定しました</string>
+    <string name="node_name">名前</string>
+    <string name="node_name_hint">ノード名</string>
+    <string name="node_slug">パス (slug)</string>
+    <string name="node_slug_hint">english-slug</string>
+    <string name="node_slug_available">このパスは使えます</string>
+    <string name="node_slug_taken">このパスは使われています</string>
+    <string name="node_description">説明</string>
+    <string name="node_description_hint">このノードを一言で</string>
+    <string name="node_parent">セクション</string>
+    <string name="node_color">カラー</string>
+    <string name="node_create_footer">作成すると、このノードにトピックを投稿できます。</string>
+    <string name="node_created">ノードを作成しました</string>
+    <string name="node_recent">最近見たノード</string>
+
+    <!-- 並び替え -->
+    <string name="sort_latest">最新</string>
+    <string name="sort_new">新着</string>
+    <string name="sort_hot">人気</string>
+    <string name="sort_featured">おすすめ</string>
+    <string name="sort_top">トップ</string>
+    <string name="sort_latest_detail">最近の投稿があるトピック</string>
+    <string name="sort_new_detail">ここ数日に作成または返信されたもの</string>
+    <string name="sort_hot_detail">いま盛り上がっているもの</string>
+    <string name="sort_featured_detail">選ばれたトピック</string>
+    <string name="sort_top_detail">いいねの多いトピック</string>
+
+    <!-- ノードの通知レベル（値は Discourse のもの） -->
+    <string name="level_muted">ミュート</string>
+    <string name="level_regular">通常</string>
+    <string name="level_tracking">追跡</string>
+    <string name="level_watching">ウォッチ</string>
+    <string name="level_watching_first">最初の投稿のみ</string>
+    <string name="level_muted_detail">このノードの新しいトピックについて通知されず、最新一覧にも表示されません。</string>
+    <string name="level_regular_detail">@ で名前を出されたときや返信されたときに通知されます。</string>
+    <string name="level_tracking_detail">このノードのすべてのトピックを自動的に追跡します。メンションと返信が通知され、新しい返信の件数が表示されます。</string>
+    <string name="level_watching_detail">このノードのすべてのトピックを自動的にウォッチします。新しい投稿ごとに通知され、新しい返信の件数が表示されます。</string>
+    <string name="level_watching_first_detail">このノードの新しいトピックは通知されますが、返信は通知されません。</string>
+
+    <!-- リーダー -->
+    <string name="reader_reply_sort">返信の並び替え</string>
+    <string name="reply_sort_top">人気</string>
+    <string name="reply_sort_new">新しい順</string>
+    <string name="reply_sort_old">古い順</string>
+    <string name="reader_copy_link">リンクをコピー</string>
+    <string name="reader_link_copied">リンクをコピーしました</string>
+    <string name="reader_bookmark">ブックマーク</string>
+    <string name="reader_bookmarked">ブックマークしました</string>
+    <string name="reader_bookmark_removed">ブックマークを外しました</string>
+    <string name="reader_unbookmark">ブックマークを外す</string>
+    <string name="reader_report">通報</string>
+    <string name="reader_pin">上部に固定</string>
+    <string name="reader_unpin">固定を解除</string>
+    <string name="reader_pinned">上部に固定しました</string>
+    <string name="reader_unpinned">固定を解除しました</string>
+    <string name="reader_pinned_badge">固定</string>
+    <string name="reader_edit">編集</string>
+    <string name="reader_edit_first">トピックを編集</string>
+    <string name="reader_edit_title">投稿を編集</string>
+    <string name="reader_edit_saved">保存しました</string>
+    <string name="reader_delete">削除</string>
+    <string name="reader_delete_done">削除しました</string>
+    <string name="reader_delete_confirm">この投稿を削除しますか？</string>
+    <string name="reader_delete_confirm_body">トピックから見えなくなります。スタッフは復元できます。</string>
+    <string name="reader_deleted_badge">削除済み</string>
+    <string name="reader_recover">復元</string>
+    <string name="reader_recover_done">復元しました</string>
+    <string name="reader_lock">編集をロック</string>
+    <string name="reader_unlock">ロックを解除</string>
+    <string name="reader_locked">編集をロックしました</string>
+    <string name="reader_unlocked">ロックを解除しました</string>
+    <string name="reader_locked_badge">ロック中</string>
+    <string name="reader_topic_close">トピックを閉じる</string>
+    <string name="reader_topic_reopen">トピックを再開</string>
+    <string name="reader_topic_closed">トピックを閉じました</string>
+    <string name="reader_topic_reopened">トピックを再開しました</string>
+    <string name="reader_topic_delete">トピックを削除</string>
+    <string name="reader_topic_deleted">トピックを削除しました</string>
+    <string name="reader_topic_delete_confirm">このトピックを削除しますか？</string>
+    <string name="reader_topic_delete_confirm_body">返信を含めてスレッドごと消えます。スタッフはサイトから復元できます。</string>
+    <string name="reader_repost">リポスト</string>
+    <string name="reader_reposted">リポストしました</string>
+    <string name="reader_repost_to">%1$s にリポストしました</string>
+    <string name="reader_comment">コメント</string>
+    <string name="reader_like">いいね</string>
+    <string name="vote_upvote">賛成</string>
+    <string name="vote_undo_upvote">賛成を取り消す</string>
+    <string name="vote_downvote">反対</string>
+    <string name="vote_undo_downvote">反対を取り消す</string>
+    <string name="vote_down_not_allowed">まだ反対する権限がありません。</string>
+    <string name="vote_expand">それでも表示する</string>
+    <string name="vote_pick_upvote">どの絵文字で賛成する</string>
+    <string name="vote_pick_downvote">どの絵文字で反対する</string>
+    <string name="reaction_none">まだリアクションはありません。</string>
+    <string name="reaction_all">すべて</string>
+    <string name="reader_reply">返信</string>
+    <string name="reader_reply_to">@%1$s さんに返信</string>
+    <string name="reader_cancel_reply">返信をやめる</string>
+    <string name="reader_reply_hint">返信を書く…</string>
+    <string name="reader_replies_failed">返信を読み込めませんでした</string>
+    <string name="reader_code_copied">コードをコピーしました</string>
+    <string name="reader_code_copy_hint">長押しでコピー</string>
+    <string name="reader_reply_one_media">返信に添付できるのは 1 つまでです</string>
+    <string name="reader_reply_guest">ログインして議論に参加</string>
+    <string name="reader_send">送信</string>
+    <string name="reader_reward">投げ銭</string>
+    <string name="reader_reward_energy">エナジーを贈る</string>
+    <string name="reader_reward_amount">%1$d エナジーを贈る</string>
+    <string name="reader_reward_done">%1$d エナジーを贈りました</string>
+    <string name="reader_reward_detail">投げ銭の記録</string>
+    <string name="reader_reward_note_hint">メッセージ（任意）</string>
+    <string name="reader_reward_empty">まだ投げ銭はありません</string>
+    <string name="reader_claimed_points">%1$d エナジーを受け取りました</string>
+    <string name="reader_spoiler">ネタバレ — タップで表示</string>
+
+    <!-- プラグイン -->
+    <string name="poll_title">投票</string>
+    <string name="poll_closed">終了</string>
+    <string name="poll_multiple">複数選択</string>
+    <string name="poll_vote">投票する</string>
+    <string name="poll_revoke">投票を取り消す</string>
+    <string name="poll_create">投票を作成</string>
+    <string name="poll_option_hint">選択肢 %1$d</string>
+    <string name="poll_add_option">選択肢を追加</string>
+    <string name="poll_single_choice">単一選択</string>
+    <string name="poll_multi_choice">複数選択 ✓</string>
+    <string name="poll_insert">投票を挿入</string>
+
+    <string name="lottery_title">抽選</string>
+    <string name="lottery_drawn">抽選済み</string>
+    <string name="lottery_prize">賞品</string>
+    <string name="lottery_quantity">×%1$d</string>
+    <string name="lottery_random">ランダムな券</string>
+    <string name="lottery_join">応募する</string>
+    <string name="lottery_add">追加で買う</string>
+    <string name="lottery_winners">当選者</string>
+    <string name="lottery_join_failed">応募できませんでした。</string>
+    <string name="lottery_create_failed">抽選の作成に失敗しましたが、投稿は公開されました</string>
+    <string name="lottery_default_level">1 等</string>
+
+    <string name="envelope_title">お年玉 · %1$d エナジー / %2$s</string>
+    <string name="envelope_exhausted">すべて受け取られました</string>
+    <string name="envelope_remaining">返信すると受け取れます — 残り %1$d 個</string>
+    <string name="envelope_chip">お年玉 %1$d/%2$d ×</string>
+    <string name="envelope_create_failed">お年玉の作成に失敗しましたが、投稿は公開されました</string>
+
+    <!-- 作成 -->
+    <string name="compose_publish">公開</string>
+    <string name="compose_discard_title">エディタを離れますか？</string>
+    <string name="compose_discard_detail">下書きは保存されます。破棄すると書いた内容は失われます。</string>
+    <string name="compose_discard_confirm">破棄</string>
+    <string name="compose_edit_discard_title">変更を破棄しますか？</string>
+    <string name="compose_edit_discard_detail">ここでの変更は保存されません。</string>
+    <string name="compose_draft_keep">下書きを保存</string>
+    <string name="compose_draft_restored">下書きを復元しました</string>
+    <string name="compose_draft_untitled">無題</string>
+    <string name="compose_draft_on_site">サイトに保存</string>
+    <string name="compose_draft_on_phone">この端末</string>
+    <string name="compose_draft_new">新しく書く</string>
+    <string name="compose_draft_choose">書きかけから続けますか？</string>
+    <string name="compose_published">公開しました</string>
+    <string name="compose_select_node">ノードを選ぶ</string>
+    <string name="compose_search_node">ノードを検索</string>
+    <string name="compose_node_none">一致するノードがありません。</string>
+    <string name="compose_emoji">絵文字</string>
+    <string name="compose_emoji_search">絵文字を検索</string>
+    <string name="compose_emoji_failed">絵文字を読み込めませんでした。</string>
+    <string name="compose_title_hint">タイトル（5 文字以上）</string>
+    <string name="compose_body_hint">本文 — Markdown が使えます</string>
+    <string name="compose_media_edit">編集</string>
+    <string name="compose_media_remove">削除</string>
+    <string name="compose_image">画像</string>
+    <string name="compose_video">動画</string>
+    <string name="compose_gif">GIF</string>
+    <string name="compose_media_one_kind">1 つの投稿に添付できるのは画像・動画・GIF のいずれか 1 種類です</string>
+    <string name="compose_gif_search">GIF を検索</string>
+    <string name="compose_lottery_chip">抽選 ×</string>
+    <string name="compose_envelope">お年玉</string>
+    <string name="envelope_total_points">エナジーの合計</string>
+    <string name="envelope_total_count">個数</string>
+    <string name="lottery_field_title">タイトル</string>
+    <string name="lottery_field_prize">賞品</string>
+    <string name="lottery_field_quantity">数量</string>
+    <string name="lottery_field_min">抽選する人数</string>
+    <string name="lottery_field_max_tickets">1 人あたりの上限</string>
+    <string name="lottery_field_draw_days">何日後に抽選</string>
+
+    <!-- 受信箱 -->
+    <string name="inbox_title">受信箱</string>
+    <string name="inbox_notifications">通知</string>
+    <string name="inbox_messages">メッセージ</string>
+    <string name="inbox_chats">チャット</string>
+    <string name="inbox_mark_all_read">すべて既読にする</string>
+    <string name="inbox_guest">ログインして通知とメッセージを見る</string>
+    <string name="inbox_guest_detail">読むだけならアカウントは不要です</string>
+    <string name="inbox_empty_notifications">通知はありません</string>
+    <string name="inbox_empty_messages">メッセージはありません</string>
+    <string name="inbox_empty_chats">チャットはありません</string>
+    <string name="inbox_personal">個人</string>
+
+    <!-- 通知の文言（サイトに合わせる） -->
+    <string name="notif_system">システム</string>
+    <string name="notif_group_inbox">%1$s の受信箱に新しいメッセージがあります</string>
+    <string name="notif_group_fallback">グループ</string>
+    <string name="notif_private_message">さんからメッセージが届きました</string>
+    <string name="notif_liked">さんが %1$s のあなたの投稿にいいねしました</string>
+    <string name="notif_replied">さんが %1$s に返信しました</string>
+    <string name="notif_badge">さんが %1$s バッジを付与しました</string>
+    <string name="notif_generic">さんから通知が届きました</string>
+
+    <!-- チャット -->
+    <string name="chat_title">チャット</string>
+    <string name="chat_thread">スレッド</string>
+    <string name="chat_leave_thread">スレッドから退出</string>
+    <string name="chat_message_hint">メッセージ…</string>
+    <string name="chat_attach">添付</string>
+    <string name="chat_channel">チャンネル</string>
+
+    <!-- 検索 -->
+    <string name="search_hint">投稿・ノード・ユーザーを検索</string>
+    <string name="search_scope_all">すべて</string>
+    <string name="search_scope_nodes">ノード</string>
+    <string name="search_scope_posts">投稿</string>
+    <string name="search_scope_users">ユーザー</string>
+    <string name="search_scope_apps">アプリ</string>
+    <string name="search_scope_media">メディア</string>
+    <string name="search_recent">最近の検索</string>
+    <string name="search_hot">話題の検索</string>
+    <string name="search_empty">一致するものがありません</string>
+    <string name="search_failed">検索できませんでした</string>
+    <string name="chat_load_failed">この会話を読み込めませんでした</string>
+    <string name="chat_unread_divider">ここから新着</string>
+    <string name="chat_typing_one">%1$s さんが入力中…</string>
+    <string name="chat_copy">テキストをコピー</string>
+    <string name="chat_copied">コピーしました</string>
+    <string name="chat_edit">編集</string>
+    <string name="chat_editing">編集中</string>
+    <string name="chat_replying_to">%1$s さんに返信</string>
+    <string name="chat_react">リアクションを追加</string>
+    <string name="chat_edited">編集済み</string>
+    <string name="chat_sending">送信中…</string>
+    <string name="chat_profile">プロフィールを見る</string>
+    <string name="chat_members">メンバー</string>
+    <string name="chat_notification_level">通知</string>
+    <string name="chat_level_always">すべてのメッセージ</string>
+    <string name="chat_level_always_detail">新しいメッセージをすべて通知します。</string>
+    <string name="chat_level_mention">メンションのみ</string>
+    <string name="chat_level_mention_detail">@ で名前を出されたときや引用されたときだけ通知します。</string>
+    <string name="chat_level_never">通知しない</string>
+    <string name="chat_level_never_detail">通知も未読件数も表示しません。</string>
+    <string name="chat_leave">会話から退出</string>
+    <string name="chat_leave_title">この会話から退出しますか？</string>
+    <string name="chat_leave_detail">一覧から消えます。新しいメッセージが来ると戻り、履歴は消えません。</string>
+    <string name="chat_delete_title">このメッセージを削除しますか？</string>
+    <string name="chat_delete_detail">会話にいる全員から見えなくなります。</string>
+    <string name="apps_load_failed">このアプリを読み込めませんでした</string>
+    <string name="search_empty_detail">別のキーワードで試してください</string>
+    <string name="search_node_empty">このノードでは見つかりませんでした</string>
+    <string name="search_nodes_capped">ノード · %2$d 件中 %1$d 件</string>
+
+    <!-- プロフィール -->
+    <string name="profile_guest">ログインしてプロフィールを見る</string>
+    <string name="profile_follow">フォロー</string>
+    <string name="profile_following">フォロー中</string>
+    <string name="profile_admin">管理者</string>
+    <string name="profile_moderator">モデレーター</string>
+    <string name="profile_last_seen">最終アクセス %1$s</string>
+    <string name="profile_joined">%1$s に登録</string>
+    <string name="profile_energy">エナジー</string>
+    <string name="profile_reputation">評価</string>
+    <string name="profile_topics">トピック</string>
+    <string name="profile_posts">投稿</string>
+    <string name="profile_likes">いいね</string>
+    <string name="profile_bookmarks">ブックマーク</string>
+    <string name="profile_empty_points">エナジーの履歴はありません</string>
+
+    <!-- 設定 -->
+    <string name="settings_account">アカウント</string>
+    <string name="settings_preferences">環境設定</string>
+    <string name="settings_account_section">このアプリ</string>
+    <string name="settings_profile">プロフィール</string>
+    <string name="settings_associated">連携済みアカウント</string>
+    <string name="settings_security">セキュリティ</string>
+    <string name="settings_interface">表示</string>
+    <string name="settings_notifications">通知</string>
+    <string name="settings_email">メール</string>
+    <string name="settings_privacy">プライバシー</string>
+    <string name="settings_web">ウェブの設定を開く</string>
+    <string name="settings_push">プッシュ通知</string>
+    <string name="settings_sign_out">ログアウト</string>
+    <string name="settings_appearance">外観</string>
+    <string name="settings_other">その他</string>
+    <string name="settings_color_mode">配色</string>
+    <string name="settings_text_size">文字サイズ</string>
+    <string name="settings_default_home">起動時の画面</string>
+    <string name="settings_external_links">外部リンクを新しいタブで開く</string>
+    <string name="settings_quoting">引用返信を有効にする</string>
+    <string name="settings_in_app_notifications">アプリ内通知</string>
+    <string name="settings_like_frequency">いいねの通知</string>
+    <string name="settings_new_topic_duration">新着とみなす期間</string>
+    <string name="settings_track_on_reply">返信したトピックを追跡する</string>
+    <string name="settings_email_notifications">メール通知</string>
+    <string name="settings_email_replies">返信をメールで受け取る</string>
+    <string name="settings_email_messages">メッセージをメールで受け取る</string>
+    <string name="settings_email_previous">前の返信を含める</string>
+    <string name="settings_email_digest">アクティビティのダイジェストを送る</string>
+    <string name="settings_hide_profile">公開プロフィールを隠す</string>
+    <string name="settings_hide_presence">オンライン状態を隠す</string>
+
+    <string name="color_mode_auto">自動</string>
+    <string name="color_mode_light">ライト</string>
+    <string name="color_mode_dark">ダーク</string>
+    <string name="text_size_smallest">最小</string>
+    <string name="text_size_smaller">小</string>
+    <string name="text_size_normal">標準</string>
+    <string name="text_size_larger">大</string>
+    <string name="text_size_largest">最大</string>
+    <string name="email_level_always">常に</string>
+    <string name="email_level_away">離席中のみ</string>
+    <string name="email_level_never">送らない</string>
+    <string name="previous_replies_always">常に</string>
+    <string name="previous_replies_unless">以前に送っていない場合</string>
+    <string name="previous_replies_never">含めない</string>
+    <string name="like_freq_always">常に</string>
+    <string name="like_freq_first_daily">初回と 1 日ごと</string>
+    <string name="like_freq_first">初回のみ</string>
+    <string name="like_freq_never">通知しない</string>
+    <string name="duration_last_visit">前回の訪問から</string>
+    <string name="duration_one_day">1 日</string>
+    <string name="duration_two_days">2 日</string>
+    <string name="duration_one_week">1 週間</string>
+    <string name="duration_two_weeks">2 週間</string>
+
+    <!-- プッシュ -->
+    <string name="push_enable">プッシュ通知</string>
+    <string name="push_enable_detail">バックグラウンドで新しい通知を確認します</string>
+    <string name="push_permission_footer">システム設定で通知がオフになっています。オンにするまで何も届きません。</string>
+    <string name="push_filter_footer">オフにした種類も、アプリ内の受信箱には表示されます。</string>
+    <string name="push_open_system_settings">システム設定を開く</string>
+    <string name="push_types">種類</string>
+    <string name="push_replies">返信とメンション</string>
+    <string name="push_replies_detail">返信・引用・メンションされたとき</string>
+    <string name="push_likes">いいね</string>
+    <string name="push_likes_detail">投稿や返信にいいねされたとき</string>
+    <string name="push_messages">メッセージ</string>
+    <string name="push_messages_detail">個人宛のメッセージを受け取ったとき</string>
+    <string name="push_other">バッジとお知らせ</string>
+    <string name="push_other_detail">バッジの付与、グループメッセージなど</string>
+
+    <!-- セキュリティ -->
+    <string name="security_password">パスワード</string>
+    <string name="security_send_reset">パスワード再設定メールを送る</string>
+    <string name="security_reset_sent">パスワード再設定メールを送りました</string>
+    <string name="security_two_factor">二要素認証</string>
+    <string name="security_two_factor_footer">有効にすると、ログイン時にワンタイムコードも必要になります。</string>
+    <string name="security_status">状態</string>
+    <string name="security_enabled">オン</string>
+    <string name="security_disabled">オフ</string>
+    <string name="security_backup_codes">バックアップコード</string>
+    <string name="security_generate_backup">バックアップコードを生成</string>
+    <string name="security_backup_footer">安全な場所に保管してください。各コードは 1 回だけ使えます。</string>
+    <string name="security_enable_totp">二要素認証をオンにする</string>
+    <string name="security_disable_totp">二要素認証をオフにする</string>
+    <string name="security_totp_enabled">二要素認証はオンです</string>
+    <string name="security_totp_disabled">二要素認証はオフです</string>
+    <string name="security_scan_key">キーをスキャンまたは入力</string>
+    <string name="security_key">キー</string>
+    <string name="security_totp_footer">認証アプリに追加してから、6 桁のコードを入力して完了します。</string>
+    <string name="security_totp_code_hint">6 桁のコード</string>
+    <string name="security_finish_binding">設定を完了</string>
+    <string name="security_sessions">セッション</string>
+    <string name="security_session_fallback">セッション #%1$d</string>
+    <string name="security_current_device">この端末</string>
+    <string name="security_sign_out_session">ログアウト</string>
+    <string name="security_session_revoked">セッションからログアウトしました</string>
+    <string name="security_confirm_identity">本人確認</string>
+    <string name="security_confirm_detail">重要な変更にはパスワードの再入力が必要です。</string>
+    <string name="security_wrong_password">パスワードが違います。もう一度お試しください</string>
+    <string name="security_no_associated">連携済みのアカウントはありません</string>
+    <string name="security_associated_footer">連携したアカウントでウェブサイトにログインできます。</string>
+    <string name="security_unlink">連携を解除</string>
+    <string name="security_unlink_confirm_title">%1$s の連携を解除しますか？</string>
+    <string name="security_unlink_confirm_detail">もう一度連携するまで、それでログインできなくなります。</string>
+
+    <!-- プロフィール編集 -->
+    <string name="profile_edit_avatar">アイコンを変更</string>
+    <string name="profile_edit_section">プロフィール</string>
+    <string name="profile_edit_name">表示名</string>
+    <string name="profile_edit_name_hint">名前の表示のしかた</string>
+    <string name="profile_edit_title">称号</string>
+    <string name="profile_edit_title_none">称号なし</string>
+    <string name="profile_edit_title_locked">称号は獲得したバッジから選べます</string>
+    <string name="profile_edit_bio">自己紹介</string>
+    <string name="profile_edit_bio_hint">自分について書いてみましょう</string>
+    <string name="profile_edit_website">ウェブサイト</string>
+    <string name="profile_edit_location">場所</string>
+    <string name="profile_edit_saved">プロフィールを保存しました</string>
+    <string name="profile_edit_load_failed">プロフィールを読み込めませんでした</string>
+    <string name="profile_edit_load_failed_detail">接続を確認してからお試しください。</string>
+    <string name="profile_avatar_updated">アイコンを更新しました</string>
+    <string name="profile_edit_background">背景を変更</string>
+    <string name="profile_edit_background_remove">背景を削除</string>
+    <string name="profile_background_updated">背景を更新しました</string>
+
+    <!-- 認証 -->
+    <string name="auth_terms">ログインすると、NODELOC の利用規約とプライバシーポリシーに同意したものとみなされます。</string>
+    <string name="auth_website">NodeLoc のウェブサイトで続ける</string>
+    <string name="auth_identifier">メールアドレスまたはユーザー名</string>
+    <string name="auth_identifier_hint">you@example.com</string>
+    <string name="auth_password">パスワード</string>
+    <string name="auth_code">コード</string>
+    <string name="auth_code_hint">6 桁のコード</string>
+    <string name="auth_backup_code">バックアップコード</string>
+    <string name="auth_use_backup">バックアップコードを使う</string>
+    <string name="auth_use_totp">認証アプリのコードを使う</string>
+    <string name="auth_forgot">パスワードをお忘れですか？</string>
+    <string name="auth_email_step">メールアドレス</string>
+    <string name="auth_email">メールアドレス</string>
+    <string name="auth_username_step">ユーザー名を決める</string>
+    <string name="auth_username">ユーザー名</string>
+    <string name="auth_username_hint">3〜20 文字</string>
+    <string name="auth_email_invalid">有効なメールアドレスを入力してください</string>
+    <string name="auth_email_ok">形式は正しいようです</string>
+    <string name="auth_username_available">いい名前です。この名前は空いています</string>
+    <string name="auth_username_taken">この名前は使われています</string>
+    <string name="auth_username_suggestion">「%1$s」はどうでしょう</string>
+    <string name="auth_password_step">パスワードを設定</string>
+    <string name="auth_password_hint">10 文字以上</string>
+    <string name="auth_password_short">10 文字以上にしてください</string>
+    <string name="auth_password_ok">長さは足りています</string>
+    <string name="auth_gender_step">性別</string>
+    <string name="auth_gender_footer">おすすめのために、この端末にだけ保存されます。</string>
+    <string name="auth_gender_male">男性</string>
+    <string name="auth_gender_female">女性</string>
+    <string name="auth_gender_other">その他</string>
+    <string name="auth_gender_private">答えたくない</string>
+    <string name="auth_interests_step">興味のあるノード</string>
+    <string name="auth_interests_footer">3 つまで選べます。自動的に参加します。</string>
+    <string name="auth_shuffle">シャッフル</string>
+    <string name="auth_finish_signup">アカウントを作成</string>
+    <string name="auth_check_email">メールを確認してください</string>
+    <string name="auth_activation_detail">%1$s に有効化リンクを送りました。開くと登録が完了します。</string>
+    <string name="auth_activation_hint">そのあとここに戻ってログインしてください。選んだノードには自動的に参加します。</string>
+    <string name="auth_back_to_login">ログインに戻る</string>
+    <string name="auth_gate_title">NODELOC に参加</string>
+    <string name="auth_gate_detail">ログインすると投稿・返信・いいね・ブックマークができます。読むだけならアカウントは不要です。</string>
+
+    <string name="auth_error_key_generation">セキュリティキーを生成できませんでした。</string>
+    <string name="auth_error_missing_payload">ログインの応答が不完全でした。</string>
+    <string name="auth_error_lost_keypair">ログインが中断されました。もう一度やり直してください。</string>
+    <string name="auth_error_decrypt">ログインの応答を検証できませんでした。</string>
+    <string name="auth_error_nonce">ログインの検証に失敗しました。もう一度お試しください。</string>
+    <string name="auth_error_cancelled">ログインをキャンセルしました。</string>
+    <string name="auth_error_missing_fields">すべての項目を入力してください。</string>
+    <string name="auth_error_second_factor">このアカウントは二要素認証を使っています。コードを入力してください。</string>
+    <string name="auth_error_incomplete">ログインが完了しませんでした。もう一度お試しください。</string>
+    <string name="auth_error_no_session">ログインでウェブのセッションが返りませんでした。</string>
+    <string name="auth_error_session_start">ログインのセッションを開始できませんでした。</string>
+    <string name="auth_error_bad_code">コードが正しくありません。もう一度お試しください。</string>
+    <string name="auth_error_login_failed">ログインに失敗しました。もう一度お試しください</string>
+    <string name="auth_error_signup_failed">登録に失敗しました。もう一度お試しください</string>
+    <string name="auth_signup_activation_needed">アカウントを作成しました。メールから有効化してください。</string>
+
+    <!-- ようこそ -->
+    <string name="welcome_tagline">自由に、対等に、親しく、開かれて、楽しく</string>
+    <string name="welcome_start">はじめる</string>
+    <string name="welcome_have_account">アカウントを持っています</string>
+    <string name="welcome_browse">まずは見てみる</string>
+
+    <!-- ブラウザとメディア -->
+    <string name="browser_open_external">ブラウザで開く</string>
+    <string name="web_session_api_only_title">このページはウェブのログインが必要です</string>
+    <string name="web_session_api_only_detail">ウェブサイト経由でログインしているため、このページは開けますが、変更しても保存されません。ブラウザで続けてください。そちらではすでにログイン済みです。</string>
+    <string name="web_session_continue_anyway">それでもここで開く</string>
+    <string name="browser_text_size">文字サイズ %1$d%%</string>
+    <string name="media_mute">ミュート</string>
+    <string name="media_unmute">ミュート解除</string>
+    <string name="editor_crop">切り抜き</string>
+    <string name="editor_brush">描く</string>
+    <string name="editor_mosaic">モザイク</string>
+    <string name="editor_mosaic_solid">塗りつぶし</string>
+    <string name="editor_mosaic_blur">ぼかし</string>
+    <string name="editor_mosaic_fine">細かめ</string>
+    <string name="editor_mosaic_pixel">ピクセル</string>
+    <string name="editor_mosaic_blocks">モザイク</string>
+    <string name="editor_text">テキスト</string>
+    <string name="editor_rotate">回転</string>
+    <string name="editor_add_text">テキストを追加</string>
+    <string name="editor_crop_free">自由</string>
+    <string name="editor_crop_square">1:1</string>
+    <string name="editor_crop_portrait">4:5</string>
+    <string name="editor_crop_landscape">16:9</string>
+    <string name="editor_filter_faded">フェード</string>
+    <string name="editor_filter_mono">モノクロ</string>
+    <string name="editor_filter_cool">クール</string>
+    <string name="editor_filter_warm">ウォーム</string>
+    <string name="editor_filter_vivid">ビビッド</string>
+    <string name="editor_filter_none">オリジナル</string>
+    <string name="editor_text_filled">背景つき</string>
+    <string name="editor_text_outlined">縁取り</string>
+    <string name="editor_text_plain">標準</string>
+    <string name="editor_filter">フィルター</string>
+    <string name="editor_sticker">スタンプ</string>
+    <string name="editor_flip">反転</string>
+    <string name="editor_redo">やり直す</string>
+    <string name="editor_reset">リセット</string>
+    <string name="trim_gif_limit">GIF は %1$d 秒までです。超えた分は切り取られます</string>
+    <string name="trim_failed">この動画を処理できませんでした。もう一度お試しください</string>
+    <string name="trim_too_large">この動画は大きすぎます。短くしてからお試しください。</string>
+
+    <!-- アプリ一覧 -->
+    <string name="apps_title">アプリ一覧</string>
+    <string name="apps_more">もっと見る</string>
+    <string name="apps_recent">最近使ったアプリ</string>
+    <string name="apps_empty">アプリはありません</string>
+    <string name="apps_open">アプリを開く</string>
+    <string name="apps_web_only">このアプリはウェブサイトでのみ動きます。</string>
+    <string name="apps_permissions">権限</string>
+    <string name="apps_discussion">討論を開く</string>
+
+    <!-- 数を伴う名詞：日本語は 1 つの形だけ -->
+    <plurals name="common_members">
+        <item quantity="other">メンバー %1$s 人</item>
+    </plurals>
+    <plurals name="common_topics">
+        <item quantity="other">トピック %1$s 件</item>
+    </plurals>
+    <plurals name="chat_member_count">
+        <item quantity="other">メンバー %1$d 人</item>
+    </plurals>
+    <plurals name="chat_typing_many">
+        <item quantity="other">%1$d 人が入力中…</item>
+    </plurals>
+    <plurals name="common_replies_count">
+        <item quantity="other">返信 %1$d 件</item>
+    </plurals>
+    <plurals name="reader_load_more_replies">
+        <item quantity="other">さらに %1$d 件の返信</item>
+    </plurals>
+    <plurals name="apps_installs">
+        <item quantity="other">%1$d 回インストール</item>
+    </plurals>
+    <plurals name="poll_voters">
+        <item quantity="other">%1$d 人が投票</item>
+    </plurals>
+    <plurals name="lottery_my_tickets">
+        <item quantity="other">%1$d 枚の券を持っています</item>
+    </plurals>
+    <string name="profile_tab_load_failed">このタブを読み込めませんでした</string>
+    <plurals name="lottery_entrants">
+        <item quantity="other">%1$d 人が応募</item>
+    </plurals>
+    <plurals name="lottery_tickets">
+        <item quantity="other">%1$d 枚</item>
+    </plurals>
+    <plurals name="lottery_min_participants">
+        <item quantity="other">%1$d 人で抽選</item>
+    </plurals>
+    <plurals name="lottery_max_participants">
+        <item quantity="other">最大 %1$d 人</item>
+    </plurals>
+    <plurals name="envelope_packets">
+        <item quantity="other">%1$d 個</item>
+    </plurals>
+    <plurals name="notif_group_inbox_count">
+        <item quantity="other">%1$s の受信箱に %2$d 件のメッセージ</item>
+    </plurals>
+    <string name="image_load_failed">この画像を読み込めませんでした</string>
+    <string name="viewer_save_image">画像を保存</string>
+    <string name="viewer_save_video">動画を保存</string>
+    <string name="viewer_save_video_failed">動画を保存できませんでした</string>
+    <string name="report_title">この投稿を通報</string>
+    <string name="report_note_hint">何が問題かモデレーターに伝えてください</string>
+    <string name="report_sent">送信しました。モデレーターが確認します</string>
+    <string name="viewer_saved">ギャラリーに保存しました</string>
+    <string name="viewer_save_failed">画像を保存できませんでした</string>
+    <string name="viewer_more">その他</string>
+    <string name="viewer_previous">前の画像</string>
+    <string name="viewer_next">次の画像</string>
+    <string name="media_video_failed">この動画を再生できませんでした</string>
+    <string name="media_no_more_videos">いまのところ動画はもうありません</string>
+    <string name="common_pause">一時停止</string>
+    <string name="profile_message">メッセージ</string>
+    <string name="profile_chat">チャット</string>
+    <string name="profile_notification_level">通知</string>
+    <string name="profile_notify_normal">通常</string>
+    <string name="profile_notify_muted">ミュート</string>
+    <string name="profile_notify_ignored">無視</string>
+    <string name="profile_notify_normal_detail">これまでどおり通知されます。</string>
+    <string name="profile_notify_muted_detail">この人からの通知は届きません。</string>
+    <string name="profile_notify_ignored_detail">投稿も表示されなくなります。</string>
+    <string name="profile_notify_saved">保存しました</string>
+    <string name="auth_failed">ログインが完了しませんでした</string>
+    <string name="auth_continue_with">%1$s で続ける</string>
+    <string name="auth_or_password">またはパスワードでログイン</string>
+
+    <!-- アップデート -->
+    <string name="update_check">アップデートを確認</string>
+    <string name="update_up_to_date">最新バージョンです</string>
+    <string name="update_available_title">バージョン %1$s が利用できます</string>
+    <string name="update_available_required">使い続けるにはこのアップデートが必要です。</string>
+    <string name="update_install">ダウンロードしてインストール</string>
+    <string name="update_later">あとで</string>
+    <string name="update_downloading">ダウンロード中…</string>
+    <string name="update_download_failed">アップデートをダウンロードできませんでした。しばらくしてからお試しください。</string>
+    <string name="update_install_failed">インストーラーを開けませんでした</string>
+    <string name="update_needs_install_permission">NodeLoc にアプリのインストールを許可してください</string>
+
+    <!-- 抽選の作成 -->
+    <string name="lottery_field_max_participants">参加人数の上限（空欄で無制限）</string>
+    <string name="lottery_field_min_tickets">1 人あたりの最小枚数</string>
+    <string name="lottery_field_trust_level">最低トラストレベル</string>
+    <string name="lottery_field_levels">賞</string>
+    <string name="lottery_add_level">賞を追加</string>
+    <string name="lottery_remove_level">削除</string>
+    <string name="lottery_level_name_hint">賞の名前（例：1 等）</string>
+    <string name="lottery_draws_at">%1$s に抽選</string>
+    <string name="lottery_error_title">抽選のタイトルを入力してください</string>
+    <string name="lottery_error_prize">賞品を 1 つ以上書いてください</string>
+    <string name="lottery_error_min_participants">最少参加人数は 1 以上にしてください</string>
+    <string name="lottery_error_max_below_min">参加人数の上限は下限より大きくしてください</string>
+    <string name="lottery_error_min_tickets">最小枚数は最大枚数を超えられません</string>
+    <string name="lottery_error_draw_days">抽選は 1〜%1$d 日後にしてください</string>
+    <string name="lottery_condition_min_tickets">1 人あたり %1$d 枚以上</string>
+    <string name="lottery_condition_max_tickets">1 人あたり %1$d 枚まで</string>
+    <string name="lottery_condition_trust_level">TL%1$d 以上</string>
+
+    <!-- デイリーチェックイン -->
+    <string name="checkin_action">チェックイン</string>
+    <string name="checkin_done">今日はチェックイン済みです</string>
+    <string name="checkin_success">チェックイン完了 — %1$d エナジー</string>
+
+    <!-- 昇格の進捗 -->
+    <string name="upgrade_title">昇格の進捗</string>
+    <string name="upgrade_load_failed">昇格の進捗を読み込めません</string>
+    <string name="upgrade_next_level">次のレベル：%1$s</string>
+    <string name="upgrade_met_count">%2$d 項目中 %1$d 項目を達成</string>
+    <string name="upgrade_all_met">次のレベルの条件はすべて満たしています。</string>
+    <string name="upgrade_maintaining">維持中</string>
+    <string name="upgrade_retention_title">このレベルを保つ条件</string>
+    <string name="upgrade_locked">トラストレベルはロックされています。自動では変わりません。</string>
+    <string name="upgrade_group_standing">アカウントの状態</string>
+    <string name="upgrade_group_activity">活動</string>
+    <string name="upgrade_group_recent">直近 %1$d 日</string>
+    <string name="upgrade_group_recent_plain">最近の活動</string>
+    <string name="upgrade_group_all_time">累計</string>
+    <string name="upgrade_target">目標 %1$d</string>
+    <string name="upgrade_limit">上限 %1$d</string>
+    <string name="upgrade_condition_met">達成</string>
+    <string name="upgrade_condition_over">上限を超過</string>
+    <string name="upgrade_condition_remaining">あと %1$d</string>
+
+    <!-- 投稿元 -->
+    <string name="post_source_title">投稿元の表示</string>
+    <string name="post_source_explain">この端末の情報をどこまで投稿に出すかを選べます。既定では機種名まで出ます。「表示しない」を選べば何も出ません。この設定は端末ではなくアカウントについて回ります。</string>
+    <string name="post_source_footer">投稿元は誰でも好きに名乗れるので、ただの飾りです。権限にも証明にもなりません。</string>
+    <string name="post_source_from">%1$s から</string>
+    <string name="post_source_level_off">表示しない</string>
+    <string name="post_source_level_client">アプリ名だけ</string>
+    <string name="post_source_level_platform">アプリ名とプラットフォーム</string>
+    <string name="post_source_level_brand">メーカーまで</string>
+    <string name="post_source_level_model">機種名まで</string>
+    <string name="post_source_history_title">すでに投稿したもの</string>
+    <string name="post_source_history_detail">レベルを下げても、変わるのはこれからの投稿だけです。ここでは、すでに投稿したものから投稿元を消します。元には戻せません。</string>
+    <string name="post_source_clear">過去の投稿から消す</string>
+    <string name="post_source_cleared">消しました</string>
+    <string name="video_quality">画質</string>
+    <string name="video_quality_480">480p</string>
+    <string name="video_quality_720">720p</string>
+    <string name="video_quality_1080">1080p</string>
+    <string name="video_quality_original">オリジナル</string>
+    <string name="video_sound">音声</string>
+    <string name="video_gif">GIF</string>
+    <string name="video_play">再生</string>
+    <string name="video_pause">一時停止</string>
+    <string name="video_summary">%1$s · ~%2$s</string>
+    <string name="sort_best">おすすめ</string>
+    <string name="sort_best_detail">あなたに合わせて選ばれた話題</string>
+    <string name="block_user_title">このユーザーをブロックしますか？</string>
+    <string name="block_user_message">%1$s の投稿は表示されなくなり、メッセージも届かなくなります。設定から解除できます。</string>
+    <string name="block_user_confirm">ブロック</string>
+    <string name="block_user_done">ブロックしました</string>
+    <string name="unblock_user">ブロック解除</string>
+    <string name="unblock_user_done">ブロックを解除しました</string>
+    <string name="settings_blocked">ブロックしたユーザー</string>
+    <string name="blocked_empty">ブロックしたユーザーはいません。</string>
+    <string name="blocked_not_allowed">このサイトではまだブロックを利用できません。</string>
+    <string name="post_more_bookmark">ブックマーク</string>
+    <string name="post_more_watch">ウォッチ</string>
+    <string name="post_more_watching">ウォッチ中</string>
+    <string name="post_more_author">投稿者を見る</string>
+    <string name="post_more_block_author">投稿者をブロック</string>
+    <string name="post_more_repost">リポスト</string>
+    <string name="profile_report">このユーザーを通報</string>
+    <string name="profile_block">このユーザーをブロック</string>
+    <string name="profile_report_title">@%1$s を通報</string>
+</resources>

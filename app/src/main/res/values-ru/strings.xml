@@ -1,0 +1,826 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Русский. Ключи и порядок подстановок должны совпадать с values/strings.xml.
+  У множественного числа четыре формы: one / few / many / other.
+-->
+<resources>
+    <string name="app_name">NodeLoc</string>
+
+    <!-- Общее -->
+    <string name="common_back">Назад</string>
+    <string name="common_close">Закрыть</string>
+    <string name="common_cancel">Отмена</string>
+    <string name="common_confirm">Подтвердить</string>
+    <string name="common_done">Готово</string>
+    <string name="common_save">Сохранить</string>
+    <string name="common_continue">Продолжить</string>
+    <string name="common_retry">Повторить</string>
+    <string name="link_blocked">Эту ссылку открыть не удалось.</string>
+    <string name="session_expired">Сеанс истёк. Войдите снова.</string>
+    <string name="common_more">Ещё</string>
+    <string name="common_share">Поделиться</string>
+    <string name="common_refresh">Обновить</string>
+    <string name="common_menu">Меню</string>
+    <string name="common_settings">Настройки</string>
+    <string name="common_login">Войти</string>
+    <string name="common_signup">Регистрация</string>
+    <string name="common_delete">Удалить</string>
+    <string name="common_clear">Очистить</string>
+    <string name="common_clear_all">Очистить всё</string>
+    <string name="common_expand">Развернуть</string>
+    <string name="common_collapse">Свернуть</string>
+    <string name="common_loading">Загрузка</string>
+    <string name="common_checking">Проверяем…</string>
+    <string name="common_add">Добавить</string>
+    <string name="common_or">или</string>
+    <string name="common_empty">Здесь пока пусто</string>
+    <string name="common_empty_hint">Загляните позже</string>
+    <string name="common_play">Воспроизвести</string>
+    <string name="common_undo">Отменить</string>
+    <string name="common_guest">Вы не вошли</string>
+    <string name="common_me">Я</string>
+
+    <!-- Нижняя навигация -->
+    <string name="tab_home">Главная</string>
+    <string name="tab_nodes">Ноды</string>
+    <string name="tab_inbox">Входящие</string>
+    <string name="tab_search">Поиск</string>
+    <string name="tab_profile">Профиль</string>
+
+    <!-- Ошибки: код состояния пользователю не показываем -->
+    <string name="error_unauthorized">Нет прав, либо сеанс истёк. Войдите снова.</string>
+    <string name="error_not_found">Такого содержимого нет или оно удалено</string>
+    <string name="error_rate_limited">Слишком много запросов — попробуйте чуть позже</string>
+    <string name="error_rate_limited_wait">Слишком много запросов — попробуйте через %1$d с</string>
+    <string name="error_server">На сервере неполадки. Попробуйте позже.</string>
+    <string name="error_generic_request">Запрос не удался, попробуйте ещё раз</string>
+    <string name="error_challenged">Защита сайта заблокировала этот запрос. Попробуйте позже.</string>
+    <string name="error_decoding">При загрузке что-то пошло не так. Попробуйте ещё раз.</string>
+    <string name="error_offline">Нет соединения — проверьте сеть и повторите</string>
+    <string name="error_timeout">Время ожидания истекло, попробуйте ещё раз</string>
+    <string name="error_transport">Проблема с сетью, попробуйте ещё раз</string>
+    <string name="error_action_failed">Не получилось. Попробуйте ещё раз.</string>
+
+    <!-- Лента -->
+    <string name="feed_compose">Новая тема</string>
+    <string name="feed_reading_mode">Режим чтения</string>
+    <string name="feed_pinned">Закреплено</string>
+    <string name="reading_mode_compact">Компактно</string>
+    <string name="reading_mode_expand">Развёрнуто</string>
+    <string name="reading_mode_card">Карточки</string>
+
+    <!-- Ноды -->
+    <string name="node_create">Новая нода</string>
+    <string name="node_browse">Смотреть ноды</string>
+    <string name="node_create_title">Создать ноду</string>
+    <string name="node_join">Вступить</string>
+    <string name="node_joined">Вы участник</string>
+    <string name="node_join_success">Вы вступили в ноду</string>
+    <string name="node_leave_success">Вы вышли из ноды</string>
+    <string name="node_empty_topics">В этой ноде пока нет тем</string>
+    <string name="node_not_found">Такой ноды не существует</string>
+    <string name="node_empty">Нод нет</string>
+    <string name="node_search_in">Искать в этой ноде</string>
+    <string name="node_notification_level">Уведомления: %1$s</string>
+    <string name="node_level_set">Выбрано «%1$s»</string>
+    <string name="node_name">Название</string>
+    <string name="node_name_hint">Название ноды</string>
+    <string name="node_slug">Путь (slug)</string>
+    <string name="node_slug_hint">english-slug</string>
+    <string name="node_slug_available">Этот путь свободен</string>
+    <string name="node_slug_taken">Этот путь занят</string>
+    <string name="node_description">Описание</string>
+    <string name="node_description_hint">Одна строка об этой ноде</string>
+    <string name="node_parent">Раздел</string>
+    <string name="node_color">Цвет</string>
+    <string name="node_create_footer">После создания в этой ноде можно публиковать темы.</string>
+    <string name="node_created">Нода создана</string>
+    <string name="node_recent">Недавние</string>
+
+    <!-- Сортировка -->
+    <string name="sort_latest">Свежее</string>
+    <string name="sort_new">Новое</string>
+    <string name="sort_hot">Горячее</string>
+    <string name="sort_featured">Избранное</string>
+    <string name="sort_top">Лучшее</string>
+    <string name="sort_latest_detail">Темы со свежими сообщениями</string>
+    <string name="sort_new_detail">Созданные или с ответами за последние дни</string>
+    <string name="sort_hot_detail">То, что обсуждают прямо сейчас</string>
+    <string name="sort_featured_detail">Отобранные вручную темы</string>
+    <string name="sort_top_detail">Темы с наибольшим числом симпатий</string>
+
+    <!-- Уровни уведомлений ноды (значения самого Discourse) -->
+    <string name="level_muted">Без звука</string>
+    <string name="level_regular">Обычный</string>
+    <string name="level_tracking">Отслеживание</string>
+    <string name="level_watching">Наблюдение</string>
+    <string name="level_watching_first">Только первое сообщение</string>
+    <string name="level_muted_detail">Вы не будете получать уведомления о новых темах в этой ноде, и они не появятся в разделе «Свежее».</string>
+    <string name="level_regular_detail">Вы получите уведомление, если кто-то упомянет ваш @ник или ответит вам.</string>
+    <string name="level_tracking_detail">Вы автоматически отслеживаете все темы этой ноды. Вас уведомят об упоминаниях и ответах, а число новых ответов будет показано.</string>
+    <string name="level_watching_detail">Вы автоматически наблюдаете за всеми темами этой ноды. Вас уведомят о каждом новом сообщении, а число новых ответов будет показано.</string>
+    <string name="level_watching_first_detail">Вас уведомят о новых темах в этой ноде, но не об ответах в них.</string>
+
+    <!-- Чтение -->
+    <string name="reader_reply_sort">Порядок ответов</string>
+    <string name="reply_sort_top">Лучшие</string>
+    <string name="reply_sort_new">Сначала новые</string>
+    <string name="reply_sort_old">Сначала старые</string>
+    <string name="reader_copy_link">Скопировать ссылку</string>
+    <string name="reader_link_copied">Ссылка скопирована</string>
+    <string name="reader_bookmark">В закладки</string>
+    <string name="reader_bookmarked">Закладка сохранена</string>
+    <string name="reader_bookmark_removed">Закладка убрана</string>
+    <string name="reader_unbookmark">Убрать из закладок</string>
+    <string name="reader_report">Пожаловаться</string>
+    <string name="reader_pin">Закрепить сверху</string>
+    <string name="reader_unpin">Открепить</string>
+    <string name="reader_pinned">Закреплено сверху</string>
+    <string name="reader_unpinned">Откреплено</string>
+    <string name="reader_pinned_badge">Закреплено</string>
+    <string name="reader_edit">Изменить</string>
+    <string name="reader_edit_first">Изменить тему</string>
+    <string name="reader_edit_title">Изменить сообщение</string>
+    <string name="reader_edit_saved">Сохранено</string>
+    <string name="reader_delete">Удалить</string>
+    <string name="reader_delete_done">Удалено</string>
+    <string name="reader_delete_confirm">Удалить это сообщение?</string>
+    <string name="reader_delete_confirm_body">Оно скроется из темы. Модераторы смогут его вернуть.</string>
+    <string name="reader_deleted_badge">Удалено</string>
+    <string name="reader_recover">Восстановить</string>
+    <string name="reader_recover_done">Восстановлено</string>
+    <string name="reader_lock">Запретить правку</string>
+    <string name="reader_unlock">Разрешить правку</string>
+    <string name="reader_locked">Правка запрещена</string>
+    <string name="reader_unlocked">Правка разрешена</string>
+    <string name="reader_locked_badge">Закрыто</string>
+    <string name="reader_topic_close">Закрыть тему</string>
+    <string name="reader_topic_reopen">Открыть тему снова</string>
+    <string name="reader_topic_closed">Тема закрыта</string>
+    <string name="reader_topic_reopened">Тема открыта снова</string>
+    <string name="reader_topic_delete">Удалить тему</string>
+    <string name="reader_topic_deleted">Тема удалена</string>
+    <string name="reader_topic_delete_confirm">Удалить эту тему?</string>
+    <string name="reader_topic_delete_confirm_body">Исчезнет вся ветка вместе с ответами. Модераторы смогут вернуть её с сайта.</string>
+    <string name="reader_repost">Репост</string>
+    <string name="reader_reposted">Репост сделан</string>
+    <string name="reader_repost_to">Репост в %1$s</string>
+    <string name="reader_comment">Комментарии</string>
+    <string name="reader_like">Нравится</string>
+    <string name="vote_upvote">За</string>
+    <string name="vote_undo_upvote">Убрать голос «за»</string>
+    <string name="vote_downvote">Против</string>
+    <string name="vote_undo_downvote">Убрать голос «против»</string>
+    <string name="vote_down_not_allowed">Голосовать против вам пока нельзя.</string>
+    <string name="vote_expand">Всё равно показать</string>
+    <string name="vote_pick_upvote">Голос «за» с эмодзи</string>
+    <string name="vote_pick_downvote">Голос «против» с эмодзи</string>
+    <string name="reaction_none">Реакций пока нет.</string>
+    <string name="reaction_all">Все</string>
+    <string name="reader_reply">Ответить</string>
+    <string name="reader_reply_to">Ответ @%1$s</string>
+    <string name="reader_cancel_reply">Отменить ответ</string>
+    <string name="reader_reply_hint">Напишите ответ…</string>
+    <string name="reader_replies_failed">Не удалось загрузить ответы</string>
+    <string name="reader_code_copied">Код скопирован</string>
+    <string name="reader_code_copy_hint">удерживайте, чтобы скопировать</string>
+    <string name="reader_reply_one_media">К ответу можно приложить только один файл</string>
+    <string name="reader_reply_guest">Войдите, чтобы участвовать в обсуждении</string>
+    <string name="reader_send">Отправить</string>
+    <string name="reader_reward">Награда</string>
+    <string name="reader_reward_energy">Наградить энергией</string>
+    <string name="reader_reward_amount">Наградить: %1$d энергии</string>
+    <string name="reader_reward_done">Награда отправлена: %1$d энергии</string>
+    <string name="reader_reward_detail">Награды</string>
+    <string name="reader_reward_note_hint">Записка (необязательно)</string>
+    <string name="reader_reward_empty">Наград пока нет</string>
+    <string name="reader_claimed_points">Получено %1$d энергии</string>
+    <string name="reader_spoiler">Спойлер — нажмите, чтобы открыть</string>
+
+    <!-- Плагины -->
+    <string name="poll_title">Опрос</string>
+    <string name="poll_closed">Завершён</string>
+    <string name="poll_multiple">Несколько вариантов</string>
+    <string name="poll_vote">Голосовать</string>
+    <string name="poll_revoke">Отозвать голос</string>
+    <string name="poll_create">Создать опрос</string>
+    <string name="poll_option_hint">Вариант %1$d</string>
+    <string name="poll_add_option">Добавить вариант</string>
+    <string name="poll_single_choice">Один вариант</string>
+    <string name="poll_multi_choice">Несколько ✓</string>
+    <string name="poll_insert">Вставить опрос</string>
+
+    <string name="lottery_title">Розыгрыш</string>
+    <string name="lottery_drawn">Разыгран</string>
+    <string name="lottery_prize">Приз</string>
+    <string name="lottery_quantity">×%1$d</string>
+    <string name="lottery_random">Случайный билет</string>
+    <string name="lottery_join">Участвовать</string>
+    <string name="lottery_add">Взять ещё</string>
+    <string name="lottery_winners">Победители</string>
+    <string name="lottery_join_failed">Не удалось принять участие.</string>
+    <string name="lottery_create_failed">Розыгрыш не создался, но сообщение опубликовано</string>
+    <string name="lottery_default_level">Главный приз</string>
+
+    <string name="envelope_title">Конверт · %1$d энергии / %2$s</string>
+    <string name="envelope_exhausted">Всё разобрали</string>
+    <string name="envelope_remaining">Ответьте, чтобы получить — осталось %1$d</string>
+    <string name="envelope_chip">Конверт %1$d/%2$d ×</string>
+    <string name="envelope_create_failed">Конверт не создался, но сообщение опубликовано</string>
+
+    <!-- Редактор -->
+    <string name="compose_publish">Опубликовать</string>
+    <string name="compose_discard_title">Выйти из редактора?</string>
+    <string name="compose_discard_detail">Черновик сохранится. Если отказаться от него, написанное пропадёт.</string>
+    <string name="compose_discard_confirm">Отказаться</string>
+    <string name="compose_edit_discard_title">Отменить изменения?</string>
+    <string name="compose_edit_discard_detail">То, что вы здесь изменили, не сохранится.</string>
+    <string name="compose_draft_keep">Сохранить черновик</string>
+    <string name="compose_draft_restored">Черновик восстановлен</string>
+    <string name="compose_draft_untitled">Без заголовка</string>
+    <string name="compose_draft_on_site">Сохранён на сайте</string>
+    <string name="compose_draft_on_phone">На этом телефоне</string>
+    <string name="compose_draft_new">Начать новое</string>
+    <string name="compose_draft_choose">Продолжить черновик?</string>
+    <string name="compose_published">Опубликовано</string>
+    <string name="compose_select_node">Выберите ноду</string>
+    <string name="compose_search_node">Поиск ноды</string>
+    <string name="compose_node_none">Подходящих нод нет.</string>
+    <string name="compose_emoji">Эмодзи</string>
+    <string name="compose_emoji_search">Поиск эмодзи</string>
+    <string name="compose_emoji_failed">Не удалось загрузить эмодзи.</string>
+    <string name="compose_title_hint">Заголовок (от 5 символов)</string>
+    <string name="compose_body_hint">Текст — поддерживается Markdown</string>
+    <string name="compose_media_edit">Изменить</string>
+    <string name="compose_media_remove">Убрать</string>
+    <string name="compose_image">Изображение</string>
+    <string name="compose_video">Видео</string>
+    <string name="compose_gif">GIF</string>
+    <string name="compose_media_one_kind">В сообщении может быть либо изображение, либо видео, либо GIF — но не вперемешку</string>
+    <string name="compose_gif_search">Поиск GIF</string>
+    <string name="compose_lottery_chip">Розыгрыш ×</string>
+    <string name="compose_envelope">Конверт</string>
+    <string name="envelope_total_points">Всего энергии</string>
+    <string name="envelope_total_count">Конвертов</string>
+    <string name="lottery_field_title">Заголовок</string>
+    <string name="lottery_field_prize">Приз</string>
+    <string name="lottery_field_quantity">Количество</string>
+    <string name="lottery_field_min">Разыграть при</string>
+    <string name="lottery_field_max_tickets">Максимум на человека</string>
+    <string name="lottery_field_draw_days">Розыгрыш через (дней)</string>
+
+    <!-- Входящие -->
+    <string name="inbox_title">Входящие</string>
+    <string name="inbox_notifications">Уведомления</string>
+    <string name="inbox_messages">Сообщения</string>
+    <string name="inbox_chats">Чат</string>
+    <string name="inbox_mark_all_read">Отметить всё прочитанным</string>
+    <string name="inbox_guest">Войдите, чтобы видеть уведомления и сообщения</string>
+    <string name="inbox_guest_detail">Читать можно без учётной записи, участвовать — нет</string>
+    <string name="inbox_empty_notifications">Уведомлений нет</string>
+    <string name="inbox_empty_messages">Сообщений нет</string>
+    <string name="inbox_empty_chats">Чатов нет</string>
+    <string name="inbox_personal">Личное</string>
+
+    <!-- Формулировки уведомлений (как на сайте) -->
+    <string name="notif_system">Система</string>
+    <string name="notif_group_inbox">В вашем ящике %1$s есть новые сообщения</string>
+    <string name="notif_group_fallback">группа</string>
+    <string name="notif_private_message">отправил(а) вам сообщение</string>
+    <string name="notif_liked">оценил(а) ваше сообщение в %1$s</string>
+    <string name="notif_replied">ответил(а) в %1$s</string>
+    <string name="notif_badge">вручил(а) вам награду %1$s</string>
+    <string name="notif_generic">отправил(а) вам уведомление</string>
+
+    <!-- Чат -->
+    <string name="chat_title">Чат</string>
+    <string name="chat_thread">Ветка</string>
+    <string name="chat_leave_thread">Покинуть ветку</string>
+    <string name="chat_message_hint">Сообщение…</string>
+    <string name="chat_attach">Прикрепить</string>
+    <string name="chat_channel">Канал</string>
+
+    <!-- Поиск -->
+    <string name="search_hint">Поиск по сообщениям, нодам и людям</string>
+    <string name="search_scope_all">Всё</string>
+    <string name="search_scope_nodes">Ноды</string>
+    <string name="search_scope_posts">Сообщения</string>
+    <string name="search_scope_users">Люди</string>
+    <string name="search_scope_apps">Приложения</string>
+    <string name="search_scope_media">Медиа</string>
+    <string name="search_recent">Недавние запросы</string>
+    <string name="search_hot">Популярное</string>
+    <string name="search_empty">Ничего не найдено</string>
+    <string name="search_failed">Поиск не выполнился</string>
+    <string name="chat_load_failed">Не удалось загрузить этот разговор</string>
+    <string name="chat_unread_divider">Новые сообщения</string>
+    <string name="chat_typing_one">%1$s печатает…</string>
+    <string name="chat_copy">Скопировать текст</string>
+    <string name="chat_copied">Скопировано</string>
+    <string name="chat_edit">Изменить</string>
+    <string name="chat_editing">Изменение</string>
+    <string name="chat_replying_to">Ответ %1$s</string>
+    <string name="chat_react">Добавить реакцию</string>
+    <string name="chat_edited">изменено</string>
+    <string name="chat_sending">Отправка…</string>
+    <string name="chat_profile">Открыть профиль</string>
+    <string name="chat_members">Участники</string>
+    <string name="chat_notification_level">Уведомления</string>
+    <string name="chat_level_always">Каждое сообщение</string>
+    <string name="chat_level_always_detail">Уведомлять о каждом новом сообщении.</string>
+    <string name="chat_level_mention">Только упоминания</string>
+    <string name="chat_level_mention_detail">Уведомлять, только когда меня упоминают через @ или цитируют.</string>
+    <string name="chat_level_never">Никогда</string>
+    <string name="chat_level_never_detail">Ни уведомлений, ни счётчика непрочитанного.</string>
+    <string name="chat_leave">Покинуть разговор</string>
+    <string name="chat_leave_title">Покинуть этот разговор?</string>
+    <string name="chat_leave_detail">Он исчезнет из вашего списка. Новое сообщение вернёт его обратно, и ничего не удаляется.</string>
+    <string name="chat_delete_title">Удалить это сообщение?</string>
+    <string name="chat_delete_detail">Оно исчезнет у всех участников разговора.</string>
+    <string name="apps_load_failed">Не удалось загрузить это приложение</string>
+    <string name="search_empty_detail">Попробуйте другое слово</string>
+    <string name="search_node_empty">В этой ноде ничего не нашлось</string>
+    <string name="search_nodes_capped">Ноды · %1$d из %2$d</string>
+
+    <!-- Профиль -->
+    <string name="profile_guest">Войдите, чтобы увидеть свой профиль</string>
+    <string name="profile_follow">Подписаться</string>
+    <string name="profile_following">Вы подписаны</string>
+    <string name="profile_admin">Администратор</string>
+    <string name="profile_moderator">Модератор</string>
+    <string name="profile_last_seen">Был(а) %1$s</string>
+    <string name="profile_joined">С нами с %1$s</string>
+    <string name="profile_energy">Энергия</string>
+    <string name="profile_reputation">Репутация</string>
+    <string name="profile_topics">Темы</string>
+    <string name="profile_posts">Сообщения</string>
+    <string name="profile_likes">Симпатии</string>
+    <string name="profile_bookmarks">Закладки</string>
+    <string name="profile_empty_points">Истории энергии нет</string>
+
+    <!-- Настройки -->
+    <string name="settings_account">Учётная запись</string>
+    <string name="settings_preferences">Предпочтения</string>
+    <string name="settings_account_section">Это приложение</string>
+    <string name="settings_profile">Профиль</string>
+    <string name="settings_associated">Связанные аккаунты</string>
+    <string name="settings_security">Безопасность</string>
+    <string name="settings_interface">Интерфейс</string>
+    <string name="settings_notifications">Уведомления</string>
+    <string name="settings_email">Почта</string>
+    <string name="settings_privacy">Приватность</string>
+    <string name="settings_web">Открыть веб-настройки</string>
+    <string name="settings_push">Push-уведомления</string>
+    <string name="settings_sign_out">Выйти</string>
+    <string name="settings_appearance">Внешний вид</string>
+    <string name="settings_other">Прочее</string>
+    <string name="settings_color_mode">Цветовая схема</string>
+    <string name="settings_text_size">Размер текста</string>
+    <string name="settings_default_home">Стартовый экран</string>
+    <string name="settings_external_links">Открывать внешние ссылки в новой вкладке</string>
+    <string name="settings_quoting">Включить ответы с цитатой</string>
+    <string name="settings_in_app_notifications">Уведомления в приложении</string>
+    <string name="settings_like_frequency">Уведомлять о симпатиях</string>
+    <string name="settings_new_topic_duration">Считать темы новыми</string>
+    <string name="settings_track_on_reply">Отслеживать темы, где я ответил(а)</string>
+    <string name="settings_email_notifications">Уведомления по почте</string>
+    <string name="settings_email_replies">Письма об ответах</string>
+    <string name="settings_email_messages">Письма о сообщениях</string>
+    <string name="settings_email_previous">Включать предыдущие ответы</string>
+    <string name="settings_email_digest">Присылать дайджесты</string>
+    <string name="settings_hide_profile">Скрыть мой публичный профиль</string>
+    <string name="settings_hide_presence">Скрыть моё присутствие</string>
+
+    <string name="color_mode_auto">Автоматически</string>
+    <string name="color_mode_light">Светлая</string>
+    <string name="color_mode_dark">Тёмная</string>
+    <string name="text_size_smallest">Самый мелкий</string>
+    <string name="text_size_smaller">Мельче</string>
+    <string name="text_size_normal">Обычный</string>
+    <string name="text_size_larger">Крупнее</string>
+    <string name="text_size_largest">Самый крупный</string>
+    <string name="email_level_always">Всегда</string>
+    <string name="email_level_away">Только когда меня нет</string>
+    <string name="email_level_never">Никогда</string>
+    <string name="previous_replies_always">Всегда</string>
+    <string name="previous_replies_unless">Если ещё не отправляли</string>
+    <string name="previous_replies_never">Никогда</string>
+    <string name="like_freq_always">Всегда</string>
+    <string name="like_freq_first_daily">В первый раз и ежедневно</string>
+    <string name="like_freq_first">Только в первый раз</string>
+    <string name="like_freq_never">Никогда</string>
+    <string name="duration_last_visit">С прошлого визита</string>
+    <string name="duration_one_day">1 день</string>
+    <string name="duration_two_days">2 дня</string>
+    <string name="duration_one_week">1 неделя</string>
+    <string name="duration_two_weeks">2 недели</string>
+
+    <!-- Push -->
+    <string name="push_enable">Push-уведомления</string>
+    <string name="push_enable_detail">Проверяет новые уведомления в фоне</string>
+    <string name="push_permission_footer">Уведомления выключены в системных настройках — пока их не включить, ничего не придёт.</string>
+    <string name="push_filter_footer">Отключённые типы всё равно видны во входящих внутри приложения.</string>
+    <string name="push_open_system_settings">Открыть настройки системы</string>
+    <string name="push_types">Типы</string>
+    <string name="push_replies">Ответы и упоминания</string>
+    <string name="push_replies_detail">Кто-то ответил, процитировал или упомянул вас</string>
+    <string name="push_likes">Симпатии</string>
+    <string name="push_likes_detail">Кому-то понравилось ваше сообщение или ответ</string>
+    <string name="push_messages">Сообщения</string>
+    <string name="push_messages_detail">Вам пришло личное сообщение</string>
+    <string name="push_other">Награды и системные оповещения</string>
+    <string name="push_other_detail">Вручение наград, групповые сообщения и тому подобное</string>
+
+    <!-- Безопасность -->
+    <string name="security_password">Пароль</string>
+    <string name="security_send_reset">Прислать письмо для смены пароля</string>
+    <string name="security_reset_sent">Письмо для смены пароля отправлено</string>
+    <string name="security_two_factor">Двухфакторная защита</string>
+    <string name="security_two_factor_footer">После включения при входе также спросят одноразовый код.</string>
+    <string name="security_status">Состояние</string>
+    <string name="security_enabled">Включена</string>
+    <string name="security_disabled">Выключена</string>
+    <string name="security_backup_codes">Резервные коды</string>
+    <string name="security_generate_backup">Создать резервные коды</string>
+    <string name="security_backup_footer">Храните их в надёжном месте — каждый код срабатывает один раз.</string>
+    <string name="security_enable_totp">Включить двухфакторную защиту</string>
+    <string name="security_disable_totp">Выключить двухфакторную защиту</string>
+    <string name="security_totp_enabled">Двухфакторная защита включена</string>
+    <string name="security_totp_disabled">Двухфакторная защита выключена</string>
+    <string name="security_scan_key">Отсканируйте или введите ключ</string>
+    <string name="security_key">Ключ</string>
+    <string name="security_totp_footer">Добавьте его в приложение-аутентификатор и введите 6-значный код, чтобы завершить.</string>
+    <string name="security_totp_code_hint">6-значный код</string>
+    <string name="security_finish_binding">Завершить настройку</string>
+    <string name="security_sessions">Сеансы</string>
+    <string name="security_session_fallback">Сеанс №%1$d</string>
+    <string name="security_current_device">Это устройство</string>
+    <string name="security_sign_out_session">Завершить</string>
+    <string name="security_session_revoked">Сеанс завершён</string>
+    <string name="security_confirm_identity">Подтвердите, что это вы</string>
+    <string name="security_confirm_detail">Для важных изменений нужно снова ввести пароль.</string>
+    <string name="security_wrong_password">Неверный пароль, попробуйте ещё раз</string>
+    <string name="security_no_associated">Связанных аккаунтов нет</string>
+    <string name="security_associated_footer">Через связанные аккаунты можно входить на сайт.</string>
+    <string name="security_unlink">Отвязать</string>
+    <string name="security_unlink_confirm_title">Отвязать %1$s?</string>
+    <string name="security_unlink_confirm_detail">Войти через него не получится, пока вы не привяжете его снова.</string>
+
+    <!-- Редактирование профиля -->
+    <string name="profile_edit_avatar">Сменить аватар</string>
+    <string name="profile_edit_section">Профиль</string>
+    <string name="profile_edit_name">Отображаемое имя</string>
+    <string name="profile_edit_name_hint">Как выглядит ваше имя</string>
+    <string name="profile_edit_title">Звание</string>
+    <string name="profile_edit_title_none">Без звания</string>
+    <string name="profile_edit_title_locked">Звания берутся из полученных вами наград</string>
+    <string name="profile_edit_bio">О себе</string>
+    <string name="profile_edit_bio_hint">Расскажите о себе</string>
+    <string name="profile_edit_website">Сайт</string>
+    <string name="profile_edit_location">Откуда вы</string>
+    <string name="profile_edit_saved">Профиль сохранён</string>
+    <string name="profile_edit_load_failed">Не удалось загрузить ваш профиль</string>
+    <string name="profile_edit_load_failed_detail">Проверьте соединение и попробуйте ещё раз.</string>
+    <string name="profile_avatar_updated">Аватар обновлён</string>
+    <string name="profile_edit_background">Сменить фон</string>
+    <string name="profile_edit_background_remove">Убрать фон</string>
+    <string name="profile_background_updated">Фон обновлён</string>
+
+    <!-- Вход и регистрация -->
+    <string name="auth_terms">Входя, вы принимаете условия и политику конфиденциальности NODELOC.</string>
+    <string name="auth_website">Продолжить через сайт NodeLoc</string>
+    <string name="auth_identifier">Почта или имя пользователя</string>
+    <string name="auth_identifier_hint">you@example.com</string>
+    <string name="auth_password">Пароль</string>
+    <string name="auth_code">Код</string>
+    <string name="auth_code_hint">6-значный код</string>
+    <string name="auth_backup_code">Резервный код</string>
+    <string name="auth_use_backup">Использовать резервный код</string>
+    <string name="auth_use_totp">Использовать код аутентификатора</string>
+    <string name="auth_forgot">Забыли пароль?</string>
+    <string name="auth_email_step">Ваша почта</string>
+    <string name="auth_email">Почта</string>
+    <string name="auth_username_step">Выберите имя пользователя</string>
+    <string name="auth_username">Имя пользователя</string>
+    <string name="auth_username_hint">3–20 символов</string>
+    <string name="auth_email_invalid">Введите корректный адрес почты</string>
+    <string name="auth_email_ok">С почтой всё в порядке</string>
+    <string name="auth_username_available">Отличное имя — оно свободно</string>
+    <string name="auth_username_taken">Это имя уже занято</string>
+    <string name="auth_username_suggestion">Попробуйте «%1$s»</string>
+    <string name="auth_password_step">Придумайте пароль</string>
+    <string name="auth_password_hint">Не меньше 10 символов</string>
+    <string name="auth_password_short">Нужно не меньше 10 символов</string>
+    <string name="auth_password_ok">Длины достаточно</string>
+    <string name="auth_gender_step">Ваш пол</string>
+    <string name="auth_gender_footer">Хранится только на этом устройстве, для рекомендаций.</string>
+    <string name="auth_gender_male">Мужской</string>
+    <string name="auth_gender_female">Женский</string>
+    <string name="auth_gender_other">Другой</string>
+    <string name="auth_gender_private">Не хочу отвечать</string>
+    <string name="auth_interests_step">Интересные вам ноды</string>
+    <string name="auth_interests_footer">Выберите до 3 — вы вступите в них автоматически.</string>
+    <string name="auth_shuffle">Другие</string>
+    <string name="auth_finish_signup">Создать учётную запись</string>
+    <string name="auth_check_email">Проверьте почту</string>
+    <string name="auth_activation_detail">Мы отправили ссылку для активации на %1$s — откройте её, чтобы завершить регистрацию.</string>
+    <string name="auth_activation_hint">После этого вернитесь и войдите; выбранные ноды подключатся сами.</string>
+    <string name="auth_back_to_login">Вернуться ко входу</string>
+    <string name="auth_gate_title">Присоединяйтесь к NODELOC</string>
+    <string name="auth_gate_detail">Войдите, чтобы писать, отвечать, ставить симпатии и добавлять в закладки. Читать можно без учётной записи.</string>
+
+    <string name="auth_error_key_generation">Не удалось создать ключи безопасности.</string>
+    <string name="auth_error_missing_payload">Ответ на вход оказался неполным.</string>
+    <string name="auth_error_lost_keypair">Вход был прерван. Начните заново.</string>
+    <string name="auth_error_decrypt">Не удалось проверить ответ на вход.</string>
+    <string name="auth_error_nonce">Проверка входа не прошла. Попробуйте ещё раз.</string>
+    <string name="auth_error_cancelled">Вход отменён.</string>
+    <string name="auth_error_missing_fields">Заполните, пожалуйста, все поля.</string>
+    <string name="auth_error_second_factor">В этой учётной записи включена двухфакторная защита — введите код.</string>
+    <string name="auth_error_incomplete">Вход не завершился. Попробуйте ещё раз.</string>
+    <string name="auth_error_no_session">Вход не вернул сеанс сайта.</string>
+    <string name="auth_error_session_start">Не удалось начать сеанс входа.</string>
+    <string name="auth_error_bad_code">Код неверен. Попробуйте ещё раз.</string>
+    <string name="auth_error_login_failed">Войти не удалось, попробуйте ещё раз</string>
+    <string name="auth_error_signup_failed">Зарегистрироваться не удалось, попробуйте ещё раз</string>
+    <string name="auth_signup_activation_needed">Учётная запись создана — проверьте почту и активируйте её.</string>
+
+    <!-- Приветствие -->
+    <string name="welcome_tagline">Свободно, на равных, дружелюбно, открыто, весело</string>
+    <string name="welcome_start">Начать</string>
+    <string name="welcome_have_account">У меня уже есть учётная запись</string>
+    <string name="welcome_browse">Пока просто посмотрю</string>
+
+    <!-- Браузер и медиа -->
+    <string name="browser_open_external">Открыть в браузере</string>
+    <string name="web_session_api_only_title">Для этой страницы нужен вход на сайте</string>
+    <string name="web_session_api_only_detail">Вы вошли через сайт, поэтому страница здесь откроется, но изменения не сохранятся. Продолжите в браузере — там вы уже вошли.</string>
+    <string name="web_session_continue_anyway">Всё равно открыть здесь</string>
+    <string name="browser_text_size">Размер текста %1$d%%</string>
+    <string name="media_mute">Выключить звук</string>
+    <string name="media_unmute">Включить звук</string>
+    <string name="editor_crop">Обрезать</string>
+    <string name="editor_brush">Рисовать</string>
+    <string name="editor_mosaic">Мозаика</string>
+    <string name="editor_mosaic_solid">Заливка</string>
+    <string name="editor_mosaic_blur">Размытие</string>
+    <string name="editor_mosaic_fine">Мелкая</string>
+    <string name="editor_mosaic_pixel">Пиксели</string>
+    <string name="editor_mosaic_blocks">Мозаика</string>
+    <string name="editor_text">Текст</string>
+    <string name="editor_rotate">Повернуть</string>
+    <string name="editor_add_text">Добавить текст</string>
+    <string name="editor_crop_free">Свободно</string>
+    <string name="editor_crop_square">1:1</string>
+    <string name="editor_crop_portrait">4:5</string>
+    <string name="editor_crop_landscape">16:9</string>
+    <string name="editor_filter_faded">Выцветший</string>
+    <string name="editor_filter_mono">Чёрно-белый</string>
+    <string name="editor_filter_cool">Холодный</string>
+    <string name="editor_filter_warm">Тёплый</string>
+    <string name="editor_filter_vivid">Яркий</string>
+    <string name="editor_filter_none">Оригинал</string>
+    <string name="editor_text_filled">С подложкой</string>
+    <string name="editor_text_outlined">С обводкой</string>
+    <string name="editor_text_plain">Обычный</string>
+    <string name="editor_filter">Фильтр</string>
+    <string name="editor_sticker">Стикер</string>
+    <string name="editor_flip">Отразить</string>
+    <string name="editor_redo">Вернуть</string>
+    <string name="editor_reset">Сбросить</string>
+    <string name="trim_gif_limit">GIF ограничен %1$d с; остальное обрежется</string>
+    <string name="trim_failed">Не удалось обработать это видео, попробуйте ещё раз</string>
+    <string name="trim_too_large">Этот ролик слишком большой. Обрежьте его короче и попробуйте снова.</string>
+
+    <!-- Каталог приложений -->
+    <string name="apps_title">Каталог приложений</string>
+    <string name="apps_more">Ещё приложения</string>
+    <string name="apps_recent">Недавние приложения</string>
+    <string name="apps_empty">Приложений нет</string>
+    <string name="apps_open">Открыть приложение</string>
+    <string name="apps_web_only">Это приложение работает только на сайте.</string>
+    <string name="apps_permissions">Разрешения</string>
+    <string name="apps_discussion">Открыть обсуждение</string>
+
+    <!-- Счётные существительные -->
+    <plurals name="common_members">
+        <item quantity="one">%1$s участник</item>
+        <item quantity="few">%1$s участника</item>
+        <item quantity="many">%1$s участников</item>
+        <item quantity="other">%1$s участника</item>
+    </plurals>
+    <plurals name="common_topics">
+        <item quantity="one">%1$s тема</item>
+        <item quantity="few">%1$s темы</item>
+        <item quantity="many">%1$s тем</item>
+        <item quantity="other">%1$s темы</item>
+    </plurals>
+    <plurals name="chat_member_count">
+        <item quantity="one">%1$d участник</item>
+        <item quantity="few">%1$d участника</item>
+        <item quantity="many">%1$d участников</item>
+        <item quantity="other">%1$d участника</item>
+    </plurals>
+    <plurals name="chat_typing_many">
+        <item quantity="one">%1$d человек печатает…</item>
+        <item quantity="few">%1$d человека печатают…</item>
+        <item quantity="many">%1$d человек печатают…</item>
+        <item quantity="other">%1$d человека печатают…</item>
+    </plurals>
+    <plurals name="common_replies_count">
+        <item quantity="one">%1$d ответ</item>
+        <item quantity="few">%1$d ответа</item>
+        <item quantity="many">%1$d ответов</item>
+        <item quantity="other">%1$d ответа</item>
+    </plurals>
+    <plurals name="reader_load_more_replies">
+        <item quantity="one">ещё %1$d ответ</item>
+        <item quantity="few">ещё %1$d ответа</item>
+        <item quantity="many">ещё %1$d ответов</item>
+        <item quantity="other">ещё %1$d ответа</item>
+    </plurals>
+    <plurals name="apps_installs">
+        <item quantity="one">%1$d установка</item>
+        <item quantity="few">%1$d установки</item>
+        <item quantity="many">%1$d установок</item>
+        <item quantity="other">%1$d установки</item>
+    </plurals>
+    <plurals name="poll_voters">
+        <item quantity="one">%1$d голос</item>
+        <item quantity="few">%1$d голоса</item>
+        <item quantity="many">%1$d голосов</item>
+        <item quantity="other">%1$d голоса</item>
+    </plurals>
+    <plurals name="lottery_my_tickets">
+        <item quantity="one">У вас %1$d билет</item>
+        <item quantity="few">У вас %1$d билета</item>
+        <item quantity="many">У вас %1$d билетов</item>
+        <item quantity="other">У вас %1$d билета</item>
+    </plurals>
+    <string name="profile_tab_load_failed">Не удалось загрузить эту вкладку</string>
+    <plurals name="lottery_entrants">
+        <item quantity="one">%1$d участник</item>
+        <item quantity="few">%1$d участника</item>
+        <item quantity="many">%1$d участников</item>
+        <item quantity="other">%1$d участника</item>
+    </plurals>
+    <plurals name="lottery_tickets">
+        <item quantity="one">%1$d билет</item>
+        <item quantity="few">%1$d билета</item>
+        <item quantity="many">%1$d билетов</item>
+        <item quantity="other">%1$d билета</item>
+    </plurals>
+    <plurals name="lottery_min_participants">
+        <item quantity="one">розыгрыш при %1$d участнике</item>
+        <item quantity="few">розыгрыш при %1$d участниках</item>
+        <item quantity="many">розыгрыш при %1$d участниках</item>
+        <item quantity="other">розыгрыш при %1$d участниках</item>
+    </plurals>
+    <plurals name="lottery_max_participants">
+        <item quantity="one">не больше %1$d участника</item>
+        <item quantity="few">не больше %1$d участников</item>
+        <item quantity="many">не больше %1$d участников</item>
+        <item quantity="other">не больше %1$d участников</item>
+    </plurals>
+    <plurals name="envelope_packets">
+        <item quantity="one">%1$d конверт</item>
+        <item quantity="few">%1$d конверта</item>
+        <item quantity="many">%1$d конвертов</item>
+        <item quantity="other">%1$d конверта</item>
+    </plurals>
+    <plurals name="notif_group_inbox_count">
+        <item quantity="one">В вашем ящике %1$s %2$d сообщение</item>
+        <item quantity="few">В вашем ящике %1$s %2$d сообщения</item>
+        <item quantity="many">В вашем ящике %1$s %2$d сообщений</item>
+        <item quantity="other">В вашем ящике %1$s %2$d сообщения</item>
+    </plurals>
+    <string name="image_load_failed">Не удалось загрузить это изображение</string>
+    <string name="viewer_save_image">Сохранить изображение</string>
+    <string name="viewer_save_video">Сохранить видео</string>
+    <string name="viewer_save_video_failed">Не удалось сохранить это видео</string>
+    <string name="report_title">Пожаловаться на сообщение</string>
+    <string name="report_note_hint">Расскажите модераторам, что не так</string>
+    <string name="report_sent">Отправлено — модераторы посмотрят</string>
+    <string name="viewer_saved">Сохранено в галерею</string>
+    <string name="viewer_save_failed">Не удалось сохранить это изображение</string>
+    <string name="viewer_more">Ещё</string>
+    <string name="viewer_previous">Предыдущее изображение</string>
+    <string name="viewer_next">Следующее изображение</string>
+    <string name="media_video_failed">Не удалось воспроизвести это видео</string>
+    <string name="media_no_more_videos">Пока больше видео нет</string>
+    <string name="common_pause">Пауза</string>
+    <string name="profile_message">Написать</string>
+    <string name="profile_chat">Чат</string>
+    <string name="profile_notification_level">Уведомления</string>
+    <string name="profile_notify_normal">Обычные</string>
+    <string name="profile_notify_muted">Без звука</string>
+    <string name="profile_notify_ignored">Игнорировать</string>
+    <string name="profile_notify_normal_detail">Уведомления приходят как обычно.</string>
+    <string name="profile_notify_muted_detail">Уведомлений от этого человека не будет.</string>
+    <string name="profile_notify_ignored_detail">Его сообщения тоже будут скрыты.</string>
+    <string name="profile_notify_saved">Сохранено</string>
+    <string name="auth_failed">Вход не завершился</string>
+    <string name="auth_continue_with">Продолжить через %1$s</string>
+    <string name="auth_or_password">или войти по паролю</string>
+
+    <!-- Обновления -->
+    <string name="update_check">Проверить обновления</string>
+    <string name="update_up_to_date">У вас последняя версия</string>
+    <string name="update_available_title">Доступна версия %1$s</string>
+    <string name="update_available_required">Без этого обновления приложением пользоваться нельзя.</string>
+    <string name="update_install">Скачать и установить</string>
+    <string name="update_later">Позже</string>
+    <string name="update_downloading">Скачивание…</string>
+    <string name="update_download_failed">Не удалось скачать обновление. Попробуйте позже.</string>
+    <string name="update_install_failed">Не удалось открыть установщик</string>
+    <string name="update_needs_install_permission">Разрешите NodeLoc устанавливать приложения</string>
+
+    <!-- Создание розыгрыша -->
+    <string name="lottery_field_max_participants">Максимум участников (пусто — без ограничения)</string>
+    <string name="lottery_field_min_tickets">Минимум билетов на человека</string>
+    <string name="lottery_field_trust_level">Минимальный уровень доверия</string>
+    <string name="lottery_field_levels">Призы</string>
+    <string name="lottery_add_level">Добавить приз</string>
+    <string name="lottery_remove_level">Убрать</string>
+    <string name="lottery_level_name_hint">Название, например «Главный приз»</string>
+    <string name="lottery_draws_at">Розыгрыш %1$s</string>
+    <string name="lottery_error_title">Дайте розыгрышу название</string>
+    <string name="lottery_error_prize">Опишите хотя бы один приз</string>
+    <string name="lottery_error_min_participants">Минимум участников — не меньше 1</string>
+    <string name="lottery_error_max_below_min">Максимум участников должен быть больше минимума</string>
+    <string name="lottery_error_min_tickets">Минимум билетов не может превышать максимум</string>
+    <string name="lottery_error_draw_days">Розыгрыш должен быть через 1–%1$d дней</string>
+    <string name="lottery_condition_min_tickets">не меньше %1$d билетов на человека</string>
+    <string name="lottery_condition_max_tickets">не больше %1$d билетов на человека</string>
+    <string name="lottery_condition_trust_level">TL%1$d и выше</string>
+
+    <!-- Ежедневная отметка -->
+    <string name="checkin_action">Отметиться</string>
+    <string name="checkin_done">Сегодня вы уже отметились</string>
+    <string name="checkin_success">Отметка есть — %1$d энергии</string>
+
+    <!-- Прогресс уровня -->
+    <string name="upgrade_title">Прогресс уровня</string>
+    <string name="upgrade_load_failed">Не удалось загрузить прогресс уровня</string>
+    <string name="upgrade_next_level">Следующий уровень: %1$s</string>
+    <string name="upgrade_met_count">Выполнено %1$d из %2$d</string>
+    <string name="upgrade_all_met">Все требования для следующего уровня выполнены.</string>
+    <string name="upgrade_maintaining">Удержание</string>
+    <string name="upgrade_retention_title">Что нужно, чтобы удержать уровень</string>
+    <string name="upgrade_locked">Уровень доверия зафиксирован и сам не изменится.</string>
+    <string name="upgrade_group_standing">Состояние учётной записи</string>
+    <string name="upgrade_group_activity">Активность</string>
+    <string name="upgrade_group_recent">Последние %1$d дней</string>
+    <string name="upgrade_group_recent_plain">Недавняя активность</string>
+    <string name="upgrade_group_all_time">За всё время</string>
+    <string name="upgrade_target">Цель %1$d</string>
+    <string name="upgrade_limit">Предел %1$d</string>
+    <string name="upgrade_condition_met">Выполнено</string>
+    <string name="upgrade_condition_over">Превышен предел</string>
+    <string name="upgrade_condition_remaining">Осталось %1$d</string>
+
+    <!-- Источник сообщения -->
+    <string name="post_source_title">Источник сообщения</string>
+    <string name="post_source_explain">Выберите, сколько об этом телефоне могут показывать ваши сообщения. По умолчанию видна модель; выберите «Не показывать» — и не будет видно ничего. Выбор привязан к учётной записи, а не к устройству.</string>
+    <string name="post_source_footer">Здесь каждый может написать что угодно, так что источник — просто украшение: он ничего не даёт и ничего не доказывает.</string>
+    <string name="post_source_from">с %1$s</string>
+    <string name="post_source_level_off">Не показывать</string>
+    <string name="post_source_level_client">Только приложение</string>
+    <string name="post_source_level_platform">Приложение и платформа</string>
+    <string name="post_source_level_brand">Вплоть до марки</string>
+    <string name="post_source_level_model">Вплоть до модели</string>
+    <string name="post_source_history_title">Уже написанные сообщения</string>
+    <string name="post_source_history_detail">Более низкий уровень действует только на будущие сообщения. Здесь источник удаляется из всего опубликованного, и это необратимо.</string>
+    <string name="post_source_clear">Удалить из старых сообщений</string>
+    <string name="post_source_cleared">Удалено</string>
+    <string name="video_quality">Качество</string>
+    <string name="video_quality_480">480p</string>
+    <string name="video_quality_720">720p</string>
+    <string name="video_quality_1080">1080p</string>
+    <string name="video_quality_original">Оригинал</string>
+    <string name="video_sound">Звук</string>
+    <string name="video_gif">GIF</string>
+    <string name="video_play">Воспроизвести</string>
+    <string name="video_pause">Пауза</string>
+    <string name="video_summary">%1$s · ~%2$s</string>
+    <string name="sort_best">Лучшее</string>
+    <string name="sort_best_detail">Темы, подобранные для вас</string>
+    <string name="block_user_title">Заблокировать этого человека?</string>
+    <string name="block_user_message">Вы перестанете видеть записи %1$s, и он не сможет вам писать. Отменить можно в настройках.</string>
+    <string name="block_user_confirm">Заблокировать</string>
+    <string name="block_user_done">Заблокирован</string>
+    <string name="unblock_user">Разблокировать</string>
+    <string name="unblock_user_done">Разблокирован</string>
+    <string name="settings_blocked">Заблокированные</string>
+    <string name="blocked_empty">Никто не заблокирован.</string>
+    <string name="blocked_not_allowed">Сайт пока не разрешает вашей учётной записи блокировать других.</string>
+    <string name="post_more_bookmark">В закладки</string>
+    <string name="post_more_watch">Следить</string>
+    <string name="post_more_watching">Отслеживается</string>
+    <string name="post_more_author">Открыть автора</string>
+    <string name="post_more_block_author">Заблокировать автора</string>
+    <string name="post_more_repost">Репост</string>
+    <string name="profile_report">Пожаловаться на этого человека</string>
+    <string name="profile_block">Заблокировать этого человека</string>
+    <string name="profile_report_title">Жалоба на @%1$s</string>
+</resources>

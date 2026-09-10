@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The API 26–30 half of the same exclusions as data_extraction_rules.xml;
+    `dataExtractionRules` only applies from API 31. See that file for why
+    these two stores must never be restored onto another device.
+-->
+<full-backup-content>
+    <exclude domain="sharedpref" path="nodeloc.secure.xml" />
+    <exclude domain="sharedpref" path="nodeloc.install.xml" />
+</full-backup-content>

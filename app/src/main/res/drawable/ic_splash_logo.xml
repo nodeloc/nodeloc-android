@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The splash mark: the site's wordmark, stroke for stroke the same nine paths
+  `ic_wordmark.xml` draws in the feed header, so the thing the splash writes is
+  the thing the header shows. Brand colours are literal for the same reason they
+  are there — a logo does not follow the theme.
+
+  Square canvas because the system scales a splash icon into a square box, and
+  then masks it to a circle two thirds as wide. The wordmark is 4.8:1, and a
+  shape that wide is bounded by its diagonal, not its width: at this scale it
+  measures 508 x 106, a 519-unit diagonal inside the 547-unit circle. Widening
+  it to "fill" the box would clip the n and the c.
+
+  The paths are whole here — `trimPathEnd` is animated down to 0 and back by
+  `ic_splash_animation`, and this is what shows if that never runs.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="820dp"
+    android:height="820dp"
+    android:viewportWidth="820"
+    android:viewportHeight="820">
+
+    <group
+        android:translateX="146.375"
+        android:translateY="332.276"
+        android:scaleX="0.55442"
+        android:scaleY="0.55442">
+        <group android:translateX="30">
+            <path
+                android:name="n"
+                android:pathData="M0,222 L0,172 A50,50 0 0 1 100,172 L100,222"
+                android:strokeColor="#009966"
+                android:strokeWidth="26"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round"
+                android:trimPathEnd="1" />
+            <path
+                android:name="o_first"
+                android:pathData="M150,172 A50,50 0 1 0 250,172 A50,50 0 1 0 150,172"
+                android:strokeColor="#009966"
+                android:strokeWidth="26"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round"
+                android:trimPathEnd="1" />
+            <path
+                android:name="d_bowl"
+                android:pathData="M300,172 A50,50 0 1 0 400,172 A50,50 0 1 0 300,172"
+                android:strokeColor="#009966"
+                android:strokeWidth="26"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round"
+                android:trimPathEnd="1" />
+            <path
+                android:name="d_stem"
+                android:pathData="M400,58 L400,222"
+                android:strokeColor="#009966"
+                android:strokeWidth="26"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round"
+                android:trimPathEnd="1" />
+            <path
+                android:name="e_bar"
+                android:pathData="M450,172 L550,172"
+                android:strokeColor="#009966"
+                android:strokeWidth="26"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round"
+                android:trimPathEnd="1" />
+            <path
+                android:name="e_bowl"
+                android:pathData="M550,172 A50,50 0 1 0 541,201"
+                android:strokeColor="#009966"
+                android:strokeWidth="26"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round"
+                android:trimPathEnd="1" />
+            <path
+                android:name="l_stem"
+                android:pathData="M600,58 L600,222"
+                android:strokeColor="#FF9933"
+                android:strokeWidth="26"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round"
+                android:trimPathEnd="1" />
+            <path
+                android:name="o_second"
+                android:pathData="M650,172 A50,50 0 1 0 750,172 A50,50 0 1 0 650,172"
+                android:strokeColor="#FF9933"
+                android:strokeWidth="26"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round"
+                android:trimPathEnd="1" />
+            <path
+                android:name="c_arc"
+                android:pathData="M891,143 A50,50 0 1 0 891,201"
+                android:strokeColor="#FF9933"
+                android:strokeWidth="26"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round"
+                android:trimPathEnd="1" />
+        </group>
+    </group>
+</vector>

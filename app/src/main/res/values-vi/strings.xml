@@ -1,0 +1,781 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Tiếng Việt. Giữ nguyên khoá và thứ tự tham số như trong values/strings.xml.
+  "Node" giữ nguyên vì đó là tên gọi của sản phẩm.
+-->
+<resources>
+    <string name="app_name">NodeLoc</string>
+
+    <!-- Chung -->
+    <string name="common_back">Quay lại</string>
+    <string name="common_close">Đóng</string>
+    <string name="common_cancel">Huỷ</string>
+    <string name="common_confirm">Xác nhận</string>
+    <string name="common_done">Xong</string>
+    <string name="common_save">Lưu</string>
+    <string name="common_continue">Tiếp tục</string>
+    <string name="common_retry">Thử lại</string>
+    <string name="link_blocked">Không mở được liên kết này.</string>
+    <string name="session_expired">Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.</string>
+    <string name="common_more">Thêm</string>
+    <string name="common_share">Chia sẻ</string>
+    <string name="common_refresh">Tải lại</string>
+    <string name="common_menu">Menu</string>
+    <string name="common_settings">Cài đặt</string>
+    <string name="common_login">Đăng nhập</string>
+    <string name="common_signup">Đăng ký</string>
+    <string name="common_delete">Xoá</string>
+    <string name="common_clear">Xoá</string>
+    <string name="common_clear_all">Xoá tất cả</string>
+    <string name="common_expand">Mở rộng</string>
+    <string name="common_collapse">Thu gọn</string>
+    <string name="common_loading">Đang tải</string>
+    <string name="common_checking">Đang kiểm tra…</string>
+    <string name="common_add">Thêm</string>
+    <string name="common_or">hoặc</string>
+    <string name="common_empty">Chưa có gì ở đây</string>
+    <string name="common_empty_hint">Ghé lại sau nhé</string>
+    <string name="common_play">Phát</string>
+    <string name="common_undo">Hoàn tác</string>
+    <string name="common_guest">Chưa đăng nhập</string>
+    <string name="common_me">Tôi</string>
+
+    <!-- Thanh điều hướng -->
+    <string name="tab_home">Trang chủ</string>
+    <string name="tab_nodes">Node</string>
+    <string name="tab_inbox">Hộp thư</string>
+    <string name="tab_search">Tìm kiếm</string>
+    <string name="tab_profile">Cá nhân</string>
+
+    <!-- Lỗi: không bao giờ hiện mã trạng thái -->
+    <string name="error_unauthorized">Bạn không có quyền, hoặc phiên đã hết hạn. Vui lòng đăng nhập lại.</string>
+    <string name="error_not_found">Nội dung không tồn tại hoặc đã bị xoá</string>
+    <string name="error_rate_limited">Thao tác quá nhanh — vui lòng thử lại sau ít phút</string>
+    <string name="error_rate_limited_wait">Thao tác quá nhanh — thử lại sau %1$d giây</string>
+    <string name="error_server">Máy chủ đang gặp sự cố. Vui lòng thử lại sau.</string>
+    <string name="error_generic_request">Yêu cầu thất bại, vui lòng thử lại</string>
+    <string name="error_challenged">Lớp bảo vệ của trang đã chặn yêu cầu này. Thử lại sau nhé.</string>
+    <string name="error_decoding">Có lỗi khi tải nội dung này. Vui lòng thử lại.</string>
+    <string name="error_offline">Không có kết nối mạng — hãy kiểm tra rồi thử lại</string>
+    <string name="error_timeout">Kết nối quá hạn, vui lòng thử lại</string>
+    <string name="error_transport">Sự cố mạng, vui lòng thử lại</string>
+    <string name="error_action_failed">Thao tác không thành công. Vui lòng thử lại.</string>
+
+    <!-- Bảng tin -->
+    <string name="feed_compose">Bài mới</string>
+    <string name="feed_reading_mode">Chế độ đọc</string>
+    <string name="feed_pinned">Ghim</string>
+    <string name="reading_mode_compact">Gọn</string>
+    <string name="reading_mode_expand">Mở rộng</string>
+    <string name="reading_mode_card">Thẻ</string>
+
+    <!-- Node -->
+    <string name="node_create">Node mới</string>
+    <string name="node_browse">Xem các node</string>
+    <string name="node_create_title">Tạo node</string>
+    <string name="node_join">Tham gia</string>
+    <string name="node_joined">Đã tham gia</string>
+    <string name="node_join_success">Đã tham gia node</string>
+    <string name="node_leave_success">Đã rời node</string>
+    <string name="node_empty_topics">Node này chưa có chủ đề nào</string>
+    <string name="node_not_found">Node này không tồn tại</string>
+    <string name="node_empty">Không có node</string>
+    <string name="node_search_in">Tìm trong node này</string>
+    <string name="node_notification_level">Thông báo: %1$s</string>
+    <string name="node_level_set">Đã đặt thành “%1$s”</string>
+    <string name="node_name">Tên</string>
+    <string name="node_name_hint">Tên node</string>
+    <string name="node_slug">Đường dẫn (slug)</string>
+    <string name="node_slug_hint">english-slug</string>
+    <string name="node_slug_available">Đường dẫn này dùng được</string>
+    <string name="node_slug_taken">Đường dẫn này đã có người dùng</string>
+    <string name="node_description">Giới thiệu</string>
+    <string name="node_description_hint">Một dòng về node này</string>
+    <string name="node_parent">Khu vực</string>
+    <string name="node_color">Màu</string>
+    <string name="node_create_footer">Sau khi tạo, bạn có thể đăng chủ đề trong node này.</string>
+    <string name="node_created">Đã tạo node</string>
+    <string name="node_recent">Vừa xem</string>
+
+    <!-- Sắp xếp -->
+    <string name="sort_latest">Mới nhất</string>
+    <string name="sort_new">Mới</string>
+    <string name="sort_hot">Nổi bật</string>
+    <string name="sort_featured">Chọn lọc</string>
+    <string name="sort_top">Hàng đầu</string>
+    <string name="sort_latest_detail">Chủ đề vừa có bài mới</string>
+    <string name="sort_new_detail">Được tạo hoặc trả lời trong vài ngày qua</string>
+    <string name="sort_hot_detail">Đang được quan tâm</string>
+    <string name="sort_featured_detail">Chủ đề được tuyển chọn</string>
+    <string name="sort_top_detail">Chủ đề được thích nhiều nhất</string>
+
+    <!-- Mức thông báo của node (giá trị của Discourse) -->
+    <string name="level_muted">Đã tắt tiếng</string>
+    <string name="level_regular">Bình thường</string>
+    <string name="level_tracking">Theo dõi</string>
+    <string name="level_watching">Quan tâm</string>
+    <string name="level_watching_first">Chỉ bài đầu tiên</string>
+    <string name="level_muted_detail">Bạn sẽ không nhận được thông báo về chủ đề mới trong node này, và chúng cũng không xuất hiện ở mục Mới nhất.</string>
+    <string name="level_regular_detail">Bạn sẽ được báo khi có người nhắc @tên bạn hoặc trả lời bạn.</string>
+    <string name="level_tracking_detail">Bạn sẽ tự động theo dõi mọi chủ đề trong node này. Bạn được báo khi có người nhắc tên hoặc trả lời, kèm số lượng trả lời mới.</string>
+    <string name="level_watching_detail">Bạn sẽ tự động quan tâm mọi chủ đề trong node này. Mỗi bài mới đều được báo, kèm số lượng trả lời mới.</string>
+    <string name="level_watching_first_detail">Bạn được báo khi có chủ đề mới trong node này, nhưng không được báo về các trả lời.</string>
+
+    <!-- Trình đọc -->
+    <string name="reader_reply_sort">Sắp xếp trả lời</string>
+    <string name="reply_sort_top">Nhiều thích nhất</string>
+    <string name="reply_sort_new">Mới nhất</string>
+    <string name="reply_sort_old">Cũ nhất</string>
+    <string name="reader_copy_link">Sao chép liên kết</string>
+    <string name="reader_link_copied">Đã sao chép liên kết</string>
+    <string name="reader_bookmark">Đánh dấu</string>
+    <string name="reader_bookmarked">Đã đánh dấu</string>
+    <string name="reader_bookmark_removed">Đã bỏ đánh dấu</string>
+    <string name="reader_unbookmark">Bỏ đánh dấu</string>
+    <string name="reader_report">Báo cáo</string>
+    <string name="reader_pin">Ghim lên đầu</string>
+    <string name="reader_unpin">Bỏ ghim</string>
+    <string name="reader_pinned">Đã ghim lên đầu</string>
+    <string name="reader_unpinned">Đã bỏ ghim</string>
+    <string name="reader_pinned_badge">Đã ghim</string>
+    <string name="reader_edit">Sửa</string>
+    <string name="reader_edit_first">Sửa chủ đề</string>
+    <string name="reader_edit_title">Sửa bài viết</string>
+    <string name="reader_edit_saved">Đã lưu</string>
+    <string name="reader_delete">Xoá</string>
+    <string name="reader_delete_done">Đã xoá</string>
+    <string name="reader_delete_confirm">Xoá bài viết này?</string>
+    <string name="reader_delete_confirm_body">Bài sẽ bị ẩn khỏi chủ đề. Ban quản trị có thể khôi phục.</string>
+    <string name="reader_deleted_badge">Đã xoá</string>
+    <string name="reader_recover">Khôi phục</string>
+    <string name="reader_recover_done">Đã khôi phục</string>
+    <string name="reader_lock">Khoá chỉnh sửa</string>
+    <string name="reader_unlock">Mở khoá chỉnh sửa</string>
+    <string name="reader_locked">Đã khoá chỉnh sửa</string>
+    <string name="reader_unlocked">Đã mở khoá chỉnh sửa</string>
+    <string name="reader_locked_badge">Đã khoá</string>
+    <string name="reader_topic_close">Đóng chủ đề</string>
+    <string name="reader_topic_reopen">Mở lại chủ đề</string>
+    <string name="reader_topic_closed">Đã đóng chủ đề</string>
+    <string name="reader_topic_reopened">Đã mở lại chủ đề</string>
+    <string name="reader_topic_delete">Xoá chủ đề</string>
+    <string name="reader_topic_deleted">Đã xoá chủ đề</string>
+    <string name="reader_topic_delete_confirm">Xoá chủ đề này?</string>
+    <string name="reader_topic_delete_confirm_body">Cả chủ đề lẫn các trả lời đều mất. Ban quản trị có thể khôi phục từ trang web.</string>
+    <string name="reader_repost">Đăng lại</string>
+    <string name="reader_reposted">Đã đăng lại</string>
+    <string name="reader_repost_to">Đã đăng lại vào %1$s</string>
+    <string name="reader_comment">Bình luận</string>
+    <string name="reader_like">Thích</string>
+    <string name="vote_upvote">Ủng hộ</string>
+    <string name="vote_undo_upvote">Bỏ ủng hộ</string>
+    <string name="vote_downvote">Phản đối</string>
+    <string name="vote_undo_downvote">Bỏ phản đối</string>
+    <string name="vote_down_not_allowed">Bạn chưa được phép phản đối.</string>
+    <string name="vote_expand">Vẫn xem</string>
+    <string name="vote_pick_upvote">Ủng hộ bằng</string>
+    <string name="vote_pick_downvote">Phản đối bằng</string>
+    <string name="reaction_none">Chưa có biểu cảm nào.</string>
+    <string name="reaction_all">Tất cả</string>
+    <string name="reader_reply">Trả lời</string>
+    <string name="reader_reply_to">Trả lời @%1$s</string>
+    <string name="reader_cancel_reply">Huỷ trả lời</string>
+    <string name="reader_reply_hint">Viết trả lời…</string>
+    <string name="reader_replies_failed">Không tải được các trả lời</string>
+    <string name="reader_code_copied">Đã sao chép mã</string>
+    <string name="reader_code_copy_hint">giữ để sao chép</string>
+    <string name="reader_reply_one_media">Mỗi trả lời chỉ kèm được một tệp</string>
+    <string name="reader_reply_guest">Đăng nhập để tham gia thảo luận</string>
+    <string name="reader_send">Gửi</string>
+    <string name="reader_reward">Thưởng</string>
+    <string name="reader_reward_energy">Thưởng năng lượng</string>
+    <string name="reader_reward_amount">Thưởng %1$d năng lượng</string>
+    <string name="reader_reward_done">Đã thưởng %1$d năng lượng</string>
+    <string name="reader_reward_detail">Lượt thưởng</string>
+    <string name="reader_reward_note_hint">Lời nhắn (không bắt buộc)</string>
+    <string name="reader_reward_empty">Chưa có lượt thưởng nào</string>
+    <string name="reader_claimed_points">Đã nhận %1$d năng lượng</string>
+    <string name="reader_spoiler">Tiết lộ nội dung — chạm để xem</string>
+
+    <!-- Tiện ích -->
+    <string name="poll_title">Bình chọn</string>
+    <string name="poll_closed">Đã đóng</string>
+    <string name="poll_multiple">Chọn nhiều</string>
+    <string name="poll_vote">Bình chọn</string>
+    <string name="poll_revoke">Bỏ bình chọn</string>
+    <string name="poll_create">Tạo bình chọn</string>
+    <string name="poll_option_hint">Lựa chọn %1$d</string>
+    <string name="poll_add_option">Thêm lựa chọn</string>
+    <string name="poll_single_choice">Chọn một</string>
+    <string name="poll_multi_choice">Chọn nhiều ✓</string>
+    <string name="poll_insert">Chèn bình chọn</string>
+
+    <string name="lottery_title">Quay số</string>
+    <string name="lottery_drawn">Đã quay</string>
+    <string name="lottery_prize">Giải thưởng</string>
+    <string name="lottery_quantity">×%1$d</string>
+    <string name="lottery_random">Vé ngẫu nhiên</string>
+    <string name="lottery_join">Tham gia</string>
+    <string name="lottery_add">Mua thêm</string>
+    <string name="lottery_winners">Người trúng</string>
+    <string name="lottery_join_failed">Không tham gia được.</string>
+    <string name="lottery_create_failed">Tạo lượt quay số thất bại, nhưng bài viết đã được đăng</string>
+    <string name="lottery_default_level">Giải nhất</string>
+
+    <string name="envelope_title">Lì xì · %1$d năng lượng / %2$s</string>
+    <string name="envelope_exhausted">Đã hết</string>
+    <string name="envelope_remaining">Trả lời để nhận — còn %1$d</string>
+    <string name="envelope_chip">Lì xì %1$d/%2$d ×</string>
+    <string name="envelope_create_failed">Tạo lì xì thất bại, nhưng bài viết đã được đăng</string>
+
+    <!-- Soạn bài -->
+    <string name="compose_publish">Đăng</string>
+    <string name="compose_discard_title">Rời khỏi trình soạn thảo?</string>
+    <string name="compose_discard_detail">Bản nháp vẫn được giữ. Nếu bỏ thì những gì bạn viết sẽ mất.</string>
+    <string name="compose_discard_confirm">Bỏ</string>
+    <string name="compose_edit_discard_title">Bỏ các thay đổi?</string>
+    <string name="compose_edit_discard_detail">Những gì bạn sửa ở đây sẽ không được lưu.</string>
+    <string name="compose_draft_keep">Giữ bản nháp</string>
+    <string name="compose_draft_restored">Đã khôi phục bản nháp</string>
+    <string name="compose_draft_untitled">Chưa có tiêu đề</string>
+    <string name="compose_draft_on_site">Lưu trên trang</string>
+    <string name="compose_draft_on_phone">Trên máy này</string>
+    <string name="compose_draft_new">Viết bài mới</string>
+    <string name="compose_draft_choose">Viết tiếp bản nháp?</string>
+    <string name="compose_published">Đã đăng</string>
+    <string name="compose_select_node">Chọn node</string>
+    <string name="compose_search_node">Tìm node</string>
+    <string name="compose_node_none">Không có node nào khớp.</string>
+    <string name="compose_emoji">Biểu tượng</string>
+    <string name="compose_emoji_search">Tìm biểu tượng</string>
+    <string name="compose_emoji_failed">Không tải được biểu tượng.</string>
+    <string name="compose_title_hint">Tiêu đề (từ 5 ký tự)</string>
+    <string name="compose_body_hint">Nội dung — hỗ trợ Markdown</string>
+    <string name="compose_media_edit">Sửa</string>
+    <string name="compose_media_remove">Bỏ</string>
+    <string name="compose_image">Ảnh</string>
+    <string name="compose_video">Video</string>
+    <string name="compose_gif">GIF</string>
+    <string name="compose_media_one_kind">Một bài chỉ kèm ảnh, video hoặc GIF — không lẫn lộn</string>
+    <string name="compose_gif_search">Tìm GIF</string>
+    <string name="compose_lottery_chip">Quay số ×</string>
+    <string name="compose_envelope">Lì xì</string>
+    <string name="envelope_total_points">Tổng năng lượng</string>
+    <string name="envelope_total_count">Số bao</string>
+    <string name="lottery_field_title">Tiêu đề</string>
+    <string name="lottery_field_prize">Giải thưởng</string>
+    <string name="lottery_field_quantity">Số lượng</string>
+    <string name="lottery_field_min">Quay khi đủ</string>
+    <string name="lottery_field_max_tickets">Tối đa mỗi người</string>
+    <string name="lottery_field_draw_days">Quay sau (ngày)</string>
+
+    <!-- Hộp thư -->
+    <string name="inbox_title">Hộp thư</string>
+    <string name="inbox_notifications">Thông báo</string>
+    <string name="inbox_messages">Tin nhắn</string>
+    <string name="inbox_chats">Trò chuyện</string>
+    <string name="inbox_mark_all_read">Đánh dấu đã đọc hết</string>
+    <string name="inbox_guest">Đăng nhập để xem thông báo và tin nhắn</string>
+    <string name="inbox_guest_detail">Đọc thì không cần tài khoản, tham gia thì có</string>
+    <string name="inbox_empty_notifications">Không có thông báo</string>
+    <string name="inbox_empty_messages">Không có tin nhắn</string>
+    <string name="inbox_empty_chats">Không có cuộc trò chuyện</string>
+    <string name="inbox_personal">Cá nhân</string>
+
+    <!-- Văn phong thông báo (giống trên trang) -->
+    <string name="notif_system">Hệ thống</string>
+    <string name="notif_group_inbox">Hộp thư %1$s của bạn có tin nhắn mới</string>
+    <string name="notif_group_fallback">nhóm</string>
+    <string name="notif_private_message">đã gửi bạn một tin nhắn</string>
+    <string name="notif_liked">đã thích bài của bạn trong %1$s</string>
+    <string name="notif_replied">đã trả lời %1$s</string>
+    <string name="notif_badge">đã trao cho bạn huy hiệu %1$s</string>
+    <string name="notif_generic">đã gửi bạn một thông báo</string>
+
+    <!-- Trò chuyện -->
+    <string name="chat_title">Trò chuyện</string>
+    <string name="chat_thread">Luồng</string>
+    <string name="chat_leave_thread">Rời luồng</string>
+    <string name="chat_message_hint">Nhắn tin…</string>
+    <string name="chat_attach">Đính kèm</string>
+    <string name="chat_channel">Kênh</string>
+
+    <!-- Tìm kiếm -->
+    <string name="search_hint">Tìm bài viết, node và thành viên</string>
+    <string name="search_scope_all">Tất cả</string>
+    <string name="search_scope_nodes">Node</string>
+    <string name="search_scope_posts">Bài viết</string>
+    <string name="search_scope_users">Thành viên</string>
+    <string name="search_scope_apps">Ứng dụng</string>
+    <string name="search_scope_media">Media</string>
+    <string name="search_recent">Tìm gần đây</string>
+    <string name="search_hot">Đang thịnh hành</string>
+    <string name="search_empty">Không có kết quả nào</string>
+    <string name="search_failed">Không tìm được</string>
+    <string name="chat_load_failed">Không tải được cuộc trò chuyện này</string>
+    <string name="chat_unread_divider">Tin nhắn mới</string>
+    <string name="chat_typing_one">%1$s đang nhập…</string>
+    <string name="chat_copy">Sao chép chữ</string>
+    <string name="chat_copied">Đã sao chép</string>
+    <string name="chat_edit">Sửa</string>
+    <string name="chat_editing">Đang sửa</string>
+    <string name="chat_replying_to">Trả lời %1$s</string>
+    <string name="chat_react">Thêm biểu cảm</string>
+    <string name="chat_edited">đã sửa</string>
+    <string name="chat_sending">Đang gửi…</string>
+    <string name="chat_profile">Xem trang cá nhân</string>
+    <string name="chat_members">Thành viên</string>
+    <string name="chat_notification_level">Thông báo</string>
+    <string name="chat_level_always">Mọi tin nhắn</string>
+    <string name="chat_level_always_detail">Báo cho tôi mọi tin nhắn mới.</string>
+    <string name="chat_level_mention">Chỉ khi được nhắc</string>
+    <string name="chat_level_mention_detail">Chỉ báo khi có người nhắc @tên hoặc trích lời tôi.</string>
+    <string name="chat_level_never">Không bao giờ</string>
+    <string name="chat_level_never_detail">Không thông báo và không đếm chưa đọc.</string>
+    <string name="chat_leave">Rời cuộc trò chuyện</string>
+    <string name="chat_leave_title">Rời cuộc trò chuyện này?</string>
+    <string name="chat_leave_detail">Nó biến mất khỏi danh sách. Có tin nhắn mới thì nó quay lại, và không có gì bị xoá.</string>
+    <string name="chat_delete_title">Xoá tin nhắn này?</string>
+    <string name="chat_delete_detail">Mọi người trong cuộc trò chuyện sẽ không thấy nó nữa.</string>
+    <string name="apps_load_failed">Không tải được ứng dụng này</string>
+    <string name="search_empty_detail">Thử từ khoá khác xem</string>
+    <string name="search_node_empty">Không tìm thấy gì trong node này</string>
+    <string name="search_nodes_capped">Node · %1$d trong %2$d</string>
+
+    <!-- Trang cá nhân -->
+    <string name="profile_guest">Đăng nhập để xem trang cá nhân</string>
+    <string name="profile_follow">Theo dõi</string>
+    <string name="profile_following">Đang theo dõi</string>
+    <string name="profile_admin">Quản trị viên</string>
+    <string name="profile_moderator">Điều hành viên</string>
+    <string name="profile_last_seen">Hoạt động %1$s</string>
+    <string name="profile_joined">Tham gia %1$s</string>
+    <string name="profile_energy">Năng lượng</string>
+    <string name="profile_reputation">Uy tín</string>
+    <string name="profile_topics">Chủ đề</string>
+    <string name="profile_posts">Bài viết</string>
+    <string name="profile_likes">Lượt thích</string>
+    <string name="profile_bookmarks">Đã đánh dấu</string>
+    <string name="profile_empty_points">Chưa có lịch sử năng lượng</string>
+
+    <!-- Cài đặt -->
+    <string name="settings_account">Tài khoản</string>
+    <string name="settings_preferences">Tuỳ chọn</string>
+    <string name="settings_account_section">Ứng dụng này</string>
+    <string name="settings_profile">Trang cá nhân</string>
+    <string name="settings_associated">Tài khoản đã liên kết</string>
+    <string name="settings_security">Bảo mật</string>
+    <string name="settings_interface">Giao diện</string>
+    <string name="settings_notifications">Thông báo</string>
+    <string name="settings_email">Email</string>
+    <string name="settings_privacy">Riêng tư</string>
+    <string name="settings_web">Mở tuỳ chọn trên web</string>
+    <string name="settings_push">Thông báo đẩy</string>
+    <string name="settings_sign_out">Đăng xuất</string>
+    <string name="settings_appearance">Giao diện</string>
+    <string name="settings_other">Khác</string>
+    <string name="settings_color_mode">Chế độ màu</string>
+    <string name="settings_text_size">Cỡ chữ</string>
+    <string name="settings_default_home">Trang mặc định</string>
+    <string name="settings_external_links">Mở liên kết ngoài ở tab mới</string>
+    <string name="settings_quoting">Bật trả lời có trích dẫn</string>
+    <string name="settings_in_app_notifications">Thông báo trong ứng dụng</string>
+    <string name="settings_like_frequency">Báo khi có lượt thích</string>
+    <string name="settings_new_topic_duration">Coi chủ đề là mới trong</string>
+    <string name="settings_track_on_reply">Theo dõi chủ đề tôi đã trả lời</string>
+    <string name="settings_email_notifications">Thông báo qua email</string>
+    <string name="settings_email_replies">Gửi email khi có trả lời</string>
+    <string name="settings_email_messages">Gửi email khi có tin nhắn</string>
+    <string name="settings_email_previous">Kèm các trả lời trước</string>
+    <string name="settings_email_digest">Gửi bản tóm tắt hoạt động</string>
+    <string name="settings_hide_profile">Ẩn trang cá nhân công khai</string>
+    <string name="settings_hide_presence">Ẩn trạng thái trực tuyến</string>
+
+    <string name="color_mode_auto">Tự động</string>
+    <string name="color_mode_light">Sáng</string>
+    <string name="color_mode_dark">Tối</string>
+    <string name="text_size_smallest">Nhỏ nhất</string>
+    <string name="text_size_smaller">Nhỏ hơn</string>
+    <string name="text_size_normal">Bình thường</string>
+    <string name="text_size_larger">Lớn hơn</string>
+    <string name="text_size_largest">Lớn nhất</string>
+    <string name="email_level_always">Luôn luôn</string>
+    <string name="email_level_away">Chỉ khi vắng mặt</string>
+    <string name="email_level_never">Không bao giờ</string>
+    <string name="previous_replies_always">Luôn luôn</string>
+    <string name="previous_replies_unless">Trừ khi đã gửi trước đó</string>
+    <string name="previous_replies_never">Không bao giờ</string>
+    <string name="like_freq_always">Luôn luôn</string>
+    <string name="like_freq_first_daily">Lần đầu và hằng ngày</string>
+    <string name="like_freq_first">Chỉ lần đầu</string>
+    <string name="like_freq_never">Không bao giờ</string>
+    <string name="duration_last_visit">Từ lần ghé trước</string>
+    <string name="duration_one_day">1 ngày</string>
+    <string name="duration_two_days">2 ngày</string>
+    <string name="duration_one_week">1 tuần</string>
+    <string name="duration_two_weeks">2 tuần</string>
+
+    <!-- Thông báo đẩy -->
+    <string name="push_enable">Thông báo đẩy</string>
+    <string name="push_enable_detail">Kiểm tra thông báo mới ở chế độ nền</string>
+    <string name="push_permission_footer">Thông báo đang tắt trong cài đặt hệ thống — chưa bật thì không nhận được gì.</string>
+    <string name="push_filter_footer">Loại bạn tắt vẫn hiện trong hộp thư của ứng dụng.</string>
+    <string name="push_open_system_settings">Mở cài đặt hệ thống</string>
+    <string name="push_types">Loại</string>
+    <string name="push_replies">Trả lời và nhắc tên</string>
+    <string name="push_replies_detail">Có người trả lời, trích lời hoặc nhắc tên bạn</string>
+    <string name="push_likes">Lượt thích</string>
+    <string name="push_likes_detail">Có người thích bài hoặc trả lời của bạn</string>
+    <string name="push_messages">Tin nhắn</string>
+    <string name="push_messages_detail">Bạn nhận được tin nhắn riêng</string>
+    <string name="push_other">Huy hiệu và thông báo hệ thống</string>
+    <string name="push_other_detail">Trao huy hiệu, tin nhắn nhóm và tương tự</string>
+
+    <!-- Bảo mật -->
+    <string name="security_password">Mật khẩu</string>
+    <string name="security_send_reset">Gửi email đặt lại mật khẩu</string>
+    <string name="security_reset_sent">Đã gửi email đặt lại mật khẩu</string>
+    <string name="security_two_factor">Xác thực hai bước</string>
+    <string name="security_two_factor_footer">Khi bật, lúc đăng nhập sẽ cần thêm mã dùng một lần.</string>
+    <string name="security_status">Trạng thái</string>
+    <string name="security_enabled">Bật</string>
+    <string name="security_disabled">Tắt</string>
+    <string name="security_backup_codes">Mã dự phòng</string>
+    <string name="security_generate_backup">Tạo mã dự phòng</string>
+    <string name="security_backup_footer">Hãy cất ở nơi an toàn — mỗi mã chỉ dùng được một lần.</string>
+    <string name="security_enable_totp">Bật xác thực hai bước</string>
+    <string name="security_disable_totp">Tắt xác thực hai bước</string>
+    <string name="security_totp_enabled">Xác thực hai bước đang bật</string>
+    <string name="security_totp_disabled">Xác thực hai bước đang tắt</string>
+    <string name="security_scan_key">Quét hoặc nhập khoá</string>
+    <string name="security_key">Khoá</string>
+    <string name="security_totp_footer">Thêm vào ứng dụng xác thực, rồi nhập mã 6 chữ số để hoàn tất.</string>
+    <string name="security_totp_code_hint">Mã 6 chữ số</string>
+    <string name="security_finish_binding">Hoàn tất</string>
+    <string name="security_sessions">Phiên đăng nhập</string>
+    <string name="security_session_fallback">Phiên #%1$d</string>
+    <string name="security_current_device">Thiết bị này</string>
+    <string name="security_sign_out_session">Đăng xuất</string>
+    <string name="security_session_revoked">Đã đăng xuất phiên đó</string>
+    <string name="security_confirm_identity">Xác nhận đúng là bạn</string>
+    <string name="security_confirm_detail">Thay đổi quan trọng cần nhập lại mật khẩu.</string>
+    <string name="security_wrong_password">Mật khẩu không đúng, vui lòng thử lại</string>
+    <string name="security_no_associated">Chưa liên kết tài khoản nào</string>
+    <string name="security_associated_footer">Tài khoản đã liên kết có thể dùng để đăng nhập trang web.</string>
+    <string name="security_unlink">Huỷ liên kết</string>
+    <string name="security_unlink_confirm_title">Huỷ liên kết %1$s?</string>
+    <string name="security_unlink_confirm_detail">Bạn sẽ không đăng nhập bằng nó được cho tới khi liên kết lại.</string>
+
+    <!-- Sửa trang cá nhân -->
+    <string name="profile_edit_avatar">Đổi ảnh đại diện</string>
+    <string name="profile_edit_section">Trang cá nhân</string>
+    <string name="profile_edit_name">Tên hiển thị</string>
+    <string name="profile_edit_name_hint">Tên bạn hiện ra thế nào</string>
+    <string name="profile_edit_title">Danh hiệu</string>
+    <string name="profile_edit_title_none">Không có danh hiệu</string>
+    <string name="profile_edit_title_locked">Danh hiệu đến từ huy hiệu bạn đã đạt</string>
+    <string name="profile_edit_bio">Giới thiệu</string>
+    <string name="profile_edit_bio_hint">Kể đôi chút về bạn</string>
+    <string name="profile_edit_website">Trang web</string>
+    <string name="profile_edit_location">Nơi ở</string>
+    <string name="profile_edit_saved">Đã lưu trang cá nhân</string>
+    <string name="profile_edit_load_failed">Không tải được trang cá nhân</string>
+    <string name="profile_edit_load_failed_detail">Hãy kiểm tra kết nối rồi thử lại.</string>
+    <string name="profile_avatar_updated">Đã cập nhật ảnh đại diện</string>
+    <string name="profile_edit_background">Đổi ảnh nền</string>
+    <string name="profile_edit_background_remove">Bỏ ảnh nền</string>
+    <string name="profile_background_updated">Đã cập nhật ảnh nền</string>
+
+    <!-- Đăng nhập -->
+    <string name="auth_terms">Đăng nhập nghĩa là bạn chấp nhận điều khoản và chính sách riêng tư của NODELOC.</string>
+    <string name="auth_website">Tiếp tục với trang NodeLoc</string>
+    <string name="auth_identifier">Email hoặc tên đăng nhập</string>
+    <string name="auth_identifier_hint">you@example.com</string>
+    <string name="auth_password">Mật khẩu</string>
+    <string name="auth_code">Mã</string>
+    <string name="auth_code_hint">Mã 6 chữ số</string>
+    <string name="auth_backup_code">Mã dự phòng</string>
+    <string name="auth_use_backup">Dùng mã dự phòng</string>
+    <string name="auth_use_totp">Dùng mã từ ứng dụng xác thực</string>
+    <string name="auth_forgot">Quên mật khẩu?</string>
+    <string name="auth_email_step">Email của bạn</string>
+    <string name="auth_email">Email</string>
+    <string name="auth_username_step">Chọn tên đăng nhập</string>
+    <string name="auth_username">Tên đăng nhập</string>
+    <string name="auth_username_hint">3–20 ký tự</string>
+    <string name="auth_email_invalid">Hãy nhập một địa chỉ email hợp lệ</string>
+    <string name="auth_email_ok">Email trông ổn</string>
+    <string name="auth_username_available">Tên hay đấy — tên này còn trống</string>
+    <string name="auth_username_taken">Tên này đã có người dùng</string>
+    <string name="auth_username_suggestion">Thử “%1$s” xem</string>
+    <string name="auth_password_step">Đặt mật khẩu</string>
+    <string name="auth_password_hint">Ít nhất 10 ký tự</string>
+    <string name="auth_password_short">Cần ít nhất 10 ký tự</string>
+    <string name="auth_password_ok">Đủ dài</string>
+    <string name="auth_gender_step">Giới tính</string>
+    <string name="auth_gender_footer">Chỉ lưu trên máy này, dùng để gợi ý nội dung.</string>
+    <string name="auth_gender_male">Nam</string>
+    <string name="auth_gender_female">Nữ</string>
+    <string name="auth_gender_other">Khác</string>
+    <string name="auth_gender_private">Không muốn nói</string>
+    <string name="auth_interests_step">Node bạn thích</string>
+    <string name="auth_interests_footer">Chọn tối đa 3 — bạn sẽ tự động tham gia.</string>
+    <string name="auth_shuffle">Đổi nhóm khác</string>
+    <string name="auth_finish_signup">Tạo tài khoản</string>
+    <string name="auth_check_email">Kiểm tra email của bạn</string>
+    <string name="auth_activation_detail">Chúng tôi đã gửi liên kết kích hoạt tới %1$s — mở nó để hoàn tất đăng ký.</string>
+    <string name="auth_activation_hint">Xong thì quay lại đây đăng nhập; các node bạn chọn sẽ tự động tham gia.</string>
+    <string name="auth_back_to_login">Quay lại đăng nhập</string>
+    <string name="auth_gate_title">Tham gia NODELOC</string>
+    <string name="auth_gate_detail">Đăng nhập để đăng bài, trả lời, thích và đánh dấu. Đọc thì không cần tài khoản.</string>
+
+    <string name="auth_error_key_generation">Không tạo được khoá bảo mật.</string>
+    <string name="auth_error_missing_payload">Phản hồi đăng nhập không đầy đủ.</string>
+    <string name="auth_error_lost_keypair">Quá trình đăng nhập bị gián đoạn. Hãy bắt đầu lại.</string>
+    <string name="auth_error_decrypt">Không xác minh được phản hồi đăng nhập.</string>
+    <string name="auth_error_nonce">Xác minh đăng nhập thất bại. Vui lòng thử lại.</string>
+    <string name="auth_error_cancelled">Đã huỷ đăng nhập.</string>
+    <string name="auth_error_missing_fields">Vui lòng điền đầy đủ các ô.</string>
+    <string name="auth_error_second_factor">Tài khoản này dùng xác thực hai bước — hãy nhập mã.</string>
+    <string name="auth_error_incomplete">Đăng nhập chưa hoàn tất. Vui lòng thử lại.</string>
+    <string name="auth_error_no_session">Đăng nhập không trả về phiên của trang web.</string>
+    <string name="auth_error_session_start">Không bắt đầu được phiên đăng nhập.</string>
+    <string name="auth_error_bad_code">Mã không đúng. Vui lòng thử lại.</string>
+    <string name="auth_error_login_failed">Đăng nhập thất bại, vui lòng thử lại</string>
+    <string name="auth_error_signup_failed">Đăng ký thất bại, vui lòng thử lại</string>
+    <string name="auth_signup_activation_needed">Đã tạo tài khoản — kiểm tra email để kích hoạt.</string>
+
+    <!-- Chào mừng -->
+    <string name="welcome_tagline">Tự do, bình đẳng, thân thiện, cởi mở, vui vẻ</string>
+    <string name="welcome_start">Bắt đầu</string>
+    <string name="welcome_have_account">Tôi đã có tài khoản</string>
+    <string name="welcome_browse">Xem quanh trước đã</string>
+
+    <!-- Trình duyệt và media -->
+    <string name="browser_open_external">Mở trong trình duyệt</string>
+    <string name="web_session_api_only_title">Trang này cần đăng nhập trên web</string>
+    <string name="web_session_api_only_detail">Bạn đăng nhập qua trang web, nên trang này mở được ở đây nhưng mọi thay đổi sẽ không lưu. Hãy tiếp tục trong trình duyệt — ở đó bạn đã đăng nhập rồi.</string>
+    <string name="web_session_continue_anyway">Vẫn mở ở đây</string>
+    <string name="browser_text_size">Cỡ chữ %1$d%%</string>
+    <string name="media_mute">Tắt tiếng</string>
+    <string name="media_unmute">Bật tiếng</string>
+    <string name="editor_crop">Cắt</string>
+    <string name="editor_brush">Vẽ</string>
+    <string name="editor_mosaic">Làm mờ</string>
+    <string name="editor_mosaic_solid">Che kín</string>
+    <string name="editor_mosaic_blur">Làm mờ</string>
+    <string name="editor_mosaic_fine">Ô nhỏ</string>
+    <string name="editor_mosaic_pixel">Điểm ảnh</string>
+    <string name="editor_mosaic_blocks">Ô vuông</string>
+    <string name="editor_text">Chữ</string>
+    <string name="editor_rotate">Xoay</string>
+    <string name="editor_add_text">Thêm chữ</string>
+    <string name="editor_crop_free">Tự do</string>
+    <string name="editor_crop_square">1:1</string>
+    <string name="editor_crop_portrait">4:5</string>
+    <string name="editor_crop_landscape">16:9</string>
+    <string name="editor_filter_faded">Phai</string>
+    <string name="editor_filter_mono">Đen trắng</string>
+    <string name="editor_filter_cool">Lạnh</string>
+    <string name="editor_filter_warm">Ấm</string>
+    <string name="editor_filter_vivid">Rực rỡ</string>
+    <string name="editor_filter_none">Gốc</string>
+    <string name="editor_text_filled">Nền</string>
+    <string name="editor_text_outlined">Viền</string>
+    <string name="editor_text_plain">Thường</string>
+    <string name="editor_filter">Bộ lọc</string>
+    <string name="editor_sticker">Nhãn dán</string>
+    <string name="editor_flip">Lật</string>
+    <string name="editor_redo">Làm lại</string>
+    <string name="editor_reset">Đặt lại</string>
+    <string name="trim_gif_limit">GIF tối đa %1$d giây; phần dư sẽ bị cắt</string>
+    <string name="trim_failed">Không xử lý được video này, vui lòng thử lại</string>
+    <string name="trim_too_large">Video này quá lớn. Hãy cắt ngắn rồi thử lại.</string>
+
+    <!-- Danh bạ ứng dụng -->
+    <string name="apps_title">Danh bạ ứng dụng</string>
+    <string name="apps_more">Thêm ứng dụng</string>
+    <string name="apps_recent">Ứng dụng gần đây</string>
+    <string name="apps_empty">Không có ứng dụng</string>
+    <string name="apps_open">Mở ứng dụng</string>
+    <string name="apps_web_only">Ứng dụng này chỉ chạy trên trang web.</string>
+    <string name="apps_permissions">Quyền</string>
+    <string name="apps_discussion">Mở thảo luận</string>
+
+    <!-- Danh từ đếm được: tiếng Việt chỉ có một dạng -->
+    <plurals name="common_members">
+        <item quantity="other">%1$s thành viên</item>
+    </plurals>
+    <plurals name="common_topics">
+        <item quantity="other">%1$s chủ đề</item>
+    </plurals>
+    <plurals name="chat_member_count">
+        <item quantity="other">%1$d thành viên</item>
+    </plurals>
+    <plurals name="chat_typing_many">
+        <item quantity="other">%1$d người đang nhập…</item>
+    </plurals>
+    <plurals name="common_replies_count">
+        <item quantity="other">%1$d trả lời</item>
+    </plurals>
+    <plurals name="reader_load_more_replies">
+        <item quantity="other">%1$d trả lời nữa</item>
+    </plurals>
+    <plurals name="apps_installs">
+        <item quantity="other">%1$d lượt cài</item>
+    </plurals>
+    <plurals name="poll_voters">
+        <item quantity="other">%1$d người bình chọn</item>
+    </plurals>
+    <plurals name="lottery_my_tickets">
+        <item quantity="other">Bạn đang giữ %1$d vé</item>
+    </plurals>
+    <string name="profile_tab_load_failed">Không tải được tab này</string>
+    <plurals name="lottery_entrants">
+        <item quantity="other">%1$d người tham gia</item>
+    </plurals>
+    <plurals name="lottery_tickets">
+        <item quantity="other">%1$d vé</item>
+    </plurals>
+    <plurals name="lottery_min_participants">
+        <item quantity="other">quay khi đủ %1$d người</item>
+    </plurals>
+    <plurals name="lottery_max_participants">
+        <item quantity="other">tối đa %1$d người</item>
+    </plurals>
+    <plurals name="envelope_packets">
+        <item quantity="other">%1$d bao</item>
+    </plurals>
+    <plurals name="notif_group_inbox_count">
+        <item quantity="other">Hộp thư %1$s của bạn có %2$d tin nhắn</item>
+    </plurals>
+    <string name="image_load_failed">Không tải được ảnh này</string>
+    <string name="viewer_save_image">Lưu ảnh</string>
+    <string name="viewer_save_video">Lưu video</string>
+    <string name="viewer_save_video_failed">Không lưu được video đó</string>
+    <string name="report_title">Báo cáo bài viết này</string>
+    <string name="report_note_hint">Cho ban điều hành biết vấn đề là gì</string>
+    <string name="report_sent">Đã gửi — ban điều hành sẽ xem</string>
+    <string name="viewer_saved">Đã lưu vào thư viện</string>
+    <string name="viewer_save_failed">Không lưu được ảnh đó</string>
+    <string name="viewer_more">Thêm</string>
+    <string name="viewer_previous">Ảnh trước</string>
+    <string name="viewer_next">Ảnh sau</string>
+    <string name="media_video_failed">Không phát được video đó</string>
+    <string name="media_no_more_videos">Tạm thời hết video rồi</string>
+    <string name="common_pause">Tạm dừng</string>
+    <string name="profile_message">Nhắn tin</string>
+    <string name="profile_chat">Trò chuyện</string>
+    <string name="profile_notification_level">Thông báo</string>
+    <string name="profile_notify_normal">Bình thường</string>
+    <string name="profile_notify_muted">Tắt tiếng</string>
+    <string name="profile_notify_ignored">Bỏ qua</string>
+    <string name="profile_notify_normal_detail">Bạn vẫn nhận thông báo như thường.</string>
+    <string name="profile_notify_muted_detail">Không nhận thông báo từ người này.</string>
+    <string name="profile_notify_ignored_detail">Bài viết của họ cũng bị ẩn luôn.</string>
+    <string name="profile_notify_saved">Đã lưu</string>
+    <string name="auth_failed">Đăng nhập chưa hoàn tất</string>
+    <string name="auth_continue_with">Tiếp tục với %1$s</string>
+    <string name="auth_or_password">hoặc đăng nhập bằng mật khẩu</string>
+
+    <!-- Cập nhật -->
+    <string name="update_check">Kiểm tra cập nhật</string>
+    <string name="update_up_to_date">Bạn đang dùng phiên bản mới nhất</string>
+    <string name="update_available_title">Đã có phiên bản %1$s</string>
+    <string name="update_available_required">Phải cập nhật bản này mới dùng tiếp được.</string>
+    <string name="update_install">Tải và cài đặt</string>
+    <string name="update_later">Để sau</string>
+    <string name="update_downloading">Đang tải…</string>
+    <string name="update_download_failed">Không tải được bản cập nhật. Thử lại sau nhé.</string>
+    <string name="update_install_failed">Không mở được trình cài đặt</string>
+    <string name="update_needs_install_permission">Cho phép NodeLoc cài đặt ứng dụng</string>
+
+    <!-- Soạn lượt quay số -->
+    <string name="lottery_field_max_participants">Số người tối đa (bỏ trống là không giới hạn)</string>
+    <string name="lottery_field_min_tickets">Số vé tối thiểu mỗi người</string>
+    <string name="lottery_field_trust_level">Cấp tin cậy tối thiểu</string>
+    <string name="lottery_field_levels">Giải thưởng</string>
+    <string name="lottery_add_level">Thêm giải</string>
+    <string name="lottery_remove_level">Bỏ</string>
+    <string name="lottery_level_name_hint">Tên giải, ví dụ "Giải nhất"</string>
+    <string name="lottery_draws_at">Quay %1$s</string>
+    <string name="lottery_error_title">Hãy đặt tiêu đề cho lượt quay số</string>
+    <string name="lottery_error_prize">Hãy mô tả ít nhất một giải thưởng</string>
+    <string name="lottery_error_min_participants">Số người tối thiểu phải từ 1 trở lên</string>
+    <string name="lottery_error_max_below_min">Số người tối đa phải lớn hơn số tối thiểu</string>
+    <string name="lottery_error_min_tickets">Số vé tối thiểu không được vượt số tối đa</string>
+    <string name="lottery_error_draw_days">Ngày quay phải trong khoảng 1–%1$d ngày</string>
+    <string name="lottery_condition_min_tickets">Tối thiểu %1$d vé mỗi người</string>
+    <string name="lottery_condition_max_tickets">Tối đa %1$d vé mỗi người</string>
+    <string name="lottery_condition_trust_level">TL%1$d trở lên</string>
+
+    <!-- Điểm danh hằng ngày -->
+    <string name="checkin_action">Điểm danh</string>
+    <string name="checkin_done">Hôm nay điểm danh rồi</string>
+    <string name="checkin_success">Đã điểm danh — %1$d năng lượng</string>
+
+    <!-- Tiến độ thăng cấp -->
+    <string name="upgrade_title">Tiến độ thăng cấp</string>
+    <string name="upgrade_load_failed">Không tải được tiến độ thăng cấp</string>
+    <string name="upgrade_next_level">Cấp tiếp theo: %1$s</string>
+    <string name="upgrade_met_count">Đạt %1$d trong %2$d</string>
+    <string name="upgrade_all_met">Mọi điều kiện cho cấp tiếp theo đều đã đạt.</string>
+    <string name="upgrade_maintaining">Đang giữ cấp</string>
+    <string name="upgrade_retention_title">Điều kiện để giữ cấp này</string>
+    <string name="upgrade_locked">Cấp tin cậy đang bị khoá; nó sẽ không tự thay đổi.</string>
+    <string name="upgrade_group_standing">Tình trạng tài khoản</string>
+    <string name="upgrade_group_activity">Hoạt động</string>
+    <string name="upgrade_group_recent">%1$d ngày qua</string>
+    <string name="upgrade_group_recent_plain">Hoạt động gần đây</string>
+    <string name="upgrade_group_all_time">Toàn thời gian</string>
+    <string name="upgrade_target">Mục tiêu %1$d</string>
+    <string name="upgrade_limit">Giới hạn %1$d</string>
+    <string name="upgrade_condition_met">Đã đạt</string>
+    <string name="upgrade_condition_over">Vượt giới hạn</string>
+    <string name="upgrade_condition_remaining">Còn %1$d</string>
+
+    <!-- Nguồn đăng bài -->
+    <string name="post_source_title">Nguồn đăng bài</string>
+    <string name="post_source_explain">Chọn xem bài của bạn được phép để lộ bao nhiêu về chiếc máy này. Mặc định là hiện tên máy; chọn “Không hiện” thì không hiện gì cả. Lựa chọn này đi theo tài khoản chứ không theo thiết bị.</string>
+    <string name="post_source_footer">Ai cũng khai được gì tuỳ ý ở đây, nên nguồn chỉ là trang trí — không cho quyền gì và cũng chẳng chứng minh điều gì.</string>
+    <string name="post_source_from">từ %1$s</string>
+    <string name="post_source_level_off">Không hiện</string>
+    <string name="post_source_level_client">Chỉ tên ứng dụng</string>
+    <string name="post_source_level_platform">Ứng dụng và nền tảng</string>
+    <string name="post_source_level_brand">Đến hãng máy</string>
+    <string name="post_source_level_model">Đến tên máy</string>
+    <string name="post_source_history_title">Những bài đã đăng</string>
+    <string name="post_source_history_detail">Hạ mức chỉ ảnh hưởng tới các bài đăng sau. Mục này xoá nguồn khỏi mọi bài đã đăng, và không hoàn tác được.</string>
+    <string name="post_source_clear">Xoá khỏi bài đã đăng</string>
+    <string name="post_source_cleared">Đã xoá</string>
+    <string name="video_quality">Chất lượng</string>
+    <string name="video_quality_480">480p</string>
+    <string name="video_quality_720">720p</string>
+    <string name="video_quality_1080">1080p</string>
+    <string name="video_quality_original">Gốc</string>
+    <string name="video_sound">Âm thanh</string>
+    <string name="video_gif">GIF</string>
+    <string name="video_play">Phát</string>
+    <string name="video_pause">Tạm dừng</string>
+    <string name="video_summary">%1$s · ~%2$s</string>
+    <string name="sort_best">Tốt nhất</string>
+    <string name="sort_best_detail">Chủ đề dành cho bạn</string>
+    <string name="block_user_title">Chặn người này?</string>
+    <string name="block_user_message">Bạn sẽ không thấy bài của %1$s nữa, và họ không thể nhắn tin cho bạn. Có thể hoàn tác trong Cài đặt.</string>
+    <string name="block_user_confirm">Chặn</string>
+    <string name="block_user_done">Đã chặn</string>
+    <string name="unblock_user">Bỏ chặn</string>
+    <string name="unblock_user_done">Đã bỏ chặn</string>
+    <string name="settings_blocked">Người đã chặn</string>
+    <string name="blocked_empty">Chưa chặn ai.</string>
+    <string name="blocked_not_allowed">Trang này chưa cho phép tài khoản của bạn chặn người khác.</string>
+    <string name="post_more_bookmark">Lưu</string>
+    <string name="post_more_watch">Theo dõi</string>
+    <string name="post_more_watching">Đang theo dõi</string>
+    <string name="post_more_author">Xem tác giả</string>
+    <string name="post_more_block_author">Chặn tác giả</string>
+    <string name="post_more_repost">Đăng lại</string>
+    <string name="profile_report">Báo cáo người này</string>
+    <string name="profile_block">Chặn người này</string>
+    <string name="profile_report_title">Báo cáo @%1$s</string>
+</resources>

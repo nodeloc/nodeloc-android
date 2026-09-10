@@ -1,0 +1,857 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  العربية. المفاتيح وترتيب المتغيرات يجب أن تطابق values/strings.xml.
+  للجمع ست صيغ: zero / one / two / few / many / other.
+  التطبيق يدعم الاتجاه من اليمين إلى اليسار (supportsRtl في البيان).
+-->
+<resources>
+    <string name="app_name">NodeLoc</string>
+
+    <!-- عام -->
+    <string name="common_back">رجوع</string>
+    <string name="common_close">إغلاق</string>
+    <string name="common_cancel">إلغاء</string>
+    <string name="common_confirm">تأكيد</string>
+    <string name="common_done">تم</string>
+    <string name="common_save">حفظ</string>
+    <string name="common_continue">متابعة</string>
+    <string name="common_retry">إعادة المحاولة</string>
+    <string name="link_blocked">تعذّر فتح هذا الرابط.</string>
+    <string name="session_expired">انتهت جلستك. يرجى تسجيل الدخول من جديد.</string>
+    <string name="common_more">المزيد</string>
+    <string name="common_share">مشاركة</string>
+    <string name="common_refresh">إعادة التحميل</string>
+    <string name="common_menu">القائمة</string>
+    <string name="common_settings">الإعدادات</string>
+    <string name="common_login">تسجيل الدخول</string>
+    <string name="common_signup">إنشاء حساب</string>
+    <string name="common_delete">حذف</string>
+    <string name="common_clear">مسح</string>
+    <string name="common_clear_all">مسح الكل</string>
+    <string name="common_expand">توسيع</string>
+    <string name="common_collapse">طي</string>
+    <string name="common_loading">جارٍ التحميل</string>
+    <string name="common_checking">جارٍ التحقق…</string>
+    <string name="common_add">إضافة</string>
+    <string name="common_or">أو</string>
+    <string name="common_empty">لا شيء هنا بعد</string>
+    <string name="common_empty_hint">عُد لاحقًا</string>
+    <string name="common_play">تشغيل</string>
+    <string name="common_undo">تراجع</string>
+    <string name="common_guest">غير مسجّل الدخول</string>
+    <string name="common_me">أنا</string>
+
+    <!-- شريط التنقل السفلي -->
+    <string name="tab_home">الرئيسية</string>
+    <string name="tab_nodes">العُقد</string>
+    <string name="tab_inbox">الوارد</string>
+    <string name="tab_search">بحث</string>
+    <string name="tab_profile">حسابي</string>
+
+    <!-- الأخطاء: لا يظهر رمز الحالة أبدًا -->
+    <string name="error_unauthorized">ليست لديك صلاحية، أو انتهت جلستك. يرجى تسجيل الدخول من جديد.</string>
+    <string name="error_not_found">هذا المحتوى غير موجود أو تم حذفه</string>
+    <string name="error_rate_limited">طلبات كثيرة جدًا — حاول بعد قليل</string>
+    <string name="error_rate_limited_wait">طلبات كثيرة جدًا — حاول بعد %1$d ثانية</string>
+    <string name="error_server">الخادم يواجه مشكلة. حاول لاحقًا.</string>
+    <string name="error_generic_request">فشل الطلب، حاول مرة أخرى</string>
+    <string name="error_challenged">حجب فحصُ أمان الموقع هذا الطلب. حاول لاحقًا.</string>
+    <string name="error_decoding">حدث خطأ أثناء تحميل هذا. حاول مرة أخرى.</string>
+    <string name="error_offline">لا يوجد اتصال بالشبكة — تحقق ثم حاول مجددًا</string>
+    <string name="error_timeout">انتهت مهلة الاتصال، حاول مرة أخرى</string>
+    <string name="error_transport">مشكلة في الشبكة، حاول مرة أخرى</string>
+    <string name="error_action_failed">لم ينجح ذلك. حاول مرة أخرى.</string>
+
+    <!-- التدفق -->
+    <string name="feed_compose">موضوع جديد</string>
+    <string name="feed_reading_mode">وضع القراءة</string>
+    <string name="feed_pinned">مثبّت</string>
+    <string name="reading_mode_compact">مضغوط</string>
+    <string name="reading_mode_expand">موسّع</string>
+    <string name="reading_mode_card">بطاقات</string>
+
+    <!-- العُقد -->
+    <string name="node_create">عقدة جديدة</string>
+    <string name="node_browse">تصفّح العُقد</string>
+    <string name="node_create_title">إنشاء عقدة</string>
+    <string name="node_join">انضمام</string>
+    <string name="node_joined">منضم</string>
+    <string name="node_join_success">انضممت إلى العقدة</string>
+    <string name="node_leave_success">غادرت العقدة</string>
+    <string name="node_empty_topics">لا مواضيع في هذه العقدة بعد</string>
+    <string name="node_not_found">هذه العقدة غير موجودة</string>
+    <string name="node_empty">لا توجد عُقد</string>
+    <string name="node_search_in">ابحث في هذه العقدة</string>
+    <string name="node_notification_level">الإشعارات: %1$s</string>
+    <string name="node_level_set">تم الضبط على “%1$s”</string>
+    <string name="node_name">الاسم</string>
+    <string name="node_name_hint">اسم العقدة</string>
+    <string name="node_slug">المسار (slug)</string>
+    <string name="node_slug_hint">english-slug</string>
+    <string name="node_slug_available">هذا المسار متاح</string>
+    <string name="node_slug_taken">هذا المسار مستخدم</string>
+    <string name="node_description">نبذة</string>
+    <string name="node_description_hint">سطر واحد عن هذه العقدة</string>
+    <string name="node_parent">القسم</string>
+    <string name="node_color">اللون</string>
+    <string name="node_create_footer">بعد الإنشاء يمكنك نشر المواضيع في هذه العقدة.</string>
+    <string name="node_created">أُنشئت العقدة</string>
+    <string name="node_recent">زيارات أخيرة</string>
+
+    <!-- الترتيب -->
+    <string name="sort_latest">الأحدث</string>
+    <string name="sort_new">جديد</string>
+    <string name="sort_hot">رائج</string>
+    <string name="sort_featured">مختارات</string>
+    <string name="sort_top">الأفضل</string>
+    <string name="sort_latest_detail">مواضيع بمشاركات حديثة</string>
+    <string name="sort_new_detail">أُنشئت أو رُدّ عليها في الأيام الأخيرة</string>
+    <string name="sort_hot_detail">ما يدور الحديث حوله الآن</string>
+    <string name="sort_featured_detail">مواضيع منتقاة يدويًا</string>
+    <string name="sort_top_detail">المواضيع الأكثر إعجابًا</string>
+
+    <!-- مستويات إشعارات العقدة (قيم Discourse نفسها) -->
+    <string name="level_muted">مكتوم</string>
+    <string name="level_regular">عادي</string>
+    <string name="level_tracking">متابعة</string>
+    <string name="level_watching">مراقبة</string>
+    <string name="level_watching_first">مراقبة أول مشاركة</string>
+    <string name="level_muted_detail">لن تصلك إشعارات عن المواضيع الجديدة في هذه العقدة، ولن تظهر في قائمة الأحدث.</string>
+    <string name="level_regular_detail">سيصلك إشعار إذا ذكر أحدهم @اسمك أو ردّ عليك.</string>
+    <string name="level_tracking_detail">ستتابع تلقائيًا كل مواضيع هذه العقدة. ستصلك إشعارات الذكر والردود، ويظهر عدد الردود الجديدة.</string>
+    <string name="level_watching_detail">ستراقب تلقائيًا كل مواضيع هذه العقدة. سيصلك إشعار بكل مشاركة جديدة، ويظهر عدد الردود الجديدة.</string>
+    <string name="level_watching_first_detail">ستصلك إشعارات المواضيع الجديدة في هذه العقدة، دون الردود.</string>
+
+    <!-- القارئ -->
+    <string name="reader_reply_sort">ترتيب الردود</string>
+    <string name="reply_sort_top">الأفضل</string>
+    <string name="reply_sort_new">الأحدث</string>
+    <string name="reply_sort_old">الأقدم</string>
+    <string name="reader_copy_link">نسخ الرابط</string>
+    <string name="reader_link_copied">نُسخ الرابط</string>
+    <string name="reader_bookmark">إشارة مرجعية</string>
+    <string name="reader_bookmarked">حُفظت الإشارة</string>
+    <string name="reader_bookmark_removed">أُزيلت الإشارة</string>
+    <string name="reader_unbookmark">إزالة الإشارة</string>
+    <string name="reader_report">إبلاغ</string>
+    <string name="reader_pin">تثبيت في الأعلى</string>
+    <string name="reader_unpin">إلغاء التثبيت</string>
+    <string name="reader_pinned">ثُبّت في الأعلى</string>
+    <string name="reader_unpinned">أُلغي التثبيت</string>
+    <string name="reader_pinned_badge">مثبّت</string>
+    <string name="reader_edit">تعديل</string>
+    <string name="reader_edit_first">تعديل الموضوع</string>
+    <string name="reader_edit_title">تعديل المشاركة</string>
+    <string name="reader_edit_saved">حُفظ</string>
+    <string name="reader_delete">حذف</string>
+    <string name="reader_delete_done">حُذف</string>
+    <string name="reader_delete_confirm">حذف هذه المشاركة؟</string>
+    <string name="reader_delete_confirm_body">ستُخفى من الموضوع. يمكن للطاقم استعادتها.</string>
+    <string name="reader_deleted_badge">محذوف</string>
+    <string name="reader_recover">استعادة</string>
+    <string name="reader_recover_done">استُعيدت</string>
+    <string name="reader_lock">قفل التعديل</string>
+    <string name="reader_unlock">فتح التعديل</string>
+    <string name="reader_locked">قُفل التعديل</string>
+    <string name="reader_unlocked">فُتح التعديل</string>
+    <string name="reader_locked_badge">مقفل</string>
+    <string name="reader_topic_close">إغلاق الموضوع</string>
+    <string name="reader_topic_reopen">إعادة فتح الموضوع</string>
+    <string name="reader_topic_closed">أُغلق الموضوع</string>
+    <string name="reader_topic_reopened">أُعيد فتح الموضوع</string>
+    <string name="reader_topic_delete">حذف الموضوع</string>
+    <string name="reader_topic_deleted">حُذف الموضوع</string>
+    <string name="reader_topic_delete_confirm">حذف هذا الموضوع؟</string>
+    <string name="reader_topic_delete_confirm_body">سيذهب الموضوع كله بردوده. يمكن للطاقم استعادته من الموقع.</string>
+    <string name="reader_repost">إعادة نشر</string>
+    <string name="reader_reposted">أُعيد النشر</string>
+    <string name="reader_repost_to">أُعيد النشر في %1$s</string>
+    <string name="reader_comment">التعليقات</string>
+    <string name="reader_like">إعجاب</string>
+    <string name="vote_upvote">تأييد</string>
+    <string name="vote_undo_upvote">إلغاء التأييد</string>
+    <string name="vote_downvote">معارضة</string>
+    <string name="vote_undo_downvote">إلغاء المعارضة</string>
+    <string name="vote_down_not_allowed">لا يُسمح لك بالمعارضة بعد.</string>
+    <string name="vote_expand">أظهره على أي حال</string>
+    <string name="vote_pick_upvote">أيّد بـ</string>
+    <string name="vote_pick_downvote">عارض بـ</string>
+    <string name="reaction_none">لا تفاعلات بعد.</string>
+    <string name="reaction_all">الكل</string>
+    <string name="reader_reply">رد</string>
+    <string name="reader_reply_to">رد على ‎@%1$s</string>
+    <string name="reader_cancel_reply">إلغاء الرد</string>
+    <string name="reader_reply_hint">اكتب ردًا…</string>
+    <string name="reader_replies_failed">تعذّر تحميل الردود</string>
+    <string name="reader_code_copied">نُسخ الكود</string>
+    <string name="reader_code_copy_hint">استمر بالضغط للنسخ</string>
+    <string name="reader_reply_one_media">الرد الواحد يحمل مرفقًا واحدًا</string>
+    <string name="reader_reply_guest">سجّل الدخول للمشاركة في النقاش</string>
+    <string name="reader_send">إرسال</string>
+    <string name="reader_reward">مكافأة</string>
+    <string name="reader_reward_energy">أهدِ طاقة</string>
+    <string name="reader_reward_amount">أهدِ %1$d طاقة</string>
+    <string name="reader_reward_done">أهديت %1$d طاقة</string>
+    <string name="reader_reward_detail">المكافآت</string>
+    <string name="reader_reward_note_hint">ملاحظة (اختياري)</string>
+    <string name="reader_reward_empty">لا مكافآت بعد</string>
+    <string name="reader_claimed_points">استلمت %1$d طاقة</string>
+    <string name="reader_spoiler">حرق أحداث — اضغط للكشف</string>
+
+    <!-- الإضافات -->
+    <string name="poll_title">استطلاع</string>
+    <string name="poll_closed">مغلق</string>
+    <string name="poll_multiple">اختيار متعدد</string>
+    <string name="poll_vote">صوّت</string>
+    <string name="poll_revoke">سحب التصويت</string>
+    <string name="poll_create">إنشاء استطلاع</string>
+    <string name="poll_option_hint">الخيار %1$d</string>
+    <string name="poll_add_option">إضافة خيار</string>
+    <string name="poll_single_choice">اختيار واحد</string>
+    <string name="poll_multi_choice">اختيار متعدد ✓</string>
+    <string name="poll_insert">إدراج استطلاع</string>
+
+    <string name="lottery_title">سحب</string>
+    <string name="lottery_drawn">تم السحب</string>
+    <string name="lottery_prize">الجائزة</string>
+    <string name="lottery_quantity">×%1$d</string>
+    <string name="lottery_random">تذكرة عشوائية</string>
+    <string name="lottery_join">شارك</string>
+    <string name="lottery_add">اشترِ المزيد</string>
+    <string name="lottery_winners">الفائزون</string>
+    <string name="lottery_join_failed">تعذّرت المشاركة في السحب.</string>
+    <string name="lottery_create_failed">فشل إنشاء السحب، لكن مشاركتك نُشرت</string>
+    <string name="lottery_default_level">الجائزة الأولى</string>
+
+    <string name="envelope_title">مظروف · %1$d طاقة / %2$s</string>
+    <string name="envelope_exhausted">نفدت كلها</string>
+    <string name="envelope_remaining">ردّ لتستلم — بقي %1$d</string>
+    <string name="envelope_chip">مظروف %1$d/%2$d ×</string>
+    <string name="envelope_create_failed">فشل إنشاء المظروف، لكن مشاركتك نُشرت</string>
+
+    <!-- المحرر -->
+    <string name="compose_publish">نشر</string>
+    <string name="compose_discard_title">مغادرة المحرر؟</string>
+    <string name="compose_discard_detail">تُحفظ المسودة. إن تخلّيت عنها ضاع ما كتبت.</string>
+    <string name="compose_discard_confirm">تخلَّ عنها</string>
+    <string name="compose_edit_discard_title">التخلي عن تعديلاتك؟</string>
+    <string name="compose_edit_discard_detail">ما غيّرته هنا لن يُحفظ.</string>
+    <string name="compose_draft_keep">احتفظ بالمسودة</string>
+    <string name="compose_draft_restored">استُعيدت المسودة</string>
+    <string name="compose_draft_untitled">بلا عنوان</string>
+    <string name="compose_draft_on_site">محفوظة على الموقع</string>
+    <string name="compose_draft_on_phone">على هذا الهاتف</string>
+    <string name="compose_draft_new">ابدأ شيئًا جديدًا</string>
+    <string name="compose_draft_choose">أتريد متابعة مسودة؟</string>
+    <string name="compose_published">نُشر</string>
+    <string name="compose_select_node">اختر عقدة</string>
+    <string name="compose_search_node">ابحث عن عقدة</string>
+    <string name="compose_node_none">لا عقدة تطابق ذلك.</string>
+    <string name="compose_emoji">إيموجي</string>
+    <string name="compose_emoji_search">ابحث عن إيموجي</string>
+    <string name="compose_emoji_failed">تعذّر تحميل الإيموجي.</string>
+    <string name="compose_title_hint">العنوان (5 أحرف فأكثر)</string>
+    <string name="compose_body_hint">النص — يدعم Markdown</string>
+    <string name="compose_media_edit">تحرير</string>
+    <string name="compose_media_remove">إزالة</string>
+    <string name="compose_image">صورة</string>
+    <string name="compose_video">فيديو</string>
+    <string name="compose_gif">GIF</string>
+    <string name="compose_media_one_kind">المشاركة تحمل صورًا أو فيديو أو GIF — لا مزيجًا منها</string>
+    <string name="compose_gif_search">ابحث عن GIF</string>
+    <string name="compose_lottery_chip">سحب ×</string>
+    <string name="compose_envelope">مظروف</string>
+    <string name="envelope_total_points">إجمالي الطاقة</string>
+    <string name="envelope_total_count">عدد المظاريف</string>
+    <string name="lottery_field_title">العنوان</string>
+    <string name="lottery_field_prize">الجائزة</string>
+    <string name="lottery_field_quantity">العدد</string>
+    <string name="lottery_field_min">يُسحب عند</string>
+    <string name="lottery_field_max_tickets">الحد الأقصى للفرد</string>
+    <string name="lottery_field_draw_days">السحب بعد (أيام)</string>
+
+    <!-- الوارد -->
+    <string name="inbox_title">الوارد</string>
+    <string name="inbox_notifications">الإشعارات</string>
+    <string name="inbox_messages">الرسائل</string>
+    <string name="inbox_chats">الدردشة</string>
+    <string name="inbox_mark_all_read">تعليم الكل كمقروء</string>
+    <string name="inbox_guest">سجّل الدخول لرؤية الإشعارات والرسائل</string>
+    <string name="inbox_guest_detail">القراءة لا تحتاج حسابًا، والمشاركة تحتاجه</string>
+    <string name="inbox_empty_notifications">لا إشعارات</string>
+    <string name="inbox_empty_messages">لا رسائل</string>
+    <string name="inbox_empty_chats">لا دردشات</string>
+    <string name="inbox_personal">شخصي</string>
+
+    <!-- صياغة الإشعارات (كما في الموقع) -->
+    <string name="notif_system">النظام</string>
+    <string name="notif_group_inbox">صندوق %1$s لديك رسائل جديدة</string>
+    <string name="notif_group_fallback">مجموعة</string>
+    <string name="notif_private_message">أرسل إليك رسالة</string>
+    <string name="notif_liked">أعجب بمشاركتك في %1$s</string>
+    <string name="notif_replied">ردّ على %1$s</string>
+    <string name="notif_badge">منحك وسام %1$s</string>
+    <string name="notif_generic">أرسل إليك إشعارًا</string>
+
+    <!-- الدردشة -->
+    <string name="chat_title">الدردشة</string>
+    <string name="chat_thread">سلسلة</string>
+    <string name="chat_leave_thread">مغادرة السلسلة</string>
+    <string name="chat_message_hint">رسالة…</string>
+    <string name="chat_attach">إرفاق</string>
+    <string name="chat_channel">قناة</string>
+
+    <!-- البحث -->
+    <string name="search_hint">ابحث في المشاركات والعُقد والأعضاء</string>
+    <string name="search_scope_all">الكل</string>
+    <string name="search_scope_nodes">العُقد</string>
+    <string name="search_scope_posts">المشاركات</string>
+    <string name="search_scope_users">الأعضاء</string>
+    <string name="search_scope_apps">التطبيقات</string>
+    <string name="search_scope_media">الوسائط</string>
+    <string name="search_recent">عمليات بحث أخيرة</string>
+    <string name="search_hot">الأكثر رواجًا</string>
+    <string name="search_empty">لا نتائج مطابقة</string>
+    <string name="search_failed">تعذّر تنفيذ البحث</string>
+    <string name="chat_load_failed">تعذّر تحميل هذه المحادثة</string>
+    <string name="chat_unread_divider">رسائل جديدة</string>
+    <string name="chat_typing_one">%1$s يكتب…</string>
+    <string name="chat_copy">نسخ النص</string>
+    <string name="chat_copied">نُسخ</string>
+    <string name="chat_edit">تعديل</string>
+    <string name="chat_editing">جارٍ التعديل</string>
+    <string name="chat_replying_to">رد على %1$s</string>
+    <string name="chat_react">أضف تفاعلًا</string>
+    <string name="chat_edited">عُدّلت</string>
+    <string name="chat_sending">جارٍ الإرسال…</string>
+    <string name="chat_profile">عرض الملف الشخصي</string>
+    <string name="chat_members">الأعضاء</string>
+    <string name="chat_notification_level">الإشعارات</string>
+    <string name="chat_level_always">كل رسالة</string>
+    <string name="chat_level_always_detail">أشعرني بكل رسالة جديدة.</string>
+    <string name="chat_level_mention">عند الذكر فقط</string>
+    <string name="chat_level_mention_detail">أشعرني فقط عندما يذكرني أحد بـ @ أو يقتبسني.</string>
+    <string name="chat_level_never">أبدًا</string>
+    <string name="chat_level_never_detail">لا إشعارات ولا عدّاد غير مقروء.</string>
+    <string name="chat_leave">مغادرة المحادثة</string>
+    <string name="chat_leave_title">مغادرة هذه المحادثة؟</string>
+    <string name="chat_leave_detail">ستختفي من قائمتك. أي رسالة جديدة تعيدها، ولا يُحذف شيء.</string>
+    <string name="chat_delete_title">حذف هذه الرسالة؟</string>
+    <string name="chat_delete_detail">ستختفي عن جميع من في المحادثة.</string>
+    <string name="apps_load_failed">تعذّر تحميل هذا التطبيق</string>
+    <string name="search_empty_detail">جرّب كلمة مختلفة</string>
+    <string name="search_node_empty">لم يُعثر على شيء في هذه العقدة</string>
+    <string name="search_nodes_capped">العُقد · %1$d من %2$d</string>
+
+    <!-- الملف الشخصي -->
+    <string name="profile_guest">سجّل الدخول لرؤية ملفك الشخصي</string>
+    <string name="profile_follow">متابعة</string>
+    <string name="profile_following">تتابعه</string>
+    <string name="profile_admin">مدير</string>
+    <string name="profile_moderator">مشرف</string>
+    <string name="profile_last_seen">آخر ظهور %1$s</string>
+    <string name="profile_joined">انضم %1$s</string>
+    <string name="profile_energy">الطاقة</string>
+    <string name="profile_reputation">السمعة</string>
+    <string name="profile_topics">المواضيع</string>
+    <string name="profile_posts">المشاركات</string>
+    <string name="profile_likes">الإعجابات</string>
+    <string name="profile_bookmarks">الإشارات المرجعية</string>
+    <string name="profile_empty_points">لا سجل للطاقة</string>
+
+    <!-- الإعدادات -->
+    <string name="settings_account">الحساب</string>
+    <string name="settings_preferences">التفضيلات</string>
+    <string name="settings_account_section">هذا التطبيق</string>
+    <string name="settings_profile">الملف الشخصي</string>
+    <string name="settings_associated">الحسابات المرتبطة</string>
+    <string name="settings_security">الأمان</string>
+    <string name="settings_interface">الواجهة</string>
+    <string name="settings_notifications">الإشعارات</string>
+    <string name="settings_email">البريد</string>
+    <string name="settings_privacy">الخصوصية</string>
+    <string name="settings_web">فتح تفضيلات الويب</string>
+    <string name="settings_push">الإشعارات الفورية</string>
+    <string name="settings_sign_out">تسجيل الخروج</string>
+    <string name="settings_appearance">المظهر</string>
+    <string name="settings_other">أخرى</string>
+    <string name="settings_color_mode">نمط الألوان</string>
+    <string name="settings_text_size">حجم النص</string>
+    <string name="settings_default_home">الشاشة الافتراضية</string>
+    <string name="settings_external_links">افتح الروابط الخارجية في تبويب جديد</string>
+    <string name="settings_quoting">تفعيل الرد بالاقتباس</string>
+    <string name="settings_in_app_notifications">إشعارات داخل التطبيق</string>
+    <string name="settings_like_frequency">أشعرني بالإعجابات</string>
+    <string name="settings_new_topic_duration">اعتبر المواضيع جديدة لمدة</string>
+    <string name="settings_track_on_reply">تابع المواضيع التي أرد فيها</string>
+    <string name="settings_email_notifications">إشعارات البريد</string>
+    <string name="settings_email_replies">راسلني عن الردود</string>
+    <string name="settings_email_messages">راسلني عن الرسائل</string>
+    <string name="settings_email_previous">أدرج الردود السابقة</string>
+    <string name="settings_email_digest">أرسل ملخصات النشاط</string>
+    <string name="settings_hide_profile">أخفِ ملفي العام</string>
+    <string name="settings_hide_presence">أخفِ حضوري</string>
+
+    <string name="color_mode_auto">تلقائي</string>
+    <string name="color_mode_light">فاتح</string>
+    <string name="color_mode_dark">داكن</string>
+    <string name="text_size_smallest">الأصغر</string>
+    <string name="text_size_smaller">أصغر</string>
+    <string name="text_size_normal">عادي</string>
+    <string name="text_size_larger">أكبر</string>
+    <string name="text_size_largest">الأكبر</string>
+    <string name="email_level_always">دائمًا</string>
+    <string name="email_level_away">عند الغياب فقط</string>
+    <string name="email_level_never">أبدًا</string>
+    <string name="previous_replies_always">دائمًا</string>
+    <string name="previous_replies_unless">ما لم تُرسل من قبل</string>
+    <string name="previous_replies_never">أبدًا</string>
+    <string name="like_freq_always">دائمًا</string>
+    <string name="like_freq_first_daily">أول مرة ويوميًا</string>
+    <string name="like_freq_first">أول مرة فقط</string>
+    <string name="like_freq_never">أبدًا</string>
+    <string name="duration_last_visit">منذ آخر زيارة</string>
+    <string name="duration_one_day">يوم واحد</string>
+    <string name="duration_two_days">يومان</string>
+    <string name="duration_one_week">أسبوع</string>
+    <string name="duration_two_weeks">أسبوعان</string>
+
+    <!-- الإشعارات الفورية -->
+    <string name="push_enable">الإشعارات الفورية</string>
+    <string name="push_enable_detail">يتحقق من الإشعارات الجديدة في الخلفية</string>
+    <string name="push_permission_footer">الإشعارات مُعطّلة في إعدادات النظام — لن يصل شيء حتى تُفعّل.</string>
+    <string name="push_filter_footer">الأنواع التي تُعطّلها تبقى ظاهرة في وارد التطبيق.</string>
+    <string name="push_open_system_settings">افتح إعدادات النظام</string>
+    <string name="push_types">الأنواع</string>
+    <string name="push_replies">الردود والذكر</string>
+    <string name="push_replies_detail">أحدهم ردّ عليك أو اقتبسك أو ذكرك</string>
+    <string name="push_likes">الإعجابات</string>
+    <string name="push_likes_detail">أحدهم أعجب بمشاركتك أو ردك</string>
+    <string name="push_messages">الرسائل</string>
+    <string name="push_messages_detail">وصلتك رسالة خاصة</string>
+    <string name="push_other">الأوسمة وإشعارات النظام</string>
+    <string name="push_other_detail">منح الأوسمة ورسائل المجموعات وما شابه</string>
+
+    <!-- الأمان -->
+    <string name="security_password">كلمة المرور</string>
+    <string name="security_send_reset">أرسل لي بريد إعادة تعيين كلمة المرور</string>
+    <string name="security_reset_sent">أُرسل بريد إعادة تعيين كلمة المرور</string>
+    <string name="security_two_factor">المصادقة الثنائية</string>
+    <string name="security_two_factor_footer">بعد التفعيل يطلب تسجيل الدخول رمزًا لمرة واحدة أيضًا.</string>
+    <string name="security_status">الحالة</string>
+    <string name="security_enabled">مفعّلة</string>
+    <string name="security_disabled">معطّلة</string>
+    <string name="security_backup_codes">رموز احتياطية</string>
+    <string name="security_generate_backup">توليد رموز احتياطية</string>
+    <string name="security_backup_footer">احفظها في مكان آمن — كل رمز يعمل مرة واحدة.</string>
+    <string name="security_enable_totp">تفعيل المصادقة الثنائية</string>
+    <string name="security_disable_totp">تعطيل المصادقة الثنائية</string>
+    <string name="security_totp_enabled">المصادقة الثنائية مفعّلة</string>
+    <string name="security_totp_disabled">المصادقة الثنائية معطّلة</string>
+    <string name="security_scan_key">امسح المفتاح أو أدخله</string>
+    <string name="security_key">المفتاح</string>
+    <string name="security_totp_footer">أضفه إلى تطبيق المصادقة، ثم أدخل الرمز المكوّن من 6 أرقام لإتمام العملية.</string>
+    <string name="security_totp_code_hint">رمز من 6 أرقام</string>
+    <string name="security_finish_binding">إنهاء الإعداد</string>
+    <string name="security_sessions">الجلسات</string>
+    <string name="security_session_fallback">الجلسة رقم %1$d</string>
+    <string name="security_current_device">هذا الجهاز</string>
+    <string name="security_sign_out_session">تسجيل الخروج</string>
+    <string name="security_session_revoked">أُنهيت الجلسة</string>
+    <string name="security_confirm_identity">أكّد أنك أنت</string>
+    <string name="security_confirm_detail">التغييرات الحساسة تتطلب كلمة مرورك مجددًا.</string>
+    <string name="security_wrong_password">كلمة المرور خاطئة، حاول مرة أخرى</string>
+    <string name="security_no_associated">لا حسابات مرتبطة</string>
+    <string name="security_associated_footer">الحسابات المرتبطة يمكنها تسجيل دخولك إلى الموقع.</string>
+    <string name="security_unlink">فك الارتباط</string>
+    <string name="security_unlink_confirm_title">فك ارتباط %1$s؟</string>
+    <string name="security_unlink_confirm_detail">لن تتمكن من تسجيل الدخول به حتى تربطه من جديد.</string>
+
+    <!-- تعديل الملف الشخصي -->
+    <string name="profile_edit_avatar">تغيير الصورة الرمزية</string>
+    <string name="profile_edit_section">الملف الشخصي</string>
+    <string name="profile_edit_name">الاسم المعروض</string>
+    <string name="profile_edit_name_hint">كيف يظهر اسمك</string>
+    <string name="profile_edit_title">اللقب</string>
+    <string name="profile_edit_title_none">بلا لقب</string>
+    <string name="profile_edit_title_locked">الألقاب تأتي من الأوسمة التي نلتها</string>
+    <string name="profile_edit_bio">نبذة عني</string>
+    <string name="profile_edit_bio_hint">عرّف الناس بنفسك</string>
+    <string name="profile_edit_website">الموقع الإلكتروني</string>
+    <string name="profile_edit_location">الموقع</string>
+    <string name="profile_edit_saved">حُفظ الملف الشخصي</string>
+    <string name="profile_edit_load_failed">تعذّر تحميل ملفك الشخصي</string>
+    <string name="profile_edit_load_failed_detail">تحقق من اتصالك وحاول مرة أخرى.</string>
+    <string name="profile_avatar_updated">حُدّثت الصورة الرمزية</string>
+    <string name="profile_edit_background">تغيير الخلفية</string>
+    <string name="profile_edit_background_remove">إزالة الخلفية</string>
+    <string name="profile_background_updated">حُدّثت الخلفية</string>
+
+    <!-- الدخول والتسجيل -->
+    <string name="auth_terms">بتسجيل الدخول فأنت تقبل شروط NODELOC وسياسة الخصوصية.</string>
+    <string name="auth_website">تابع عبر موقع NodeLoc</string>
+    <string name="auth_identifier">البريد أو اسم المستخدم</string>
+    <string name="auth_identifier_hint">you@example.com</string>
+    <string name="auth_password">كلمة المرور</string>
+    <string name="auth_code">الرمز</string>
+    <string name="auth_code_hint">رمز من 6 أرقام</string>
+    <string name="auth_backup_code">رمز احتياطي</string>
+    <string name="auth_use_backup">استخدم رمزًا احتياطيًا</string>
+    <string name="auth_use_totp">استخدم رمز تطبيق المصادقة</string>
+    <string name="auth_forgot">نسيت كلمة المرور؟</string>
+    <string name="auth_email_step">بريدك</string>
+    <string name="auth_email">البريد</string>
+    <string name="auth_username_step">اختر اسم مستخدم</string>
+    <string name="auth_username">اسم المستخدم</string>
+    <string name="auth_username_hint">3–20 حرفًا</string>
+    <string name="auth_email_invalid">أدخل عنوان بريد صالحًا</string>
+    <string name="auth_email_ok">البريد يبدو صحيحًا</string>
+    <string name="auth_username_available">اسم جميل — وهو متاح</string>
+    <string name="auth_username_taken">هذا الاسم مستخدم</string>
+    <string name="auth_username_suggestion">جرّب “%1$s”</string>
+    <string name="auth_password_step">اضبط كلمة مرور</string>
+    <string name="auth_password_hint">10 أحرف على الأقل</string>
+    <string name="auth_password_short">مطلوب 10 أحرف على الأقل</string>
+    <string name="auth_password_ok">الطول كافٍ</string>
+    <string name="auth_gender_step">جنسك</string>
+    <string name="auth_gender_footer">يُحفظ على هذا الجهاز فقط، لأغراض التوصية.</string>
+    <string name="auth_gender_male">ذكر</string>
+    <string name="auth_gender_female">أنثى</string>
+    <string name="auth_gender_other">آخر</string>
+    <string name="auth_gender_private">أفضّل عدم القول</string>
+    <string name="auth_interests_step">عُقد تعجبك</string>
+    <string name="auth_interests_footer">اختر حتى 3 — ستنضم إليها تلقائيًا.</string>
+    <string name="auth_shuffle">اخلط</string>
+    <string name="auth_finish_signup">أنشئ الحساب</string>
+    <string name="auth_check_email">تحقق من بريدك</string>
+    <string name="auth_activation_detail">أرسلنا رابط تفعيل إلى %1$s — افتحه لإتمام التسجيل.</string>
+    <string name="auth_activation_hint">ثم عُد وسجّل الدخول؛ العُقد التي اخترتها ستنضم تلقائيًا.</string>
+    <string name="auth_back_to_login">العودة لتسجيل الدخول</string>
+    <string name="auth_gate_title">انضم إلى NODELOC</string>
+    <string name="auth_gate_detail">سجّل الدخول لتنشر وترد وتُعجب وتحفظ. القراءة لا تحتاج حسابًا.</string>
+
+    <string name="auth_error_key_generation">تعذّر توليد مفاتيح الأمان.</string>
+    <string name="auth_error_missing_payload">كان رد تسجيل الدخول ناقصًا.</string>
+    <string name="auth_error_lost_keypair">انقطع تسجيل الدخول. ابدأ من جديد.</string>
+    <string name="auth_error_decrypt">تعذّر التحقق من رد تسجيل الدخول.</string>
+    <string name="auth_error_nonce">فشل التحقق من تسجيل الدخول. حاول مرة أخرى.</string>
+    <string name="auth_error_cancelled">أُلغي تسجيل الدخول.</string>
+    <string name="auth_error_missing_fields">يرجى ملء كل الحقول.</string>
+    <string name="auth_error_second_factor">هذا الحساب يستخدم المصادقة الثنائية — أدخل رمزك.</string>
+    <string name="auth_error_incomplete">لم يكتمل تسجيل الدخول. حاول مرة أخرى.</string>
+    <string name="auth_error_no_session">لم يُرجع تسجيل الدخول جلسة للموقع.</string>
+    <string name="auth_error_session_start">تعذّر بدء جلسة تسجيل الدخول.</string>
+    <string name="auth_error_bad_code">هذا الرمز غير صحيح. حاول مرة أخرى.</string>
+    <string name="auth_error_login_failed">فشل تسجيل الدخول، حاول مرة أخرى</string>
+    <string name="auth_error_signup_failed">فشل إنشاء الحساب، حاول مرة أخرى</string>
+    <string name="auth_signup_activation_needed">أُنشئ الحساب — تحقق من بريدك لتفعيله.</string>
+
+    <!-- الترحيب -->
+    <string name="welcome_tagline">حر، متكافئ، ودود، مفتوح، ممتع</string>
+    <string name="welcome_start">لنبدأ</string>
+    <string name="welcome_have_account">لديّ حساب بالفعل</string>
+    <string name="welcome_browse">سأتصفّح فقط الآن</string>
+
+    <!-- المتصفح والوسائط -->
+    <string name="browser_open_external">افتح في المتصفح</string>
+    <string name="web_session_api_only_title">هذه الصفحة تحتاج تسجيل دخول عبر الموقع</string>
+    <string name="web_session_api_only_detail">سجّلت الدخول عبر الموقع، فتفتح هذه الصفحة هنا لكن أي تغيير لن يُحفظ. تابع في متصفحك — أنت مسجّل الدخول هناك.</string>
+    <string name="web_session_continue_anyway">افتحها هنا على أي حال</string>
+    <string name="browser_text_size">حجم النص %1$d%%</string>
+    <string name="media_mute">كتم</string>
+    <string name="media_unmute">إلغاء الكتم</string>
+    <string name="editor_crop">اقتصاص</string>
+    <string name="editor_brush">رسم</string>
+    <string name="editor_mosaic">تمويه</string>
+    <string name="editor_mosaic_solid">حجب كامل</string>
+    <string name="editor_mosaic_blur">ضبابي</string>
+    <string name="editor_mosaic_fine">دقيق</string>
+    <string name="editor_mosaic_pixel">بكسلة</string>
+    <string name="editor_mosaic_blocks">مربّعات</string>
+    <string name="editor_text">نص</string>
+    <string name="editor_rotate">تدوير</string>
+    <string name="editor_add_text">إضافة نص</string>
+    <string name="editor_crop_free">حر</string>
+    <string name="editor_crop_square">1:1</string>
+    <string name="editor_crop_portrait">4:5</string>
+    <string name="editor_crop_landscape">16:9</string>
+    <string name="editor_filter_faded">باهت</string>
+    <string name="editor_filter_mono">أبيض وأسود</string>
+    <string name="editor_filter_cool">بارد</string>
+    <string name="editor_filter_warm">دافئ</string>
+    <string name="editor_filter_vivid">زاهٍ</string>
+    <string name="editor_filter_none">الأصل</string>
+    <string name="editor_text_filled">بخلفية</string>
+    <string name="editor_text_outlined">بحدود</string>
+    <string name="editor_text_plain">عادي</string>
+    <string name="editor_filter">مرشّح</string>
+    <string name="editor_sticker">ملصق</string>
+    <string name="editor_flip">قلب</string>
+    <string name="editor_redo">إعادة</string>
+    <string name="editor_reset">إعادة ضبط</string>
+    <string name="trim_gif_limit">حد GIF هو %1$d ثانية؛ يُقتطع الباقي</string>
+    <string name="trim_failed">تعذّرت معالجة هذا الفيديو، حاول مرة أخرى</string>
+    <string name="trim_too_large">هذا المقطع أكبر من أن يُرسل. اقتصّه أقصر ثم حاول مجددًا.</string>
+
+    <!-- دليل التطبيقات -->
+    <string name="apps_title">دليل التطبيقات</string>
+    <string name="apps_more">تطبيقات أخرى</string>
+    <string name="apps_recent">تطبيقات حديثة</string>
+    <string name="apps_empty">لا تطبيقات</string>
+    <string name="apps_open">افتح التطبيق</string>
+    <string name="apps_web_only">هذا التطبيق يعمل على الموقع فقط.</string>
+    <string name="apps_permissions">الأذونات</string>
+    <string name="apps_discussion">افتح النقاش</string>
+
+    <!-- أسماء معدودة -->
+    <plurals name="common_members">
+        <item quantity="zero">%1$s عضو</item>
+        <item quantity="one">عضو واحد</item>
+        <item quantity="two">عضوان</item>
+        <item quantity="few">%1$s أعضاء</item>
+        <item quantity="many">%1$s عضوًا</item>
+        <item quantity="other">%1$s عضو</item>
+    </plurals>
+    <plurals name="common_topics">
+        <item quantity="zero">%1$s موضوع</item>
+        <item quantity="one">موضوع واحد</item>
+        <item quantity="two">موضوعان</item>
+        <item quantity="few">%1$s مواضيع</item>
+        <item quantity="many">%1$s موضوعًا</item>
+        <item quantity="other">%1$s موضوع</item>
+    </plurals>
+    <plurals name="chat_member_count">
+        <item quantity="zero">%1$d عضو</item>
+        <item quantity="one">عضو واحد</item>
+        <item quantity="two">عضوان</item>
+        <item quantity="few">%1$d أعضاء</item>
+        <item quantity="many">%1$d عضوًا</item>
+        <item quantity="other">%1$d عضو</item>
+    </plurals>
+    <plurals name="chat_typing_many">
+        <item quantity="zero">%1$d أشخاص يكتبون…</item>
+        <item quantity="one">شخص واحد يكتب…</item>
+        <item quantity="two">شخصان يكتبان…</item>
+        <item quantity="few">%1$d أشخاص يكتبون…</item>
+        <item quantity="many">%1$d شخصًا يكتبون…</item>
+        <item quantity="other">%1$d شخص يكتبون…</item>
+    </plurals>
+    <plurals name="common_replies_count">
+        <item quantity="zero">%1$d رد</item>
+        <item quantity="one">رد واحد</item>
+        <item quantity="two">ردان</item>
+        <item quantity="few">%1$d ردود</item>
+        <item quantity="many">%1$d ردًا</item>
+        <item quantity="other">%1$d رد</item>
+    </plurals>
+    <plurals name="reader_load_more_replies">
+        <item quantity="zero">%1$d رد آخر</item>
+        <item quantity="one">رد واحد آخر</item>
+        <item quantity="two">ردان آخران</item>
+        <item quantity="few">%1$d ردود أخرى</item>
+        <item quantity="many">%1$d ردًا آخر</item>
+        <item quantity="other">%1$d رد آخر</item>
+    </plurals>
+    <plurals name="apps_installs">
+        <item quantity="zero">%1$d تثبيت</item>
+        <item quantity="one">تثبيت واحد</item>
+        <item quantity="two">تثبيتان</item>
+        <item quantity="few">%1$d تثبيتات</item>
+        <item quantity="many">%1$d تثبيتًا</item>
+        <item quantity="other">%1$d تثبيت</item>
+    </plurals>
+    <plurals name="poll_voters">
+        <item quantity="zero">%1$d مصوّت</item>
+        <item quantity="one">مصوّت واحد</item>
+        <item quantity="two">مصوّتان</item>
+        <item quantity="few">%1$d مصوّتين</item>
+        <item quantity="many">%1$d مصوّتًا</item>
+        <item quantity="other">%1$d مصوّت</item>
+    </plurals>
+    <plurals name="lottery_my_tickets">
+        <item quantity="zero">لديك %1$d تذكرة</item>
+        <item quantity="one">لديك تذكرة واحدة</item>
+        <item quantity="two">لديك تذكرتان</item>
+        <item quantity="few">لديك %1$d تذاكر</item>
+        <item quantity="many">لديك %1$d تذكرة</item>
+        <item quantity="other">لديك %1$d تذكرة</item>
+    </plurals>
+    <string name="profile_tab_load_failed">تعذّر تحميل هذا التبويب</string>
+    <plurals name="lottery_entrants">
+        <item quantity="zero">%1$d مشارك</item>
+        <item quantity="one">مشارك واحد</item>
+        <item quantity="two">مشاركان</item>
+        <item quantity="few">%1$d مشاركين</item>
+        <item quantity="many">%1$d مشاركًا</item>
+        <item quantity="other">%1$d مشارك</item>
+    </plurals>
+    <plurals name="lottery_tickets">
+        <item quantity="zero">%1$d تذكرة</item>
+        <item quantity="one">تذكرة واحدة</item>
+        <item quantity="two">تذكرتان</item>
+        <item quantity="few">%1$d تذاكر</item>
+        <item quantity="many">%1$d تذكرة</item>
+        <item quantity="other">%1$d تذكرة</item>
+    </plurals>
+    <plurals name="lottery_min_participants">
+        <item quantity="zero">يُسحب عند %1$d مشارك</item>
+        <item quantity="one">يُسحب عند مشارك واحد</item>
+        <item quantity="two">يُسحب عند مشاركين</item>
+        <item quantity="few">يُسحب عند %1$d مشاركين</item>
+        <item quantity="many">يُسحب عند %1$d مشاركًا</item>
+        <item quantity="other">يُسحب عند %1$d مشارك</item>
+    </plurals>
+    <plurals name="lottery_max_participants">
+        <item quantity="zero">%1$d مشارك كحد أقصى</item>
+        <item quantity="one">مشارك واحد كحد أقصى</item>
+        <item quantity="two">مشاركان كحد أقصى</item>
+        <item quantity="few">%1$d مشاركين كحد أقصى</item>
+        <item quantity="many">%1$d مشاركًا كحد أقصى</item>
+        <item quantity="other">%1$d مشارك كحد أقصى</item>
+    </plurals>
+    <plurals name="envelope_packets">
+        <item quantity="zero">%1$d مظروف</item>
+        <item quantity="one">مظروف واحد</item>
+        <item quantity="two">مظروفان</item>
+        <item quantity="few">%1$d مظاريف</item>
+        <item quantity="many">%1$d مظروفًا</item>
+        <item quantity="other">%1$d مظروف</item>
+    </plurals>
+    <plurals name="notif_group_inbox_count">
+        <item quantity="zero">صندوق %1$s لديك %2$d رسالة</item>
+        <item quantity="one">صندوق %1$s لديك رسالة واحدة</item>
+        <item quantity="two">صندوق %1$s لديك رسالتان</item>
+        <item quantity="few">صندوق %1$s لديك %2$d رسائل</item>
+        <item quantity="many">صندوق %1$s لديك %2$d رسالة</item>
+        <item quantity="other">صندوق %1$s لديك %2$d رسالة</item>
+    </plurals>
+    <string name="image_load_failed">تعذّر تحميل هذه الصورة</string>
+    <string name="viewer_save_image">حفظ الصورة</string>
+    <string name="viewer_save_video">حفظ الفيديو</string>
+    <string name="viewer_save_video_failed">تعذّر حفظ ذلك الفيديو</string>
+    <string name="report_title">الإبلاغ عن هذه المشاركة</string>
+    <string name="report_note_hint">أخبر المشرفين بما هو خاطئ</string>
+    <string name="report_sent">أُرسل — سيطّلع المشرفون عليه</string>
+    <string name="viewer_saved">حُفظت في معرض الصور</string>
+    <string name="viewer_save_failed">تعذّر حفظ تلك الصورة</string>
+    <string name="viewer_more">المزيد</string>
+    <string name="viewer_previous">الصورة السابقة</string>
+    <string name="viewer_next">الصورة التالية</string>
+    <string name="media_video_failed">تعذّر تشغيل ذلك الفيديو</string>
+    <string name="media_no_more_videos">لا مزيد من الفيديوهات الآن</string>
+    <string name="common_pause">إيقاف مؤقت</string>
+    <string name="profile_message">رسالة</string>
+    <string name="profile_chat">دردشة</string>
+    <string name="profile_notification_level">الإشعارات</string>
+    <string name="profile_notify_normal">عادي</string>
+    <string name="profile_notify_muted">مكتوم</string>
+    <string name="profile_notify_ignored">متجاهَل</string>
+    <string name="profile_notify_normal_detail">تصلك الإشعارات كالمعتاد.</string>
+    <string name="profile_notify_muted_detail">لا إشعارات من هذا الشخص.</string>
+    <string name="profile_notify_ignored_detail">وتُخفى مشاركاته أيضًا.</string>
+    <string name="profile_notify_saved">حُفظ</string>
+    <string name="auth_failed">لم يكتمل تسجيل الدخول</string>
+    <string name="auth_continue_with">تابع عبر %1$s</string>
+    <string name="auth_or_password">أو سجّل الدخول بكلمة مرور</string>
+
+    <!-- التحديثات -->
+    <string name="update_check">التحقق من التحديثات</string>
+    <string name="update_up_to_date">لديك أحدث إصدار</string>
+    <string name="update_available_title">الإصدار %1$s متاح</string>
+    <string name="update_available_required">هذا التحديث ضروري لمواصلة استخدام التطبيق.</string>
+    <string name="update_install">تنزيل وتثبيت</string>
+    <string name="update_later">لاحقًا</string>
+    <string name="update_downloading">جارٍ التنزيل…</string>
+    <string name="update_download_failed">تعذّر تنزيل التحديث. حاول لاحقًا.</string>
+    <string name="update_install_failed">تعذّر فتح المثبّت</string>
+    <string name="update_needs_install_permission">اسمح لـ NodeLoc بتثبيت التطبيقات</string>
+
+    <!-- إنشاء السحب -->
+    <string name="lottery_field_max_participants">الحد الأقصى للمشاركين (اتركه فارغًا بلا حد)</string>
+    <string name="lottery_field_min_tickets">أقل عدد تذاكر للفرد</string>
+    <string name="lottery_field_trust_level">أدنى مستوى ثقة</string>
+    <string name="lottery_field_levels">الجوائز</string>
+    <string name="lottery_add_level">أضف جائزة</string>
+    <string name="lottery_remove_level">إزالة</string>
+    <string name="lottery_level_name_hint">اسم المرتبة، مثل "الجائزة الأولى"</string>
+    <string name="lottery_draws_at">السحب %1$s</string>
+    <string name="lottery_error_title">ضع عنوانًا للسحب</string>
+    <string name="lottery_error_prize">صف جائزة واحدة على الأقل</string>
+    <string name="lottery_error_min_participants">أقل عدد مشاركين يجب أن يكون 1 على الأقل</string>
+    <string name="lottery_error_max_below_min">الحد الأقصى للمشاركين يجب أن يتجاوز الحد الأدنى</string>
+    <string name="lottery_error_min_tickets">أقل عدد تذاكر لا يمكن أن يتجاوز الأقصى</string>
+    <string name="lottery_error_draw_days">يجب أن يكون السحب بعد 1–%1$d يومًا</string>
+    <string name="lottery_condition_min_tickets">%1$d تذكرة كحد أدنى للفرد</string>
+    <string name="lottery_condition_max_tickets">%1$d تذكرة كحد أقصى للفرد</string>
+    <string name="lottery_condition_trust_level">TL%1$d فما فوق</string>
+
+    <!-- تسجيل الحضور اليومي -->
+    <string name="checkin_action">تسجيل حضور</string>
+    <string name="checkin_done">سجّلت حضورك اليوم</string>
+    <string name="checkin_success">سُجّل الحضور — %1$d طاقة</string>
+
+    <!-- تقدم الترقية -->
+    <string name="upgrade_title">تقدم الترقية</string>
+    <string name="upgrade_load_failed">تعذّر تحميل تقدم الترقية</string>
+    <string name="upgrade_next_level">المستوى التالي: %1$s</string>
+    <string name="upgrade_met_count">تحقق %1$d من %2$d</string>
+    <string name="upgrade_all_met">كل متطلبات المستوى التالي متحققة.</string>
+    <string name="upgrade_maintaining">محافظة</string>
+    <string name="upgrade_retention_title">متطلبات الحفاظ على هذا المستوى</string>
+    <string name="upgrade_locked">مستوى الثقة مقفل؛ لن يتغير تلقائيًا.</string>
+    <string name="upgrade_group_standing">وضع الحساب</string>
+    <string name="upgrade_group_activity">النشاط</string>
+    <string name="upgrade_group_recent">آخر %1$d يومًا</string>
+    <string name="upgrade_group_recent_plain">النشاط الأخير</string>
+    <string name="upgrade_group_all_time">منذ البداية</string>
+    <string name="upgrade_target">الهدف %1$d</string>
+    <string name="upgrade_limit">الحد %1$d</string>
+    <string name="upgrade_condition_met">متحقق</string>
+    <string name="upgrade_condition_over">تجاوز الحد</string>
+    <string name="upgrade_condition_remaining">بقي %1$d</string>
+
+    <!-- مصدر النشر -->
+    <string name="post_source_title">مصدر النشر</string>
+    <string name="post_source_explain">اختر كم يظهر من هذا الهاتف في مشاركاتك. يظهر الطراز افتراضيًا؛ اختر “لا تُظهر شيئًا” فلا يظهر شيء. هذا الاختيار يتبع حسابك لا هذا الجهاز.</string>
+    <string name="post_source_footer">يمكن لأي أحد أن يدّعي ما يشاء هنا، فالمصدر زينة — لا يمنح شيئًا ولا يثبت شيئًا.</string>
+    <string name="post_source_from">من %1$s</string>
+    <string name="post_source_level_off">لا تُظهر شيئًا</string>
+    <string name="post_source_level_client">التطبيق فقط</string>
+    <string name="post_source_level_platform">التطبيق والنظام</string>
+    <string name="post_source_level_brand">حتى العلامة التجارية</string>
+    <string name="post_source_level_model">حتى الطراز</string>
+    <string name="post_source_history_title">مشاركات كُتبت بالفعل</string>
+    <string name="post_source_history_detail">اختيار مستوى أدنى يحكم ما تنشره لاحقًا فقط. هذا يزيل المصدر من كل ما نُشر سابقًا، ولا يمكن التراجع عنه.</string>
+    <string name="post_source_clear">أزله من المشاركات السابقة</string>
+    <string name="post_source_cleared">أُزيل</string>
+    <string name="video_quality">الجودة</string>
+    <string name="video_quality_480">480p</string>
+    <string name="video_quality_720">720p</string>
+    <string name="video_quality_1080">1080p</string>
+    <string name="video_quality_original">الأصلية</string>
+    <string name="video_sound">الصوت</string>
+    <string name="video_gif">GIF</string>
+    <string name="video_play">تشغيل</string>
+    <string name="video_pause">إيقاف مؤقت</string>
+    <string name="video_summary">%1$s · ~%2$s</string>
+    <string name="sort_best">الأفضل</string>
+    <string name="sort_best_detail">مواضيع مختارة لك</string>
+    <string name="block_user_title">حظر هذا الشخص؟</string>
+    <string name="block_user_message">لن ترى ما ينشره %1$s ولن يتمكن من مراسلتك. يمكنك التراجع من الإعدادات.</string>
+    <string name="block_user_confirm">حظر</string>
+    <string name="block_user_done">تم الحظر</string>
+    <string name="unblock_user">إلغاء الحظر</string>
+    <string name="unblock_user_done">تم إلغاء الحظر</string>
+    <string name="settings_blocked">المحظورون</string>
+    <string name="blocked_empty">لا يوجد أحد محظور.</string>
+    <string name="blocked_not_allowed">لا يسمح هذا الموقع لحسابك بالحظر بعد.</string>
+    <string name="post_more_bookmark">إشارة مرجعية</string>
+    <string name="post_more_watch">متابعة</string>
+    <string name="post_more_watching">تتم المتابعة</string>
+    <string name="post_more_author">عرض الكاتب</string>
+    <string name="post_more_block_author">حظر الكاتب</string>
+    <string name="post_more_repost">إعادة نشر</string>
+    <string name="profile_report">الإبلاغ عن هذا الشخص</string>
+    <string name="profile_block">حظر هذا الشخص</string>
+    <string name="profile_report_title">الإبلاغ عن ‎@%1$s</string>
+</resources>

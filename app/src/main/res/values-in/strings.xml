@@ -1,0 +1,782 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Bahasa Indonesia. Folder-nya "values-in", bukan "values-id": kode lama itulah
+  yang dikenali sistem resource Android. Kunci dan urutan placeholder harus
+  sama persis dengan values/strings.xml.
+-->
+<resources>
+    <string name="app_name">NodeLoc</string>
+
+    <!-- Umum -->
+    <string name="common_back">Kembali</string>
+    <string name="common_close">Tutup</string>
+    <string name="common_cancel">Batal</string>
+    <string name="common_confirm">Konfirmasi</string>
+    <string name="common_done">Selesai</string>
+    <string name="common_save">Simpan</string>
+    <string name="common_continue">Lanjutkan</string>
+    <string name="common_retry">Coba lagi</string>
+    <string name="link_blocked">Tautan itu tidak bisa dibuka.</string>
+    <string name="session_expired">Sesi Anda berakhir. Silakan masuk lagi.</string>
+    <string name="common_more">Lainnya</string>
+    <string name="common_share">Bagikan</string>
+    <string name="common_refresh">Muat ulang</string>
+    <string name="common_menu">Menu</string>
+    <string name="common_settings">Pengaturan</string>
+    <string name="common_login">Masuk</string>
+    <string name="common_signup">Daftar</string>
+    <string name="common_delete">Hapus</string>
+    <string name="common_clear">Bersihkan</string>
+    <string name="common_clear_all">Bersihkan semua</string>
+    <string name="common_expand">Bentangkan</string>
+    <string name="common_collapse">Ciutkan</string>
+    <string name="common_loading">Memuat</string>
+    <string name="common_checking">Memeriksa…</string>
+    <string name="common_add">Tambah</string>
+    <string name="common_or">atau</string>
+    <string name="common_empty">Belum ada apa-apa di sini</string>
+    <string name="common_empty_hint">Coba lihat lagi nanti</string>
+    <string name="common_play">Putar</string>
+    <string name="common_undo">Urungkan</string>
+    <string name="common_guest">Belum masuk</string>
+    <string name="common_me">Saya</string>
+
+    <!-- Navigasi bawah -->
+    <string name="tab_home">Beranda</string>
+    <string name="tab_nodes">Node</string>
+    <string name="tab_inbox">Kotak masuk</string>
+    <string name="tab_search">Cari</string>
+    <string name="tab_profile">Profil</string>
+
+    <!-- Kesalahan: kode status tidak pernah ditampilkan -->
+    <string name="error_unauthorized">Anda tidak punya izin, atau sesi Anda berakhir. Silakan masuk lagi.</string>
+    <string name="error_not_found">Konten itu tidak ada atau sudah dihapus</string>
+    <string name="error_rate_limited">Terlalu banyak permintaan — coba lagi sebentar lagi</string>
+    <string name="error_rate_limited_wait">Terlalu banyak permintaan — coba lagi dalam %1$d detik</string>
+    <string name="error_server">Server sedang bermasalah. Coba lagi nanti.</string>
+    <string name="error_generic_request">Permintaan gagal, silakan coba lagi</string>
+    <string name="error_challenged">Pemeriksaan keamanan situs memblokir permintaan ini. Coba lagi nanti.</string>
+    <string name="error_decoding">Ada yang salah saat memuat ini. Silakan coba lagi.</string>
+    <string name="error_offline">Tidak ada koneksi jaringan — periksa lalu coba lagi</string>
+    <string name="error_timeout">Koneksi habis waktu, silakan coba lagi</string>
+    <string name="error_transport">Ada masalah jaringan, silakan coba lagi</string>
+    <string name="error_action_failed">Tidak berhasil. Silakan coba lagi.</string>
+
+    <!-- Beranda -->
+    <string name="feed_compose">Tulis baru</string>
+    <string name="feed_reading_mode">Mode baca</string>
+    <string name="feed_pinned">Disematkan</string>
+    <string name="reading_mode_compact">Ringkas</string>
+    <string name="reading_mode_expand">Bentang</string>
+    <string name="reading_mode_card">Kartu</string>
+
+    <!-- Node -->
+    <string name="node_create">Node baru</string>
+    <string name="node_browse">Jelajahi node</string>
+    <string name="node_create_title">Buat node</string>
+    <string name="node_join">Gabung</string>
+    <string name="node_joined">Sudah gabung</string>
+    <string name="node_join_success">Bergabung dengan node</string>
+    <string name="node_leave_success">Keluar dari node</string>
+    <string name="node_empty_topics">Node ini belum punya topik</string>
+    <string name="node_not_found">Node ini tidak ada</string>
+    <string name="node_empty">Tidak ada node</string>
+    <string name="node_search_in">Cari di node ini</string>
+    <string name="node_notification_level">Notifikasi: %1$s</string>
+    <string name="node_level_set">Disetel ke “%1$s”</string>
+    <string name="node_name">Nama</string>
+    <string name="node_name_hint">Nama node</string>
+    <string name="node_slug">Jalur (slug)</string>
+    <string name="node_slug_hint">english-slug</string>
+    <string name="node_slug_available">Jalur itu tersedia</string>
+    <string name="node_slug_taken">Jalur itu sudah dipakai</string>
+    <string name="node_description">Tentang</string>
+    <string name="node_description_hint">Satu baris tentang node ini</string>
+    <string name="node_parent">Bagian</string>
+    <string name="node_color">Warna</string>
+    <string name="node_create_footer">Setelah dibuat, Anda bisa mengirim topik di node ini.</string>
+    <string name="node_created">Node dibuat</string>
+    <string name="node_recent">Baru dikunjungi</string>
+
+    <!-- Urutan -->
+    <string name="sort_latest">Terbaru</string>
+    <string name="sort_new">Baru</string>
+    <string name="sort_hot">Ramai</string>
+    <string name="sort_featured">Pilihan</string>
+    <string name="sort_top">Teratas</string>
+    <string name="sort_latest_detail">Topik dengan kiriman terbaru</string>
+    <string name="sort_new_detail">Dibuat atau dibalas beberapa hari terakhir</string>
+    <string name="sort_hot_detail">Sedang ramai sekarang</string>
+    <string name="sort_featured_detail">Topik pilihan</string>
+    <string name="sort_top_detail">Topik paling banyak disukai</string>
+
+    <!-- Tingkat notifikasi node (nilai milik Discourse) -->
+    <string name="level_muted">Dibisukan</string>
+    <string name="level_regular">Normal</string>
+    <string name="level_tracking">Dilacak</string>
+    <string name="level_watching">Dipantau</string>
+    <string name="level_watching_first">Pantau kiriman pertama</string>
+    <string name="level_muted_detail">Anda tidak akan diberi tahu tentang topik baru di node ini, dan topiknya tidak muncul di Terbaru.</string>
+    <string name="level_regular_detail">Anda diberi tahu jika seseorang menyebut @nama Anda atau membalas Anda.</string>
+    <string name="level_tracking_detail">Anda otomatis melacak semua topik di node ini. Anda diberi tahu saat disebut atau dibalas, dan jumlah balasan baru ditampilkan.</string>
+    <string name="level_watching_detail">Anda otomatis memantau semua topik di node ini. Setiap kiriman baru diberitahukan, dan jumlah balasan baru ditampilkan.</string>
+    <string name="level_watching_first_detail">Anda diberi tahu tentang topik baru di node ini, tetapi tidak tentang balasannya.</string>
+
+    <!-- Pembaca -->
+    <string name="reader_reply_sort">Urutkan balasan</string>
+    <string name="reply_sort_top">Teratas</string>
+    <string name="reply_sort_new">Terbaru</string>
+    <string name="reply_sort_old">Terlama</string>
+    <string name="reader_copy_link">Salin tautan</string>
+    <string name="reader_link_copied">Tautan disalin</string>
+    <string name="reader_bookmark">Markah</string>
+    <string name="reader_bookmarked">Markah disimpan</string>
+    <string name="reader_bookmark_removed">Markah dihapus</string>
+    <string name="reader_unbookmark">Hapus markah</string>
+    <string name="reader_report">Laporkan</string>
+    <string name="reader_pin">Sematkan di atas</string>
+    <string name="reader_unpin">Lepas sematan</string>
+    <string name="reader_pinned">Disematkan di atas</string>
+    <string name="reader_unpinned">Sematan dilepas</string>
+    <string name="reader_pinned_badge">Disematkan</string>
+    <string name="reader_edit">Ubah</string>
+    <string name="reader_edit_first">Ubah topik</string>
+    <string name="reader_edit_title">Ubah kiriman</string>
+    <string name="reader_edit_saved">Tersimpan</string>
+    <string name="reader_delete">Hapus</string>
+    <string name="reader_delete_done">Dihapus</string>
+    <string name="reader_delete_confirm">Hapus kiriman ini?</string>
+    <string name="reader_delete_confirm_body">Kiriman disembunyikan dari topik. Staf bisa memulihkannya.</string>
+    <string name="reader_deleted_badge">Dihapus</string>
+    <string name="reader_recover">Pulihkan</string>
+    <string name="reader_recover_done">Dipulihkan</string>
+    <string name="reader_lock">Kunci penyuntingan</string>
+    <string name="reader_unlock">Buka kunci penyuntingan</string>
+    <string name="reader_locked">Penyuntingan dikunci</string>
+    <string name="reader_unlocked">Kunci penyuntingan dibuka</string>
+    <string name="reader_locked_badge">Terkunci</string>
+    <string name="reader_topic_close">Tutup topik</string>
+    <string name="reader_topic_reopen">Buka lagi topik</string>
+    <string name="reader_topic_closed">Topik ditutup</string>
+    <string name="reader_topic_reopened">Topik dibuka lagi</string>
+    <string name="reader_topic_delete">Hapus topik</string>
+    <string name="reader_topic_deleted">Topik dihapus</string>
+    <string name="reader_topic_delete_confirm">Hapus topik ini?</string>
+    <string name="reader_topic_delete_confirm_body">Seluruh utas hilang, termasuk balasannya. Staf bisa memulihkannya dari situs.</string>
+    <string name="reader_repost">Kirim ulang</string>
+    <string name="reader_reposted">Sudah dikirim ulang</string>
+    <string name="reader_repost_to">Dikirim ulang ke %1$s</string>
+    <string name="reader_comment">Komentar</string>
+    <string name="reader_like">Suka</string>
+    <string name="vote_upvote">Dukung</string>
+    <string name="vote_undo_upvote">Batalkan dukungan</string>
+    <string name="vote_downvote">Tolak</string>
+    <string name="vote_undo_downvote">Batalkan penolakan</string>
+    <string name="vote_down_not_allowed">Anda belum boleh menolak.</string>
+    <string name="vote_expand">Tetap tampilkan</string>
+    <string name="vote_pick_upvote">Dukung dengan</string>
+    <string name="vote_pick_downvote">Tolak dengan</string>
+    <string name="reaction_none">Belum ada reaksi.</string>
+    <string name="reaction_all">Semua</string>
+    <string name="reader_reply">Balas</string>
+    <string name="reader_reply_to">Membalas @%1$s</string>
+    <string name="reader_cancel_reply">Batalkan balasan</string>
+    <string name="reader_reply_hint">Tulis balasan…</string>
+    <string name="reader_replies_failed">Tidak bisa memuat balasan</string>
+    <string name="reader_code_copied">Kode disalin</string>
+    <string name="reader_code_copy_hint">tahan untuk menyalin</string>
+    <string name="reader_reply_one_media">Satu balasan hanya membawa satu lampiran</string>
+    <string name="reader_reply_guest">Masuk untuk ikut berdiskusi</string>
+    <string name="reader_send">Kirim</string>
+    <string name="reader_reward">Beri tip</string>
+    <string name="reader_reward_energy">Beri tip energi</string>
+    <string name="reader_reward_amount">Beri tip %1$d energi</string>
+    <string name="reader_reward_done">Diberi tip %1$d energi</string>
+    <string name="reader_reward_detail">Tip</string>
+    <string name="reader_reward_note_hint">Catatan (opsional)</string>
+    <string name="reader_reward_empty">Belum ada tip</string>
+    <string name="reader_claimed_points">Mengambil %1$d energi</string>
+    <string name="reader_spoiler">Spoiler — ketuk untuk melihat</string>
+
+    <!-- Plugin -->
+    <string name="poll_title">Jajak pendapat</string>
+    <string name="poll_closed">Ditutup</string>
+    <string name="poll_multiple">Pilihan ganda</string>
+    <string name="poll_vote">Pilih</string>
+    <string name="poll_revoke">Batalkan pilihan</string>
+    <string name="poll_create">Buat jajak pendapat</string>
+    <string name="poll_option_hint">Pilihan %1$d</string>
+    <string name="poll_add_option">Tambah pilihan</string>
+    <string name="poll_single_choice">Satu pilihan</string>
+    <string name="poll_multi_choice">Pilihan ganda ✓</string>
+    <string name="poll_insert">Sisipkan jajak pendapat</string>
+
+    <string name="lottery_title">Undian</string>
+    <string name="lottery_drawn">Sudah diundi</string>
+    <string name="lottery_prize">Hadiah</string>
+    <string name="lottery_quantity">×%1$d</string>
+    <string name="lottery_random">Tiket acak</string>
+    <string name="lottery_join">Ikut</string>
+    <string name="lottery_add">Beli lagi</string>
+    <string name="lottery_winners">Pemenang</string>
+    <string name="lottery_join_failed">Tidak bisa ikut undian.</string>
+    <string name="lottery_create_failed">Undian gagal dibuat, tetapi kiriman Anda sudah terbit</string>
+    <string name="lottery_default_level">Hadiah utama</string>
+
+    <string name="envelope_title">Angpau · %1$d energi / %2$s</string>
+    <string name="envelope_exhausted">Sudah habis</string>
+    <string name="envelope_remaining">Balas untuk mengambil — sisa %1$d</string>
+    <string name="envelope_chip">Angpau %1$d/%2$d ×</string>
+    <string name="envelope_create_failed">Angpau gagal dibuat, tetapi kiriman Anda sudah terbit</string>
+
+    <!-- Penulis -->
+    <string name="compose_publish">Terbitkan</string>
+    <string name="compose_discard_title">Tinggalkan penyunting?</string>
+    <string name="compose_discard_detail">Draf tetap disimpan. Kalau dibuang, tulisan Anda hilang.</string>
+    <string name="compose_discard_confirm">Buang</string>
+    <string name="compose_edit_discard_title">Buang perubahan Anda?</string>
+    <string name="compose_edit_discard_detail">Perubahan di sini tidak akan disimpan.</string>
+    <string name="compose_draft_keep">Simpan draf</string>
+    <string name="compose_draft_restored">Draf dipulihkan</string>
+    <string name="compose_draft_untitled">Tanpa judul</string>
+    <string name="compose_draft_on_site">Tersimpan di situs</string>
+    <string name="compose_draft_on_phone">Di ponsel ini</string>
+    <string name="compose_draft_new">Tulis yang baru</string>
+    <string name="compose_draft_choose">Lanjutkan draf yang ada?</string>
+    <string name="compose_published">Terbit</string>
+    <string name="compose_select_node">Pilih node</string>
+    <string name="compose_search_node">Cari node</string>
+    <string name="compose_node_none">Tidak ada node yang cocok.</string>
+    <string name="compose_emoji">Emoji</string>
+    <string name="compose_emoji_search">Cari emoji</string>
+    <string name="compose_emoji_failed">Emoji tidak bisa dimuat.</string>
+    <string name="compose_title_hint">Judul (minimal 5 karakter)</string>
+    <string name="compose_body_hint">Isi — mendukung Markdown</string>
+    <string name="compose_media_edit">Edit</string>
+    <string name="compose_media_remove">Hapus</string>
+    <string name="compose_image">Gambar</string>
+    <string name="compose_video">Video</string>
+    <string name="compose_gif">GIF</string>
+    <string name="compose_media_one_kind">Satu kiriman membawa gambar, video, atau GIF — bukan campuran</string>
+    <string name="compose_gif_search">Cari GIF</string>
+    <string name="compose_lottery_chip">Undian ×</string>
+    <string name="compose_envelope">Angpau</string>
+    <string name="envelope_total_points">Total energi</string>
+    <string name="envelope_total_count">Jumlah paket</string>
+    <string name="lottery_field_title">Judul</string>
+    <string name="lottery_field_prize">Hadiah</string>
+    <string name="lottery_field_quantity">Jumlah</string>
+    <string name="lottery_field_min">Diundi saat</string>
+    <string name="lottery_field_max_tickets">Maksimal per orang</string>
+    <string name="lottery_field_draw_days">Diundi setelah (hari)</string>
+
+    <!-- Kotak masuk -->
+    <string name="inbox_title">Kotak masuk</string>
+    <string name="inbox_notifications">Notifikasi</string>
+    <string name="inbox_messages">Pesan</string>
+    <string name="inbox_chats">Obrolan</string>
+    <string name="inbox_mark_all_read">Tandai semua dibaca</string>
+    <string name="inbox_guest">Masuk untuk melihat notifikasi dan pesan</string>
+    <string name="inbox_guest_detail">Membaca tidak butuh akun, ikut bicara butuh</string>
+    <string name="inbox_empty_notifications">Tidak ada notifikasi</string>
+    <string name="inbox_empty_messages">Tidak ada pesan</string>
+    <string name="inbox_empty_chats">Tidak ada obrolan</string>
+    <string name="inbox_personal">Pribadi</string>
+
+    <!-- Teks notifikasi (mengikuti situs) -->
+    <string name="notif_system">Sistem</string>
+    <string name="notif_group_inbox">Kotak masuk %1$s Anda punya pesan baru</string>
+    <string name="notif_group_fallback">grup</string>
+    <string name="notif_private_message">mengirimi Anda pesan</string>
+    <string name="notif_liked">menyukai kiriman Anda di %1$s</string>
+    <string name="notif_replied">membalas %1$s</string>
+    <string name="notif_badge">memberi Anda lencana %1$s</string>
+    <string name="notif_generic">mengirimi Anda notifikasi</string>
+
+    <!-- Obrolan -->
+    <string name="chat_title">Obrolan</string>
+    <string name="chat_thread">Utas</string>
+    <string name="chat_leave_thread">Keluar dari utas</string>
+    <string name="chat_message_hint">Pesan…</string>
+    <string name="chat_attach">Lampirkan</string>
+    <string name="chat_channel">Kanal</string>
+
+    <!-- Pencarian -->
+    <string name="search_hint">Cari kiriman, node, dan orang</string>
+    <string name="search_scope_all">Semua</string>
+    <string name="search_scope_nodes">Node</string>
+    <string name="search_scope_posts">Kiriman</string>
+    <string name="search_scope_users">Orang</string>
+    <string name="search_scope_apps">Aplikasi</string>
+    <string name="search_scope_media">Media</string>
+    <string name="search_recent">Pencarian terakhir</string>
+    <string name="search_hot">Sedang ramai</string>
+    <string name="search_empty">Tidak ada yang cocok</string>
+    <string name="search_failed">Pencarian tidak bisa dijalankan</string>
+    <string name="chat_load_failed">Tidak bisa memuat percakapan ini</string>
+    <string name="chat_unread_divider">Pesan baru</string>
+    <string name="chat_typing_one">%1$s sedang mengetik…</string>
+    <string name="chat_copy">Salin teks</string>
+    <string name="chat_copied">Disalin</string>
+    <string name="chat_edit">Ubah</string>
+    <string name="chat_editing">Sedang mengubah</string>
+    <string name="chat_replying_to">Membalas %1$s</string>
+    <string name="chat_react">Tambah reaksi</string>
+    <string name="chat_edited">diubah</string>
+    <string name="chat_sending">Mengirim…</string>
+    <string name="chat_profile">Lihat profil</string>
+    <string name="chat_members">Anggota</string>
+    <string name="chat_notification_level">Notifikasi</string>
+    <string name="chat_level_always">Setiap pesan</string>
+    <string name="chat_level_always_detail">Beri tahu saya setiap ada pesan baru.</string>
+    <string name="chat_level_mention">Hanya saat disebut</string>
+    <string name="chat_level_mention_detail">Beri tahu hanya kalau ada yang menyebut @nama atau mengutip saya.</string>
+    <string name="chat_level_never">Tidak pernah</string>
+    <string name="chat_level_never_detail">Tanpa notifikasi dan tanpa hitungan belum dibaca.</string>
+    <string name="chat_leave">Keluar dari percakapan</string>
+    <string name="chat_leave_title">Keluar dari percakapan ini?</string>
+    <string name="chat_leave_detail">Percakapan hilang dari daftar Anda. Pesan baru akan memunculkannya lagi, dan tidak ada yang dihapus.</string>
+    <string name="chat_delete_title">Hapus pesan ini?</string>
+    <string name="chat_delete_detail">Semua orang di percakapan tidak akan melihatnya lagi.</string>
+    <string name="apps_load_failed">Tidak bisa memuat aplikasi ini</string>
+    <string name="search_empty_detail">Coba kata kunci lain</string>
+    <string name="search_node_empty">Tidak ditemukan apa pun di node ini</string>
+    <string name="search_nodes_capped">Node · %1$d dari %2$d</string>
+
+    <!-- Profil -->
+    <string name="profile_guest">Masuk untuk melihat profil Anda</string>
+    <string name="profile_follow">Ikuti</string>
+    <string name="profile_following">Mengikuti</string>
+    <string name="profile_admin">Admin</string>
+    <string name="profile_moderator">Moderator</string>
+    <string name="profile_last_seen">Terakhir terlihat %1$s</string>
+    <string name="profile_joined">Bergabung %1$s</string>
+    <string name="profile_energy">Energi</string>
+    <string name="profile_reputation">Reputasi</string>
+    <string name="profile_topics">Topik</string>
+    <string name="profile_posts">Kiriman</string>
+    <string name="profile_likes">Suka</string>
+    <string name="profile_bookmarks">Markah</string>
+    <string name="profile_empty_points">Tidak ada riwayat energi</string>
+
+    <!-- Pengaturan -->
+    <string name="settings_account">Akun</string>
+    <string name="settings_preferences">Preferensi</string>
+    <string name="settings_account_section">Aplikasi ini</string>
+    <string name="settings_profile">Profil</string>
+    <string name="settings_associated">Akun terhubung</string>
+    <string name="settings_security">Keamanan</string>
+    <string name="settings_interface">Tampilan</string>
+    <string name="settings_notifications">Notifikasi</string>
+    <string name="settings_email">Email</string>
+    <string name="settings_privacy">Privasi</string>
+    <string name="settings_web">Buka preferensi web</string>
+    <string name="settings_push">Notifikasi dorong</string>
+    <string name="settings_sign_out">Keluar</string>
+    <string name="settings_appearance">Tampilan</string>
+    <string name="settings_other">Lainnya</string>
+    <string name="settings_color_mode">Mode warna</string>
+    <string name="settings_text_size">Ukuran teks</string>
+    <string name="settings_default_home">Beranda bawaan</string>
+    <string name="settings_external_links">Buka tautan luar di tab baru</string>
+    <string name="settings_quoting">Aktifkan balasan kutipan</string>
+    <string name="settings_in_app_notifications">Notifikasi dalam aplikasi</string>
+    <string name="settings_like_frequency">Beri tahu saya soal suka</string>
+    <string name="settings_new_topic_duration">Anggap topik baru selama</string>
+    <string name="settings_track_on_reply">Lacak topik yang saya balas</string>
+    <string name="settings_email_notifications">Notifikasi email</string>
+    <string name="settings_email_replies">Emaili saya soal balasan</string>
+    <string name="settings_email_messages">Emaili saya soal pesan</string>
+    <string name="settings_email_previous">Sertakan balasan sebelumnya</string>
+    <string name="settings_email_digest">Kirim ringkasan aktivitas</string>
+    <string name="settings_hide_profile">Sembunyikan profil publik saya</string>
+    <string name="settings_hide_presence">Sembunyikan status kehadiran saya</string>
+
+    <string name="color_mode_auto">Otomatis</string>
+    <string name="color_mode_light">Terang</string>
+    <string name="color_mode_dark">Gelap</string>
+    <string name="text_size_smallest">Paling kecil</string>
+    <string name="text_size_smaller">Lebih kecil</string>
+    <string name="text_size_normal">Normal</string>
+    <string name="text_size_larger">Lebih besar</string>
+    <string name="text_size_largest">Paling besar</string>
+    <string name="email_level_always">Selalu</string>
+    <string name="email_level_away">Hanya saat pergi</string>
+    <string name="email_level_never">Tidak pernah</string>
+    <string name="previous_replies_always">Selalu</string>
+    <string name="previous_replies_unless">Kecuali sudah pernah dikirim</string>
+    <string name="previous_replies_never">Tidak pernah</string>
+    <string name="like_freq_always">Selalu</string>
+    <string name="like_freq_first_daily">Pertama kali dan harian</string>
+    <string name="like_freq_first">Hanya pertama kali</string>
+    <string name="like_freq_never">Tidak pernah</string>
+    <string name="duration_last_visit">Sejak kunjungan terakhir</string>
+    <string name="duration_one_day">1 hari</string>
+    <string name="duration_two_days">2 hari</string>
+    <string name="duration_one_week">1 minggu</string>
+    <string name="duration_two_weeks">2 minggu</string>
+
+    <!-- Notifikasi dorong -->
+    <string name="push_enable">Notifikasi dorong</string>
+    <string name="push_enable_detail">Memeriksa notifikasi baru di latar belakang</string>
+    <string name="push_permission_footer">Notifikasi dimatikan di pengaturan sistem — tidak ada yang bisa sampai sebelum dinyalakan.</string>
+    <string name="push_filter_footer">Jenis yang Anda matikan tetap muncul di kotak masuk aplikasi.</string>
+    <string name="push_open_system_settings">Buka pengaturan sistem</string>
+    <string name="push_types">Jenis</string>
+    <string name="push_replies">Balasan dan sebutan</string>
+    <string name="push_replies_detail">Seseorang membalas, mengutip, atau menyebut Anda</string>
+    <string name="push_likes">Suka</string>
+    <string name="push_likes_detail">Seseorang menyukai kiriman atau balasan Anda</string>
+    <string name="push_messages">Pesan</string>
+    <string name="push_messages_detail">Anda menerima pesan pribadi</string>
+    <string name="push_other">Lencana dan pemberitahuan sistem</string>
+    <string name="push_other_detail">Pemberian lencana, pesan grup, dan sejenisnya</string>
+
+    <!-- Keamanan -->
+    <string name="security_password">Kata sandi</string>
+    <string name="security_send_reset">Emaili saya setelan ulang kata sandi</string>
+    <string name="security_reset_sent">Email setelan ulang kata sandi terkirim</string>
+    <string name="security_two_factor">Autentikasi dua faktor</string>
+    <string name="security_two_factor_footer">Setelah aktif, masuk juga meminta kode sekali pakai.</string>
+    <string name="security_status">Status</string>
+    <string name="security_enabled">Aktif</string>
+    <string name="security_disabled">Nonaktif</string>
+    <string name="security_backup_codes">Kode cadangan</string>
+    <string name="security_generate_backup">Buat kode cadangan</string>
+    <string name="security_backup_footer">Simpan di tempat aman — setiap kode hanya sekali pakai.</string>
+    <string name="security_enable_totp">Aktifkan dua faktor</string>
+    <string name="security_disable_totp">Matikan dua faktor</string>
+    <string name="security_totp_enabled">Dua faktor aktif</string>
+    <string name="security_totp_disabled">Dua faktor nonaktif</string>
+    <string name="security_scan_key">Pindai atau masukkan kuncinya</string>
+    <string name="security_key">Kunci</string>
+    <string name="security_totp_footer">Tambahkan ke aplikasi autentikator, lalu masukkan kode 6 digit untuk menyelesaikan.</string>
+    <string name="security_totp_code_hint">Kode 6 digit</string>
+    <string name="security_finish_binding">Selesaikan penyiapan</string>
+    <string name="security_sessions">Sesi</string>
+    <string name="security_session_fallback">Sesi #%1$d</string>
+    <string name="security_current_device">Perangkat ini</string>
+    <string name="security_sign_out_session">Keluar</string>
+    <string name="security_session_revoked">Sesi dikeluarkan</string>
+    <string name="security_confirm_identity">Pastikan ini Anda</string>
+    <string name="security_confirm_detail">Perubahan sensitif meminta kata sandi Anda lagi.</string>
+    <string name="security_wrong_password">Kata sandi salah, silakan coba lagi</string>
+    <string name="security_no_associated">Tidak ada akun terhubung</string>
+    <string name="security_associated_footer">Akun terhubung bisa dipakai untuk masuk ke situs.</string>
+    <string name="security_unlink">Putuskan</string>
+    <string name="security_unlink_confirm_title">Putuskan %1$s?</string>
+    <string name="security_unlink_confirm_detail">Anda tidak bisa masuk dengannya sampai dihubungkan lagi.</string>
+
+    <!-- Ubah profil -->
+    <string name="profile_edit_avatar">Ganti avatar</string>
+    <string name="profile_edit_section">Profil</string>
+    <string name="profile_edit_name">Nama tampilan</string>
+    <string name="profile_edit_name_hint">Bagaimana nama Anda muncul</string>
+    <string name="profile_edit_title">Gelar</string>
+    <string name="profile_edit_title_none">Tanpa gelar</string>
+    <string name="profile_edit_title_locked">Gelar berasal dari lencana yang Anda raih</string>
+    <string name="profile_edit_bio">Tentang saya</string>
+    <string name="profile_edit_bio_hint">Ceritakan tentang diri Anda</string>
+    <string name="profile_edit_website">Situs web</string>
+    <string name="profile_edit_location">Lokasi</string>
+    <string name="profile_edit_saved">Profil tersimpan</string>
+    <string name="profile_edit_load_failed">Tidak bisa memuat profil Anda</string>
+    <string name="profile_edit_load_failed_detail">Periksa koneksi Anda lalu coba lagi.</string>
+    <string name="profile_avatar_updated">Avatar diperbarui</string>
+    <string name="profile_edit_background">Ganti latar</string>
+    <string name="profile_edit_background_remove">Hapus latar</string>
+    <string name="profile_background_updated">Latar diperbarui</string>
+
+    <!-- Masuk dan daftar -->
+    <string name="auth_terms">Dengan masuk, Anda menerima ketentuan dan kebijakan privasi NODELOC.</string>
+    <string name="auth_website">Lanjutkan lewat situs NodeLoc</string>
+    <string name="auth_identifier">Email atau nama pengguna</string>
+    <string name="auth_identifier_hint">you@example.com</string>
+    <string name="auth_password">Kata sandi</string>
+    <string name="auth_code">Kode</string>
+    <string name="auth_code_hint">Kode 6 digit</string>
+    <string name="auth_backup_code">Kode cadangan</string>
+    <string name="auth_use_backup">Pakai kode cadangan</string>
+    <string name="auth_use_totp">Pakai kode autentikator</string>
+    <string name="auth_forgot">Lupa kata sandi?</string>
+    <string name="auth_email_step">Email Anda</string>
+    <string name="auth_email">Email</string>
+    <string name="auth_username_step">Pilih nama pengguna</string>
+    <string name="auth_username">Nama pengguna</string>
+    <string name="auth_username_hint">3–20 karakter</string>
+    <string name="auth_email_invalid">Masukkan alamat email yang benar</string>
+    <string name="auth_email_ok">Emailnya terlihat benar</string>
+    <string name="auth_username_available">Bagus — nama itu masih kosong</string>
+    <string name="auth_username_taken">Nama itu sudah dipakai</string>
+    <string name="auth_username_suggestion">Coba “%1$s”</string>
+    <string name="auth_password_step">Buat kata sandi</string>
+    <string name="auth_password_hint">Minimal 10 karakter</string>
+    <string name="auth_password_short">Perlu minimal 10 karakter</string>
+    <string name="auth_password_ok">Sudah cukup panjang</string>
+    <string name="auth_gender_step">Jenis kelamin Anda</string>
+    <string name="auth_gender_footer">Hanya disimpan di perangkat ini, untuk rekomendasi.</string>
+    <string name="auth_gender_male">Laki-laki</string>
+    <string name="auth_gender_female">Perempuan</string>
+    <string name="auth_gender_other">Lainnya</string>
+    <string name="auth_gender_private">Tidak ingin menjawab</string>
+    <string name="auth_interests_step">Node yang Anda suka</string>
+    <string name="auth_interests_footer">Pilih maksimal 3 — Anda akan otomatis bergabung.</string>
+    <string name="auth_shuffle">Acak</string>
+    <string name="auth_finish_signup">Buat akun</string>
+    <string name="auth_check_email">Periksa email Anda</string>
+    <string name="auth_activation_detail">Kami mengirim tautan aktivasi ke %1$s — buka tautannya untuk menyelesaikan pendaftaran.</string>
+    <string name="auth_activation_hint">Setelah itu kembali dan masuk; node yang Anda pilih akan otomatis bergabung.</string>
+    <string name="auth_back_to_login">Kembali ke halaman masuk</string>
+    <string name="auth_gate_title">Gabung NODELOC</string>
+    <string name="auth_gate_detail">Masuk untuk mengirim, membalas, menyukai, dan memarkah. Membaca tidak butuh akun.</string>
+
+    <string name="auth_error_key_generation">Tidak bisa membuat kunci keamanan.</string>
+    <string name="auth_error_missing_payload">Balasan proses masuk tidak lengkap.</string>
+    <string name="auth_error_lost_keypair">Proses masuk terputus. Silakan mulai lagi.</string>
+    <string name="auth_error_decrypt">Tidak bisa memverifikasi balasan proses masuk.</string>
+    <string name="auth_error_nonce">Verifikasi proses masuk gagal. Silakan coba lagi.</string>
+    <string name="auth_error_cancelled">Proses masuk dibatalkan.</string>
+    <string name="auth_error_missing_fields">Silakan isi semua kolom.</string>
+    <string name="auth_error_second_factor">Akun ini memakai autentikasi dua faktor — masukkan kode Anda.</string>
+    <string name="auth_error_incomplete">Proses masuk belum selesai. Silakan coba lagi.</string>
+    <string name="auth_error_no_session">Proses masuk tidak mengembalikan sesi situs.</string>
+    <string name="auth_error_session_start">Tidak bisa memulai sesi masuk.</string>
+    <string name="auth_error_bad_code">Kode itu tidak benar. Silakan coba lagi.</string>
+    <string name="auth_error_login_failed">Gagal masuk, silakan coba lagi</string>
+    <string name="auth_error_signup_failed">Gagal mendaftar, silakan coba lagi</string>
+    <string name="auth_signup_activation_needed">Akun dibuat — periksa email Anda untuk mengaktifkannya.</string>
+
+    <!-- Selamat datang -->
+    <string name="welcome_tagline">Bebas, setara, ramah, terbuka, menyenangkan</string>
+    <string name="welcome_start">Mulai</string>
+    <string name="welcome_have_account">Saya sudah punya akun</string>
+    <string name="welcome_browse">Lihat-lihat dulu</string>
+
+    <!-- Peramban dan media -->
+    <string name="browser_open_external">Buka di peramban</string>
+    <string name="web_session_api_only_title">Halaman ini butuh masuk lewat situs</string>
+    <string name="web_session_api_only_detail">Anda masuk lewat situs, jadi halaman ini bisa dibuka di sini tetapi perubahan apa pun tidak tersimpan. Lanjutkan di peramban Anda — di sana Anda sudah masuk.</string>
+    <string name="web_session_continue_anyway">Tetap buka di sini</string>
+    <string name="browser_text_size">Ukuran teks %1$d%%</string>
+    <string name="media_mute">Bisukan</string>
+    <string name="media_unmute">Nyalakan suara</string>
+    <string name="editor_crop">Pangkas</string>
+    <string name="editor_brush">Gambar</string>
+    <string name="editor_mosaic">Mozaik</string>
+    <string name="editor_mosaic_solid">Tutup penuh</string>
+    <string name="editor_mosaic_blur">Buram</string>
+    <string name="editor_mosaic_fine">Halus</string>
+    <string name="editor_mosaic_pixel">Piksel</string>
+    <string name="editor_mosaic_blocks">Mozaik</string>
+    <string name="editor_text">Teks</string>
+    <string name="editor_rotate">Putar</string>
+    <string name="editor_add_text">Tambah teks</string>
+    <string name="editor_crop_free">Bebas</string>
+    <string name="editor_crop_square">1:1</string>
+    <string name="editor_crop_portrait">4:5</string>
+    <string name="editor_crop_landscape">16:9</string>
+    <string name="editor_filter_faded">Pudar</string>
+    <string name="editor_filter_mono">Hitam putih</string>
+    <string name="editor_filter_cool">Sejuk</string>
+    <string name="editor_filter_warm">Hangat</string>
+    <string name="editor_filter_vivid">Cerah</string>
+    <string name="editor_filter_none">Asli</string>
+    <string name="editor_text_filled">Berlatar</string>
+    <string name="editor_text_outlined">Bergaris</string>
+    <string name="editor_text_plain">Biasa</string>
+    <string name="editor_filter">Filter</string>
+    <string name="editor_sticker">Stiker</string>
+    <string name="editor_flip">Balik</string>
+    <string name="editor_redo">Ulangi</string>
+    <string name="editor_reset">Atur ulang</string>
+    <string name="trim_gif_limit">GIF dibatasi %1$d detik; sisanya dipotong</string>
+    <string name="trim_failed">Tidak bisa memproses video itu, silakan coba lagi</string>
+    <string name="trim_too_large">Klip ini terlalu besar. Potong lebih pendek lalu coba lagi.</string>
+
+    <!-- Direktori aplikasi -->
+    <string name="apps_title">Direktori aplikasi</string>
+    <string name="apps_more">Aplikasi lain</string>
+    <string name="apps_recent">Aplikasi terakhir</string>
+    <string name="apps_empty">Tidak ada aplikasi</string>
+    <string name="apps_open">Buka aplikasi</string>
+    <string name="apps_web_only">Aplikasi ini hanya berjalan di situs.</string>
+    <string name="apps_permissions">Izin</string>
+    <string name="apps_discussion">Buka diskusi</string>
+
+    <!-- Kata benda berbilang: bahasa Indonesia hanya punya satu bentuk -->
+    <plurals name="common_members">
+        <item quantity="other">%1$s anggota</item>
+    </plurals>
+    <plurals name="common_topics">
+        <item quantity="other">%1$s topik</item>
+    </plurals>
+    <plurals name="chat_member_count">
+        <item quantity="other">%1$d anggota</item>
+    </plurals>
+    <plurals name="chat_typing_many">
+        <item quantity="other">%1$d orang sedang mengetik…</item>
+    </plurals>
+    <plurals name="common_replies_count">
+        <item quantity="other">%1$d balasan</item>
+    </plurals>
+    <plurals name="reader_load_more_replies">
+        <item quantity="other">%1$d balasan lagi</item>
+    </plurals>
+    <plurals name="apps_installs">
+        <item quantity="other">%1$d pemasangan</item>
+    </plurals>
+    <plurals name="poll_voters">
+        <item quantity="other">%1$d pemilih</item>
+    </plurals>
+    <plurals name="lottery_my_tickets">
+        <item quantity="other">Anda memegang %1$d tiket</item>
+    </plurals>
+    <string name="profile_tab_load_failed">Tidak bisa memuat tab ini</string>
+    <plurals name="lottery_entrants">
+        <item quantity="other">%1$d peserta</item>
+    </plurals>
+    <plurals name="lottery_tickets">
+        <item quantity="other">%1$d tiket</item>
+    </plurals>
+    <plurals name="lottery_min_participants">
+        <item quantity="other">diundi pada %1$d peserta</item>
+    </plurals>
+    <plurals name="lottery_max_participants">
+        <item quantity="other">maksimal %1$d peserta</item>
+    </plurals>
+    <plurals name="envelope_packets">
+        <item quantity="other">%1$d paket</item>
+    </plurals>
+    <plurals name="notif_group_inbox_count">
+        <item quantity="other">Kotak masuk %1$s Anda punya %2$d pesan</item>
+    </plurals>
+    <string name="image_load_failed">Tidak bisa memuat gambar ini</string>
+    <string name="viewer_save_image">Simpan gambar</string>
+    <string name="viewer_save_video">Simpan video</string>
+    <string name="viewer_save_video_failed">Tidak bisa menyimpan video itu</string>
+    <string name="report_title">Laporkan kiriman ini</string>
+    <string name="report_note_hint">Beri tahu moderator apa yang salah</string>
+    <string name="report_sent">Terkirim — moderator akan melihatnya</string>
+    <string name="viewer_saved">Tersimpan ke galeri Anda</string>
+    <string name="viewer_save_failed">Tidak bisa menyimpan gambar itu</string>
+    <string name="viewer_more">Lainnya</string>
+    <string name="viewer_previous">Gambar sebelumnya</string>
+    <string name="viewer_next">Gambar berikutnya</string>
+    <string name="media_video_failed">Tidak bisa memutar video itu</string>
+    <string name="media_no_more_videos">Tidak ada video lagi untuk saat ini</string>
+    <string name="common_pause">Jeda</string>
+    <string name="profile_message">Pesan</string>
+    <string name="profile_chat">Obrolan</string>
+    <string name="profile_notification_level">Notifikasi</string>
+    <string name="profile_notify_normal">Normal</string>
+    <string name="profile_notify_muted">Dibisukan</string>
+    <string name="profile_notify_ignored">Diabaikan</string>
+    <string name="profile_notify_normal_detail">Anda diberi tahu seperti biasa.</string>
+    <string name="profile_notify_muted_detail">Tidak ada notifikasi dari orang ini.</string>
+    <string name="profile_notify_ignored_detail">Kirimannya juga disembunyikan.</string>
+    <string name="profile_notify_saved">Tersimpan</string>
+    <string name="auth_failed">Proses masuk belum selesai</string>
+    <string name="auth_continue_with">Lanjutkan dengan %1$s</string>
+    <string name="auth_or_password">atau masuk dengan kata sandi</string>
+
+    <!-- Pembaruan -->
+    <string name="update_check">Periksa pembaruan</string>
+    <string name="update_up_to_date">Anda memakai versi terbaru</string>
+    <string name="update_available_title">Versi %1$s sudah tersedia</string>
+    <string name="update_available_required">Pembaruan ini wajib agar aplikasi bisa terus dipakai.</string>
+    <string name="update_install">Unduh dan pasang</string>
+    <string name="update_later">Nanti</string>
+    <string name="update_downloading">Mengunduh…</string>
+    <string name="update_download_failed">Tidak bisa mengunduh pembaruan. Coba lagi nanti.</string>
+    <string name="update_install_failed">Tidak bisa membuka pemasang</string>
+    <string name="update_needs_install_permission">Izinkan NodeLoc memasang aplikasi</string>
+
+    <!-- Penyusun undian -->
+    <string name="lottery_field_max_participants">Peserta maksimal (kosongkan untuk tanpa batas)</string>
+    <string name="lottery_field_min_tickets">Tiket minimal per orang</string>
+    <string name="lottery_field_trust_level">Tingkat kepercayaan minimal</string>
+    <string name="lottery_field_levels">Hadiah</string>
+    <string name="lottery_add_level">Tambah hadiah</string>
+    <string name="lottery_remove_level">Hapus</string>
+    <string name="lottery_level_name_hint">Nama tingkat, misalnya "Hadiah utama"</string>
+    <string name="lottery_draws_at">Diundi %1$s</string>
+    <string name="lottery_error_title">Beri judul untuk undian ini</string>
+    <string name="lottery_error_prize">Jelaskan setidaknya satu hadiah</string>
+    <string name="lottery_error_min_participants">Peserta minimal harus setidaknya 1</string>
+    <string name="lottery_error_max_below_min">Peserta maksimal harus lebih besar dari minimal</string>
+    <string name="lottery_error_min_tickets">Tiket minimal tidak boleh melebihi maksimal</string>
+    <string name="lottery_error_draw_days">Undian harus 1–%1$d hari dari sekarang</string>
+    <string name="lottery_condition_min_tickets">Minimal %1$d tiket per orang</string>
+    <string name="lottery_condition_max_tickets">Maksimal %1$d tiket per orang</string>
+    <string name="lottery_condition_trust_level">TL%1$d ke atas</string>
+
+    <!-- Absen harian -->
+    <string name="checkin_action">Absen</string>
+    <string name="checkin_done">Hari ini sudah absen</string>
+    <string name="checkin_success">Sudah absen — %1$d energi</string>
+
+    <!-- Kemajuan naik tingkat -->
+    <string name="upgrade_title">Kemajuan naik tingkat</string>
+    <string name="upgrade_load_failed">Tidak bisa memuat kemajuan naik tingkat</string>
+    <string name="upgrade_next_level">Tingkat berikutnya: %1$s</string>
+    <string name="upgrade_met_count">%1$d dari %2$d terpenuhi</string>
+    <string name="upgrade_all_met">Semua syarat untuk tingkat berikutnya sudah terpenuhi.</string>
+    <string name="upgrade_maintaining">Mempertahankan</string>
+    <string name="upgrade_retention_title">Syarat untuk mempertahankan tingkat ini</string>
+    <string name="upgrade_locked">Tingkat kepercayaan terkunci; tidak akan berubah otomatis.</string>
+    <string name="upgrade_group_standing">Keadaan akun</string>
+    <string name="upgrade_group_activity">Aktivitas</string>
+    <string name="upgrade_group_recent">%1$d hari terakhir</string>
+    <string name="upgrade_group_recent_plain">Aktivitas terakhir</string>
+    <string name="upgrade_group_all_time">Sepanjang waktu</string>
+    <string name="upgrade_target">Target %1$d</string>
+    <string name="upgrade_limit">Batas %1$d</string>
+    <string name="upgrade_condition_met">Terpenuhi</string>
+    <string name="upgrade_condition_over">Melewati batas</string>
+    <string name="upgrade_condition_remaining">Kurang %1$d</string>
+
+    <!-- Sumber kiriman -->
+    <string name="post_source_title">Sumber kiriman</string>
+    <string name="post_source_explain">Pilih seberapa banyak isi ponsel ini boleh ditampilkan pada kiriman Anda. Modelnya ditampilkan secara bawaan; pilih “Jangan tampilkan” dan tidak ada yang muncul. Pilihan ini mengikuti akun Anda, bukan perangkat ini.</string>
+    <string name="post_source_footer">Siapa pun bisa mengaku apa saja di sini, jadi sumber hanyalah hiasan — tidak memberi hak apa pun dan tidak membuktikan apa pun.</string>
+    <string name="post_source_from">dari %1$s</string>
+    <string name="post_source_level_off">Jangan tampilkan</string>
+    <string name="post_source_level_client">Hanya aplikasi</string>
+    <string name="post_source_level_platform">Aplikasi dan platform</string>
+    <string name="post_source_level_brand">Sampai mereknya</string>
+    <string name="post_source_level_model">Sampai modelnya</string>
+    <string name="post_source_history_title">Kiriman yang sudah ditulis</string>
+    <string name="post_source_history_detail">Menurunkan tingkat hanya mengatur kiriman berikutnya. Ini menghapus sumber dari semua yang sudah dikirim, dan tidak bisa dibatalkan.</string>
+    <string name="post_source_clear">Hapus dari kiriman lama</string>
+    <string name="post_source_cleared">Dihapus</string>
+    <string name="video_quality">Kualitas</string>
+    <string name="video_quality_480">480p</string>
+    <string name="video_quality_720">720p</string>
+    <string name="video_quality_1080">1080p</string>
+    <string name="video_quality_original">Asli</string>
+    <string name="video_sound">Suara</string>
+    <string name="video_gif">GIF</string>
+    <string name="video_play">Putar</string>
+    <string name="video_pause">Jeda</string>
+    <string name="video_summary">%1$s · ~%2$s</string>
+    <string name="sort_best">Terbaik</string>
+    <string name="sort_best_detail">Topik pilihan untuk Anda</string>
+    <string name="block_user_title">Blokir orang ini?</string>
+    <string name="block_user_message">Anda tidak akan melihat kiriman %1$s lagi, dan dia tidak bisa mengirim pesan. Bisa dibatalkan di Setelan.</string>
+    <string name="block_user_confirm">Blokir</string>
+    <string name="block_user_done">Diblokir</string>
+    <string name="unblock_user">Buka blokir</string>
+    <string name="unblock_user_done">Blokir dibuka</string>
+    <string name="settings_blocked">Orang yang diblokir</string>
+    <string name="blocked_empty">Belum ada yang diblokir.</string>
+    <string name="blocked_not_allowed">Situs ini belum mengizinkan akun Anda memblokir orang.</string>
+    <string name="post_more_bookmark">Markah</string>
+    <string name="post_more_watch">Ikuti</string>
+    <string name="post_more_watching">Diikuti</string>
+    <string name="post_more_author">Lihat penulis</string>
+    <string name="post_more_block_author">Blokir penulis</string>
+    <string name="post_more_repost">Bagikan ulang</string>
+    <string name="profile_report">Laporkan orang ini</string>
+    <string name="profile_block">Blokir orang ini</string>
+    <string name="profile_report_title">Laporkan @%1$s</string>
+</resources>

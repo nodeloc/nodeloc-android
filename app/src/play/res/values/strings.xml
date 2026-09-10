@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The store build's wording for the one row that behaves differently: the tap
+  leaves for Google Play instead of checking anything here.
+-->
+<resources>
+    <string name="update_check">View on Google Play</string>
+</resources>

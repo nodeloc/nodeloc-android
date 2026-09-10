@@ -1,0 +1,797 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  English is the default locale; Simplified Chinese (the source language the
+  product is written in) lives in values-zh-rCN. Keys and placeholder order
+  must stay identical between the two files.
+-->
+<resources>
+    <string name="app_name">NodeLoc</string>
+
+    <!-- Common -->
+    <string name="common_back">Back</string>
+    <string name="common_close">Close</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_confirm">Confirm</string>
+    <string name="common_done">Done</string>
+    <string name="common_save">Save</string>
+    <string name="common_continue">Continue</string>
+    <string name="common_retry">Retry</string>
+    <string name="link_blocked">That link can\'t be opened.</string>
+    <string name="session_expired">Your session expired. Please sign in again.</string>
+    <string name="common_more">More</string>
+    <string name="common_share">Share</string>
+    <string name="common_refresh">Reload</string>
+    <string name="common_menu">Menu</string>
+    <string name="common_settings">Settings</string>
+    <string name="common_login">Log in</string>
+    <string name="common_signup">Sign up</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_clear">Clear</string>
+    <string name="common_clear_all">Clear all</string>
+    <string name="common_expand">Expand</string>
+    <string name="common_collapse">Collapse</string>
+    <string name="common_loading">Loading</string>
+    <string name="common_checking">Checking…</string>
+    <string name="common_add">Add</string>
+    <string name="common_or">or</string>
+    <string name="common_empty">Nothing here yet</string>
+    <string name="common_empty_hint">Check back later</string>
+    <string name="common_play">Play</string>
+    <string name="common_undo">Undo</string>
+    <string name="common_guest">Signed out</string>
+    <string name="common_me">Me</string>
+
+    <!-- Bottom navigation -->
+    <string name="tab_home">Home</string>
+    <string name="tab_nodes">Nodes</string>
+    <string name="tab_inbox">Inbox</string>
+    <string name="tab_search">Search</string>
+    <string name="tab_profile">Profile</string>
+
+    <!-- Errors: never surface a status code -->
+    <string name="error_unauthorized">You don\'t have permission, or your session expired. Please sign in again.</string>
+    <string name="error_not_found">That content doesn\'t exist or was deleted</string>
+    <string name="error_rate_limited">Too many requests — please try again shortly</string>
+    <string name="error_rate_limited_wait">Too many requests — try again in %1$ds</string>
+    <string name="error_server">The server is having trouble. Please try again later.</string>
+    <string name="error_generic_request">Request failed, please try again</string>
+    <string name="error_challenged">The site\'s security check blocked this request. Try again later.</string>
+    <string name="error_decoding">Something went wrong loading this. Please try again.</string>
+    <string name="error_offline">No network connection — please check and try again</string>
+    <string name="error_timeout">Connection timed out, please try again</string>
+    <string name="error_transport">Network problem, please try again</string>
+    <string name="error_action_failed">That didn\'t work. Please try again.</string>
+
+    <!-- Feed -->
+    <string name="feed_compose">New post</string>
+    <string name="feed_reading_mode">Reading mode</string>
+    <string name="feed_pinned">Pinned</string>
+    <string name="reading_mode_compact">Compact</string>
+    <string name="reading_mode_expand">Expanded</string>
+    <string name="reading_mode_card">Card</string>
+
+    <!-- Nodes -->
+    <string name="node_create">New node</string>
+    <string name="node_browse">Browse nodes</string>
+    <string name="node_create_title">Create a node</string>
+    <string name="node_join">Join</string>
+    <string name="node_joined">Joined</string>
+    <string name="node_join_success">Joined the node</string>
+    <string name="node_leave_success">Left the node</string>
+    <string name="node_empty_topics">No topics in this node yet</string>
+    <string name="node_not_found">This node doesn\'t exist</string>
+    <string name="node_empty">No nodes</string>
+    <string name="node_search_in">Search this node</string>
+    <string name="node_notification_level">Notifications: %1$s</string>
+    <string name="node_level_set">Set to “%1$s”</string>
+    <string name="node_name">Name</string>
+    <string name="node_name_hint">Node name</string>
+    <string name="node_slug">Path (slug)</string>
+    <string name="node_slug_hint">english-slug</string>
+    <string name="node_slug_available">That path is available</string>
+    <string name="node_slug_taken">That path is taken</string>
+    <string name="node_description">About</string>
+    <string name="node_description_hint">One line about this node</string>
+    <string name="node_parent">Section</string>
+    <string name="node_color">Colour</string>
+    <string name="node_create_footer">Once created you can post topics in this node.</string>
+    <string name="node_created">Node created</string>
+    <string name="node_recent">Recently visited</string>
+
+    <!-- Sorting -->
+    <string name="sort_latest">Latest</string>
+    <string name="sort_new">New</string>
+    <string name="sort_hot">Hot</string>
+    <string name="sort_featured">Featured</string>
+    <string name="sort_top">Top</string>
+    <string name="sort_latest_detail">Topics with recent posts</string>
+    <string name="sort_new_detail">Created or replied to in the last few days</string>
+    <string name="sort_hot_detail">Trending right now</string>
+    <string name="sort_featured_detail">Hand-picked topics</string>
+    <string name="sort_top_detail">Most liked topics</string>
+
+    <!-- Node notification levels (Discourse\'s own values) -->
+    <string name="level_muted">Muted</string>
+    <string name="level_regular">Normal</string>
+    <string name="level_tracking">Tracking</string>
+    <string name="level_watching">Watching</string>
+    <string name="level_watching_first">Watching first post</string>
+    <string name="level_muted_detail">You will never be notified about new topics in this node, and they won\'t appear in Latest.</string>
+    <string name="level_regular_detail">You will be notified if someone mentions your @name or replies to you.</string>
+    <string name="level_tracking_detail">You will automatically track all topics in this node. You will be notified of mentions and replies, and a count of new replies is shown.</string>
+    <string name="level_watching_detail">You will automatically watch all topics in this node. You will be notified of every new post, and a count of new replies is shown.</string>
+    <string name="level_watching_first_detail">You will be notified of new topics in this node, but not of replies.</string>
+
+    <!-- Reader -->
+    <string name="reader_reply_sort">Sort replies</string>
+    <string name="reply_sort_top">Top</string>
+    <string name="reply_sort_new">Newest</string>
+    <string name="reply_sort_old">Oldest</string>
+    <string name="reader_copy_link">Copy link</string>
+    <string name="reader_link_copied">Link copied</string>
+    <string name="reader_bookmark">Bookmark</string>
+    <string name="reader_bookmarked">Bookmark saved</string>
+    <string name="reader_bookmark_removed">Bookmark removed</string>
+    <string name="reader_unbookmark">Remove bookmark</string>
+    <string name="reader_report">Report</string>
+    <string name="reader_pin">Pin to top</string>
+    <string name="reader_unpin">Unpin</string>
+    <string name="reader_pinned">Pinned to the top</string>
+    <string name="reader_unpinned">Unpinned</string>
+    <string name="reader_pinned_badge">Pinned</string>
+    <string name="reader_edit">Edit</string>
+    <string name="reader_edit_first">Edit topic</string>
+    <string name="reader_edit_title">Edit post</string>
+    <string name="reader_edit_saved">Saved</string>
+    <string name="reader_delete">Delete</string>
+    <string name="reader_delete_done">Deleted</string>
+    <string name="reader_delete_confirm">Delete this post?</string>
+    <string name="reader_delete_confirm_body">It will be hidden from the topic. Staff can restore it.</string>
+    <string name="reader_deleted_badge">Deleted</string>
+    <string name="reader_recover">Restore</string>
+    <string name="reader_recover_done">Restored</string>
+    <string name="reader_lock">Lock editing</string>
+    <string name="reader_unlock">Unlock editing</string>
+    <string name="reader_locked">Editing locked</string>
+    <string name="reader_unlocked">Editing unlocked</string>
+    <string name="reader_locked_badge">Locked</string>
+    <string name="reader_topic_close">Close topic</string>
+    <string name="reader_topic_reopen">Reopen topic</string>
+    <string name="reader_topic_closed">Topic closed</string>
+    <string name="reader_topic_reopened">Topic reopened</string>
+    <string name="reader_topic_delete">Delete topic</string>
+    <string name="reader_topic_deleted">Topic deleted</string>
+    <string name="reader_topic_delete_confirm">Delete this topic?</string>
+    <string name="reader_topic_delete_confirm_body">The whole thread goes, replies included. Staff can restore it from the site.</string>
+    <string name="reader_repost">Repost</string>
+    <string name="reader_reposted">Reposted</string>
+    <string name="reader_repost_to">Reposted to %1$s</string>
+    <string name="reader_comment">Comments</string>
+    <string name="reader_like">Like</string>
+    <string name="vote_upvote">Upvote</string>
+    <string name="vote_undo_upvote">Undo upvote</string>
+    <string name="vote_downvote">Downvote</string>
+    <string name="vote_undo_downvote">Undo downvote</string>
+    <string name="vote_down_not_allowed">You are not allowed to downvote yet.</string>
+    <string name="vote_expand">Show it anyway</string>
+    <string name="vote_pick_upvote">Upvote with</string>
+    <string name="vote_pick_downvote">Downvote with</string>
+    <string name="reaction_none">No reactions yet.</string>
+    <string name="reaction_all">All</string>
+    <string name="reader_reply">Reply</string>
+    <string name="reader_reply_to">Replying to @%1$s</string>
+    <string name="reader_cancel_reply">Cancel reply</string>
+    <string name="reader_reply_hint">Write a reply…</string>
+    <string name="reader_replies_failed">Couldn\'t load the replies</string>
+    <string name="reader_code_copied">Code copied</string>
+    <string name="reader_code_copy_hint">hold to copy</string>
+    <string name="reader_reply_one_media">A reply carries one attachment</string>
+    <string name="reader_reply_guest">Sign in to join the discussion</string>
+    <string name="reader_send">Send</string>
+    <string name="reader_reward">Tip</string>
+    <string name="reader_reward_energy">Tip energy</string>
+    <string name="reader_reward_amount">Tip %1$d energy</string>
+    <string name="reader_reward_done">Tipped %1$d energy</string>
+    <string name="reader_reward_detail">Tips</string>
+    <string name="reader_reward_note_hint">Note (optional)</string>
+    <string name="reader_reward_empty">No tips yet</string>
+    <string name="reader_claimed_points">Claimed %1$d energy</string>
+    <string name="reader_spoiler">Spoiler — tap to reveal</string>
+
+    <!-- Plugins -->
+    <string name="poll_title">Poll</string>
+    <string name="poll_closed">Closed</string>
+    <string name="poll_multiple">Multiple choice</string>
+    <string name="poll_vote">Vote</string>
+    <string name="poll_revoke">Undo vote</string>
+    <string name="poll_create">Create a poll</string>
+    <string name="poll_option_hint">Option %1$d</string>
+    <string name="poll_add_option">Add option</string>
+    <string name="poll_single_choice">Single choice</string>
+    <string name="poll_multi_choice">Multiple ✓</string>
+    <string name="poll_insert">Insert poll</string>
+
+    <string name="lottery_title">Lottery</string>
+    <string name="lottery_drawn">Drawn</string>
+    <string name="lottery_prize">Prize</string>
+    <string name="lottery_quantity">×%1$d</string>
+    <string name="lottery_random">Random ticket</string>
+    <string name="lottery_join">Enter</string>
+    <string name="lottery_add">Buy more</string>
+    <string name="lottery_winners">Winners</string>
+    <string name="lottery_join_failed">Could not enter the lottery.</string>
+    <string name="lottery_create_failed">The lottery failed, but your post was published</string>
+    <string name="lottery_default_level">First prize</string>
+
+    <string name="envelope_title">Red envelope · %1$d energy / %2$s</string>
+    <string name="envelope_exhausted">All claimed</string>
+    <string name="envelope_remaining">Reply to claim — %1$d left</string>
+    <string name="envelope_chip">Envelope %1$d/%2$d ×</string>
+    <string name="envelope_create_failed">The envelope failed, but your post was published</string>
+
+    <!-- Composer -->
+    <string name="compose_publish">Publish</string>
+    <string name="compose_discard_title">Leave the composer?</string>
+    <string name="compose_discard_detail">The draft is kept. Discard it and what you have written is gone.</string>
+    <string name="compose_discard_confirm">Discard</string>
+    <string name="compose_edit_discard_title">Discard your changes?</string>
+    <string name="compose_edit_discard_detail">What you changed here will not be saved.</string>
+    <string name="compose_draft_keep">Keep draft</string>
+    <string name="compose_draft_restored">Draft restored</string>
+    <string name="compose_draft_untitled">Untitled</string>
+    <string name="compose_draft_on_site">Saved on the site</string>
+    <string name="compose_draft_on_phone">On this phone</string>
+    <string name="compose_draft_new">Start something new</string>
+    <string name="compose_draft_choose">Pick up where you left off?</string>
+    <string name="compose_published">Published</string>
+    <string name="compose_select_node">Pick a node</string>
+    <string name="compose_search_node">Search nodes</string>
+    <string name="compose_node_none">No node matches that.</string>
+    <string name="compose_emoji">Emoji</string>
+    <string name="compose_emoji_search">Search emoji</string>
+    <string name="compose_emoji_failed">Emoji could not be loaded.</string>
+    <string name="compose_title_hint">Title (5 characters or more)</string>
+    <string name="compose_body_hint">Body — Markdown supported</string>
+    <string name="compose_media_edit">Edit</string>
+    <string name="compose_media_remove">Remove</string>
+    <string name="compose_image">Image</string>
+    <string name="compose_video">Video</string>
+    <string name="compose_gif">GIF</string>
+    <string name="compose_media_one_kind">A post carries images, a video or a GIF — not a mix</string>
+    <string name="compose_gif_search">Search GIFs</string>
+    <string name="compose_lottery_chip">Lottery ×</string>
+    <string name="compose_envelope">Red envelope</string>
+    <string name="envelope_total_points">Total energy</string>
+    <string name="envelope_total_count">Packets</string>
+    <string name="lottery_field_title">Title</string>
+    <string name="lottery_field_prize">Prize</string>
+    <string name="lottery_field_quantity">Quantity</string>
+    <string name="lottery_field_min">Draw at</string>
+    <string name="lottery_field_max_tickets">Max per person</string>
+    <string name="lottery_field_draw_days">Draw after (days)</string>
+
+    <!-- Inbox -->
+    <string name="inbox_title">Inbox</string>
+    <string name="inbox_notifications">Notifications</string>
+    <string name="inbox_messages">Messages</string>
+    <string name="inbox_chats">Chat</string>
+    <string name="inbox_mark_all_read">Mark all read</string>
+    <string name="inbox_guest">Sign in to see notifications and messages</string>
+    <string name="inbox_guest_detail">Reading needs no account; joining in does</string>
+    <string name="inbox_empty_notifications">No notifications</string>
+    <string name="inbox_empty_messages">No messages</string>
+    <string name="inbox_empty_chats">No chats</string>
+    <string name="inbox_personal">Personal</string>
+
+    <!-- Notification wording (matches the site) -->
+    <string name="notif_system">System</string>
+    <string name="notif_group_inbox">Your %1$s inbox has new messages</string>
+    <string name="notif_group_fallback">group</string>
+    <string name="notif_private_message">sent you a message</string>
+    <string name="notif_liked">liked your post in %1$s</string>
+    <string name="notif_replied">replied to %1$s</string>
+    <string name="notif_badge">awarded you the %1$s badge</string>
+    <string name="notif_generic">sent you a notification</string>
+
+    <!-- Chat -->
+    <string name="chat_title">Chat</string>
+    <string name="chat_thread">Thread</string>
+    <string name="chat_leave_thread">Leave thread</string>
+    <string name="chat_message_hint">Message…</string>
+    <string name="chat_attach">Attach</string>
+    <string name="chat_channel">Channel</string>
+
+    <!-- Search -->
+    <string name="search_hint">Search posts, nodes and people</string>
+    <string name="search_scope_all">All</string>
+    <string name="search_scope_nodes">Nodes</string>
+    <string name="search_scope_posts">Posts</string>
+    <string name="search_scope_users">People</string>
+    <string name="search_scope_apps">Apps</string>
+    <string name="search_scope_media">Media</string>
+    <string name="search_recent">Recent searches</string>
+    <string name="search_hot">Trending</string>
+    <string name="search_empty">Nothing matched</string>
+    <string name="search_failed">Search couldn\'t run</string>
+    <string name="chat_load_failed">Couldn\'t load this conversation</string>
+    <string name="chat_unread_divider">New messages</string>
+    <string name="chat_typing_one">%1$s is typing…</string>
+    <string name="chat_copy">Copy text</string>
+    <string name="chat_copied">Copied</string>
+    <string name="chat_edit">Edit</string>
+    <string name="chat_editing">Editing</string>
+    <string name="chat_replying_to">Replying to %1$s</string>
+    <string name="chat_react">Add a reaction</string>
+    <string name="chat_edited">edited</string>
+    <string name="chat_sending">Sending…</string>
+    <string name="chat_profile">View profile</string>
+    <string name="chat_members">Members</string>
+    <string name="chat_notification_level">Notifications</string>
+    <string name="chat_level_always">Every message</string>
+    <string name="chat_level_always_detail">Notify me about every new message.</string>
+    <string name="chat_level_mention">Mentions only</string>
+    <string name="chat_level_mention_detail">Notify me only when someone @-mentions or quotes me.</string>
+    <string name="chat_level_never">Never</string>
+    <string name="chat_level_never_detail">No notifications and no unread count.</string>
+    <string name="chat_leave">Leave conversation</string>
+    <string name="chat_leave_title">Leave this conversation?</string>
+    <string name="chat_leave_detail">It disappears from your list. A new message brings it back, and nothing is deleted.</string>
+    <string name="chat_delete_title">Delete this message?</string>
+    <string name="chat_delete_detail">It disappears for everyone in the conversation.</string>
+    <string name="apps_load_failed">Couldn\'t load this app</string>
+    <string name="search_empty_detail">Try a different keyword</string>
+    <string name="search_node_empty">Nothing found in this node</string>
+    <string name="search_nodes_capped">Nodes · %1$d of %2$d</string>
+
+    <!-- Profile -->
+    <string name="profile_guest">Sign in to see your profile</string>
+    <string name="profile_follow">Follow</string>
+    <string name="profile_following">Following</string>
+    <string name="profile_admin">Admin</string>
+    <string name="profile_moderator">Moderator</string>
+    <string name="profile_last_seen">Last seen %1$s</string>
+    <string name="profile_joined">Joined %1$s</string>
+    <string name="profile_energy">Energy</string>
+    <string name="profile_reputation">Reputation</string>
+    <string name="profile_topics">Topics</string>
+    <string name="profile_posts">Posts</string>
+    <string name="profile_likes">Likes</string>
+    <string name="profile_bookmarks">Bookmarks</string>
+    <string name="profile_empty_points">No energy history</string>
+
+    <!-- Settings -->
+    <string name="settings_account">Account</string>
+    <string name="settings_preferences">Preferences</string>
+    <string name="settings_account_section">This app</string>
+    <string name="settings_profile">Profile</string>
+    <string name="settings_associated">Connected accounts</string>
+    <string name="settings_security">Security</string>
+    <string name="settings_interface">Interface</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_email">Email</string>
+    <string name="settings_privacy">Privacy</string>
+    <string name="settings_web">Open web preferences</string>
+    <string name="settings_push">Push notifications</string>
+    <string name="settings_sign_out">Sign out</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_other">Other</string>
+    <string name="settings_color_mode">Colour mode</string>
+    <string name="settings_text_size">Text size</string>
+    <string name="settings_default_home">Default home</string>
+    <string name="settings_external_links">Open external links in a new tab</string>
+    <string name="settings_quoting">Enable quote replies</string>
+    <string name="settings_in_app_notifications">In-app notifications</string>
+    <string name="settings_like_frequency">Notify me about likes</string>
+    <string name="settings_new_topic_duration">Consider topics new for</string>
+    <string name="settings_track_on_reply">Track topics I reply to</string>
+    <string name="settings_email_notifications">Email notifications</string>
+    <string name="settings_email_replies">Email me about replies</string>
+    <string name="settings_email_messages">Email me about messages</string>
+    <string name="settings_email_previous">Include previous replies</string>
+    <string name="settings_email_digest">Send activity digests</string>
+    <string name="settings_hide_profile">Hide my public profile</string>
+    <string name="settings_hide_presence">Hide my presence</string>
+
+    <string name="color_mode_auto">Automatic</string>
+    <string name="color_mode_light">Light</string>
+    <string name="color_mode_dark">Dark</string>
+    <string name="text_size_smallest">Smallest</string>
+    <string name="text_size_smaller">Smaller</string>
+    <string name="text_size_normal">Normal</string>
+    <string name="text_size_larger">Larger</string>
+    <string name="text_size_largest">Largest</string>
+    <string name="email_level_always">Always</string>
+    <string name="email_level_away">Only when away</string>
+    <string name="email_level_never">Never</string>
+    <string name="previous_replies_always">Always</string>
+    <string name="previous_replies_unless">Unless previously emailed</string>
+    <string name="previous_replies_never">Never</string>
+    <string name="like_freq_always">Always</string>
+    <string name="like_freq_first_daily">First time and daily</string>
+    <string name="like_freq_first">First time only</string>
+    <string name="like_freq_never">Never</string>
+    <string name="duration_last_visit">Since last visit</string>
+    <string name="duration_one_day">1 day</string>
+    <string name="duration_two_days">2 days</string>
+    <string name="duration_one_week">1 week</string>
+    <string name="duration_two_weeks">2 weeks</string>
+
+    <!-- Push -->
+    <string name="push_enable">Push notifications</string>
+    <string name="push_enable_detail">Checks for new notifications in the background</string>
+    <string name="push_permission_footer">Notifications are turned off in system settings — nothing can be delivered until they\'re on.</string>
+    <string name="push_filter_footer">Types you turn off still appear in the in-app inbox.</string>
+    <string name="push_open_system_settings">Open system settings</string>
+    <string name="push_types">Types</string>
+    <string name="push_replies">Replies and mentions</string>
+    <string name="push_replies_detail">Someone replies to, quotes or mentions you</string>
+    <string name="push_likes">Likes</string>
+    <string name="push_likes_detail">Someone likes your post or reply</string>
+    <string name="push_messages">Messages</string>
+    <string name="push_messages_detail">You receive a private message</string>
+    <string name="push_other">Badges and system notices</string>
+    <string name="push_other_detail">Badge awards, group messages and the like</string>
+
+    <!-- Security -->
+    <string name="security_password">Password</string>
+    <string name="security_send_reset">Email me a password reset</string>
+    <string name="security_reset_sent">Password reset email sent</string>
+    <string name="security_two_factor">Two-factor authentication</string>
+    <string name="security_two_factor_footer">Once enabled, signing in also asks for a one-time code.</string>
+    <string name="security_status">Status</string>
+    <string name="security_enabled">On</string>
+    <string name="security_disabled">Off</string>
+    <string name="security_backup_codes">Backup codes</string>
+    <string name="security_generate_backup">Generate backup codes</string>
+    <string name="security_backup_footer">Keep these somewhere safe — each code works once.</string>
+    <string name="security_enable_totp">Turn on two-factor</string>
+    <string name="security_disable_totp">Turn off two-factor</string>
+    <string name="security_totp_enabled">Two-factor is on</string>
+    <string name="security_totp_disabled">Two-factor is off</string>
+    <string name="security_scan_key">Scan or enter the key</string>
+    <string name="security_key">Key</string>
+    <string name="security_totp_footer">Add it to your authenticator app, then enter the 6-digit code to finish.</string>
+    <string name="security_totp_code_hint">6-digit code</string>
+    <string name="security_finish_binding">Finish setup</string>
+    <string name="security_sessions">Sessions</string>
+    <string name="security_session_fallback">Session #%1$d</string>
+    <string name="security_current_device">This device</string>
+    <string name="security_sign_out_session">Sign out</string>
+    <string name="security_session_revoked">Session signed out</string>
+    <string name="security_confirm_identity">Confirm it\'s you</string>
+    <string name="security_confirm_detail">Sensitive changes need your password again.</string>
+    <string name="security_wrong_password">Wrong password, please try again</string>
+    <string name="security_no_associated">No connected accounts</string>
+    <string name="security_associated_footer">Connected accounts can sign you in to the website.</string>
+    <string name="security_unlink">Disconnect</string>
+    <string name="security_unlink_confirm_title">Disconnect %1$s?</string>
+    <string name="security_unlink_confirm_detail">You won\'t be able to sign in with it until you connect it again.</string>
+
+    <!-- Profile editing -->
+    <string name="profile_edit_avatar">Change avatar</string>
+    <string name="profile_edit_section">Profile</string>
+    <string name="profile_edit_name">Display name</string>
+    <string name="profile_edit_name_hint">How your name appears</string>
+    <string name="profile_edit_title">Title</string>
+    <string name="profile_edit_title_none">No title</string>
+    <string name="profile_edit_title_locked">Titles come from badges you have earned</string>
+    <string name="profile_edit_bio">About me</string>
+    <string name="profile_edit_bio_hint">Tell people about yourself</string>
+    <string name="profile_edit_website">Website</string>
+    <string name="profile_edit_location">Location</string>
+    <string name="profile_edit_saved">Profile saved</string>
+    <string name="profile_edit_load_failed">Couldn\'t load your profile</string>
+    <string name="profile_edit_load_failed_detail">Check your connection and try again.</string>
+    <string name="profile_avatar_updated">Avatar updated</string>
+    <string name="profile_edit_background">Change background</string>
+    <string name="profile_edit_background_remove">Remove background</string>
+    <string name="profile_background_updated">Background updated</string>
+
+    <!-- Auth -->
+    <string name="auth_terms">Signing in means you accept NODELOC\'s terms and privacy policy.</string>
+    <string name="auth_website">Continue with the NodeLoc website</string>
+    <string name="auth_identifier">Email or username</string>
+    <string name="auth_identifier_hint">you@example.com</string>
+    <string name="auth_password">Password</string>
+    <string name="auth_code">Code</string>
+    <string name="auth_code_hint">6-digit code</string>
+    <string name="auth_backup_code">Backup code</string>
+    <string name="auth_use_backup">Use a backup code</string>
+    <string name="auth_use_totp">Use an authenticator code</string>
+    <string name="auth_forgot">Forgot your password?</string>
+    <string name="auth_email_step">Your email</string>
+    <string name="auth_email">Email</string>
+    <string name="auth_username_step">Pick a username</string>
+    <string name="auth_username">Username</string>
+    <string name="auth_username_hint">3–20 characters</string>
+    <string name="auth_email_invalid">Enter a valid email address</string>
+    <string name="auth_email_ok">Email looks right</string>
+    <string name="auth_username_available">Nice one — that username is free</string>
+    <string name="auth_username_taken">That username is taken</string>
+    <string name="auth_username_suggestion">Try “%1$s”</string>
+    <string name="auth_password_step">Set a password</string>
+    <string name="auth_password_hint">At least 10 characters</string>
+    <string name="auth_password_short">At least 10 characters needed</string>
+    <string name="auth_password_ok">Long enough</string>
+    <string name="auth_gender_step">Your gender</string>
+    <string name="auth_gender_footer">Stored on this device only, for recommendations.</string>
+    <string name="auth_gender_male">Male</string>
+    <string name="auth_gender_female">Female</string>
+    <string name="auth_gender_other">Other</string>
+    <string name="auth_gender_private">Prefer not to say</string>
+    <string name="auth_interests_step">Nodes you like</string>
+    <string name="auth_interests_footer">Pick up to 3 — you\'ll join them automatically.</string>
+    <string name="auth_shuffle">Shuffle</string>
+    <string name="auth_finish_signup">Create account</string>
+    <string name="auth_check_email">Check your email</string>
+    <string name="auth_activation_detail">We sent an activation link to %1$s — open it to finish signing up.</string>
+    <string name="auth_activation_hint">Come back and sign in afterwards; the nodes you picked join automatically.</string>
+    <string name="auth_back_to_login">Back to sign in</string>
+    <string name="auth_gate_title">Join NODELOC</string>
+    <string name="auth_gate_detail">Sign in to post, reply, like and bookmark. Reading needs no account.</string>
+
+    <string name="auth_error_key_generation">Couldn\'t generate the security keys.</string>
+    <string name="auth_error_missing_payload">The sign-in response was incomplete.</string>
+    <string name="auth_error_lost_keypair">Sign-in was interrupted. Please start again.</string>
+    <string name="auth_error_decrypt">Couldn\'t verify the sign-in response.</string>
+    <string name="auth_error_nonce">Sign-in verification failed. Please try again.</string>
+    <string name="auth_error_cancelled">Sign-in was cancelled.</string>
+    <string name="auth_error_missing_fields">Please fill in every field.</string>
+    <string name="auth_error_second_factor">This account uses two-factor authentication — enter your code.</string>
+    <string name="auth_error_incomplete">Sign-in didn\'t complete. Please try again.</string>
+    <string name="auth_error_no_session">Sign-in returned no website session.</string>
+    <string name="auth_error_session_start">Couldn\'t start the sign-in session.</string>
+    <string name="auth_error_bad_code">That code isn\'t right. Please try again.</string>
+    <string name="auth_error_login_failed">Sign-in failed, please try again</string>
+    <string name="auth_error_signup_failed">Sign-up failed, please try again</string>
+    <string name="auth_signup_activation_needed">Account created — check your email to activate it.</string>
+
+    <!-- Welcome -->
+    <string name="welcome_tagline">Free, equal, friendly, open, fun</string>
+    <string name="welcome_start">Get started</string>
+    <string name="welcome_have_account">I already have an account</string>
+    <string name="welcome_browse">Just browse for now</string>
+
+    <!-- Browser and media -->
+    <string name="browser_open_external">Open in browser</string>
+    <string name="web_session_api_only_title">This page needs a website sign-in</string>
+    <string name="web_session_api_only_detail">You signed in through the website, so this page can open here but nothing you change will save. Continue in your browser — you\'re already signed in there.</string>
+    <string name="web_session_continue_anyway">Open here anyway</string>
+    <string name="browser_text_size">Text size %1$d%%</string>
+    <string name="media_mute">Mute</string>
+    <string name="media_unmute">Unmute</string>
+    <string name="editor_crop">Crop</string>
+    <string name="editor_brush">Draw</string>
+    <string name="editor_mosaic">Mosaic</string>
+    <string name="editor_mosaic_solid">Block out</string>
+    <string name="editor_mosaic_blur">Blur</string>
+    <string name="editor_mosaic_fine">Fine</string>
+    <string name="editor_mosaic_pixel">Pixelate</string>
+    <string name="editor_mosaic_blocks">Mosaic</string>
+    <string name="editor_text">Text</string>
+    <string name="editor_rotate">Rotate</string>
+    <string name="editor_add_text">Add text</string>
+    <string name="editor_crop_free">Free</string>
+    <string name="editor_crop_square">1:1</string>
+    <string name="editor_crop_portrait">4:5</string>
+    <string name="editor_crop_landscape">16:9</string>
+    <string name="editor_filter_faded">Faded</string>
+    <string name="editor_filter_mono">Mono</string>
+    <string name="editor_filter_cool">Cool</string>
+    <string name="editor_filter_warm">Warm</string>
+    <string name="editor_filter_vivid">Vivid</string>
+    <string name="editor_filter_none">Original</string>
+    <string name="editor_text_filled">Filled</string>
+    <string name="editor_text_outlined">Outlined</string>
+    <string name="editor_text_plain">Plain</string>
+    <string name="editor_filter">Filter</string>
+    <string name="editor_sticker">Sticker</string>
+    <string name="editor_flip">Flip</string>
+    <string name="editor_redo">Redo</string>
+    <string name="editor_reset">Reset</string>
+    <string name="trim_gif_limit">GIFs are capped at %1$ds; the rest is trimmed</string>
+    <string name="trim_failed">Couldn\'t process that video, please try again</string>
+    <string name="trim_too_large">That clip is too large to send. Trim it shorter and try again.</string>
+
+    <!-- App directory -->
+    <string name="apps_title">App directory</string>
+    <string name="apps_more">More apps</string>
+    <string name="apps_recent">Recent apps</string>
+    <string name="apps_empty">No apps</string>
+    <string name="apps_open">Open app</string>
+    <string name="apps_web_only">This app only runs on the website.</string>
+    <string name="apps_permissions">Permissions</string>
+    <string name="apps_discussion">Open discussion</string>
+
+    <!-- Counted nouns -->
+    <plurals name="common_members">
+        <item quantity="one">%1$s member</item>
+        <item quantity="other">%1$s members</item>
+    </plurals>
+    <plurals name="common_topics">
+        <item quantity="one">%1$s topic</item>
+        <item quantity="other">%1$s topics</item>
+    </plurals>
+    <plurals name="chat_member_count">
+        <item quantity="one">%1$d member</item>
+        <item quantity="other">%1$d members</item>
+    </plurals>
+    <plurals name="chat_typing_many">
+        <item quantity="one">%1$d person is typing…</item>
+        <item quantity="other">%1$d people are typing…</item>
+    </plurals>
+    <plurals name="common_replies_count">
+        <item quantity="one">%1$d reply</item>
+        <item quantity="other">%1$d replies</item>
+    </plurals>
+    <plurals name="reader_load_more_replies">
+        <item quantity="one">%1$d more reply</item>
+        <item quantity="other">%1$d more replies</item>
+    </plurals>
+    <plurals name="apps_installs">
+        <item quantity="one">%1$d install</item>
+        <item quantity="other">%1$d installs</item>
+    </plurals>
+    <plurals name="poll_voters">
+        <item quantity="one">%1$d voter</item>
+        <item quantity="other">%1$d voters</item>
+    </plurals>
+    <plurals name="lottery_my_tickets">
+        <item quantity="one">You hold %1$d ticket</item>
+        <item quantity="other">You hold %1$d tickets</item>
+    </plurals>
+    <string name="profile_tab_load_failed">Couldn\'t load this tab</string>
+    <plurals name="lottery_entrants">
+        <item quantity="one">%1$d entrant</item>
+        <item quantity="other">%1$d entrants</item>
+    </plurals>
+    <plurals name="lottery_tickets">
+        <item quantity="one">%1$d ticket</item>
+        <item quantity="other">%1$d tickets</item>
+    </plurals>
+    <plurals name="lottery_min_participants">
+        <item quantity="one">draws at %1$d entrant</item>
+        <item quantity="other">draws at %1$d entrants</item>
+    </plurals>
+    <plurals name="lottery_max_participants">
+        <item quantity="one">max %1$d entrant</item>
+        <item quantity="other">max %1$d entrants</item>
+    </plurals>
+    <plurals name="envelope_packets">
+        <item quantity="one">%1$d packet</item>
+        <item quantity="other">%1$d packets</item>
+    </plurals>
+    <plurals name="notif_group_inbox_count">
+        <item quantity="one">Your %1$s inbox has %2$d message</item>
+        <item quantity="other">Your %1$s inbox has %2$d messages</item>
+    </plurals>
+    <string name="image_load_failed">Couldn\'t load this image</string>
+    <string name="viewer_save_image">Save image</string>
+    <string name="viewer_save_video">Save video</string>
+    <string name="viewer_save_video_failed">Couldn\'t save that video</string>
+    <string name="report_title">Report this post</string>
+    <string name="report_note_hint">Tell the moderators what is wrong</string>
+    <string name="report_sent">Sent — the moderators will take a look</string>
+    <string name="viewer_saved">Saved to your gallery</string>
+    <string name="viewer_save_failed">Couldn\'t save that image</string>
+    <string name="viewer_more">More</string>
+    <string name="viewer_previous">Previous image</string>
+    <string name="viewer_next">Next image</string>
+    <string name="media_video_failed">Couldn\'t play that video</string>
+    <string name="media_no_more_videos">No more videos right now</string>
+    <string name="common_pause">Pause</string>
+    <string name="profile_message">Message</string>
+    <string name="profile_chat">Chat</string>
+    <string name="profile_notification_level">Notifications</string>
+    <string name="profile_notify_normal">Normal</string>
+    <string name="profile_notify_muted">Muted</string>
+    <string name="profile_notify_ignored">Ignored</string>
+    <string name="profile_notify_normal_detail">You are notified as usual.</string>
+    <string name="profile_notify_muted_detail">No notifications from this person.</string>
+    <string name="profile_notify_ignored_detail">Their posts are hidden as well.</string>
+    <string name="profile_notify_saved">Saved</string>
+    <string name="auth_failed">Sign-in didn\'t complete</string>
+    <string name="auth_continue_with">Continue with %1$s</string>
+    <string name="auth_or_password">or sign in with a password</string>
+
+    <!-- Updates -->
+    <string name="update_check">Check for updates</string>
+    <string name="update_up_to_date">You\'re on the latest version</string>
+    <string name="update_available_title">Version %1$s is available</string>
+    <string name="update_available_required">This update is required to keep using the app.</string>
+    <string name="update_install">Download and install</string>
+    <string name="update_later">Later</string>
+    <string name="update_downloading">Downloading…</string>
+    <string name="update_download_failed">Couldn\'t download the update. Try again later.</string>
+    <string name="update_install_failed">Couldn\'t open the installer</string>
+    <string name="update_needs_install_permission">Allow NodeLoc to install apps</string>
+
+    <!-- Lottery composer -->
+    <string name="lottery_field_max_participants">Max participants (blank for no cap)</string>
+    <string name="lottery_field_min_tickets">Min tickets each</string>
+    <string name="lottery_field_trust_level">Minimum trust level</string>
+    <string name="lottery_field_levels">Prizes</string>
+    <string name="lottery_add_level">Add a prize</string>
+    <string name="lottery_remove_level">Remove</string>
+    <string name="lottery_level_name_hint">Tier name, e.g. "First prize"</string>
+    <string name="lottery_draws_at">Draws %1$s</string>
+    <string name="lottery_error_title">Give the lottery a title</string>
+    <string name="lottery_error_prize">Describe at least one prize</string>
+    <string name="lottery_error_min_participants">Minimum participants must be at least 1</string>
+    <string name="lottery_error_max_below_min">Max participants must exceed the minimum</string>
+    <string name="lottery_error_min_tickets">Minimum tickets cannot exceed the maximum</string>
+    <string name="lottery_error_draw_days">Draw must be 1–%1$d days away</string>
+    <string name="lottery_condition_min_tickets">%1$d ticket minimum each</string>
+    <string name="lottery_condition_max_tickets">%1$d tickets max each</string>
+    <string name="lottery_condition_trust_level">TL%1$d and above</string>
+
+    <!-- Daily check-in -->
+    <string name="checkin_action">Check in</string>
+    <string name="checkin_done">Already checked in today</string>
+    <string name="checkin_success">Checked in — %1$d energy</string>
+
+    <!-- Upgrade progress -->
+    <string name="upgrade_title">Upgrade progress</string>
+    <string name="upgrade_load_failed">Unable to load upgrade progress</string>
+    <string name="upgrade_next_level">Next level: %1$s</string>
+    <string name="upgrade_met_count">%1$d of %2$d met</string>
+    <string name="upgrade_all_met">Every requirement for the next level is met.</string>
+    <string name="upgrade_maintaining">Maintaining</string>
+    <string name="upgrade_retention_title">Requirements to keep this level</string>
+    <string name="upgrade_locked">Trust level locked; it will not change automatically.</string>
+    <string name="upgrade_group_standing">Account standing</string>
+    <string name="upgrade_group_activity">Activity</string>
+    <string name="upgrade_group_recent">Last %1$d days</string>
+    <string name="upgrade_group_recent_plain">Recent activity</string>
+    <string name="upgrade_group_all_time">All time</string>
+    <string name="upgrade_target">Goal %1$d</string>
+    <string name="upgrade_limit">Limit %1$d</string>
+    <string name="upgrade_condition_met">Met</string>
+    <string name="upgrade_condition_over">Over the limit</string>
+    <string name="upgrade_condition_remaining">%1$d to go</string>
+
+    <!-- Post source -->
+    <string name="post_source_title">Posting source</string>
+    <string name="post_source_explain">Choose how much of this phone your posts may show. The model is shown by default; pick &#8220;Do not show&#8221; and nothing is. The choice follows your account rather than this device.</string>
+    <string name="post_source_footer">Anyone can claim anything here, so a source is decoration — it earns nothing and proves nothing.</string>
+    <string name="post_source_from">from %1$s</string>
+    <string name="post_source_level_off">Do not show</string>
+    <string name="post_source_level_client">App only</string>
+    <string name="post_source_level_platform">App and platform</string>
+    <string name="post_source_level_brand">Up to the brand</string>
+    <string name="post_source_level_model">Up to the model</string>
+    <string name="post_source_history_title">Posts already written</string>
+    <string name="post_source_history_detail">Choosing a lower level only governs what you post next. This removes the source from everything already posted, and cannot be undone.</string>
+    <string name="post_source_clear">Remove from past posts</string>
+    <string name="post_source_cleared">Removed</string>
+    <string name="video_quality">Quality</string>
+    <string name="video_quality_480">480p</string>
+    <string name="video_quality_720">720p</string>
+    <string name="video_quality_1080">1080p</string>
+    <string name="video_quality_original">Original</string>
+    <string name="video_sound">Sound</string>
+    <string name="video_gif">GIF</string>
+    <string name="video_play">Play</string>
+    <string name="video_pause">Pause</string>
+    <string name="video_summary">%1$s · ~%2$s</string>
+    <string name="sort_best">Best</string>
+    <string name="sort_best_detail">Picked for you</string>
+    <string name="block_user_title">Block this person?</string>
+    <string name="block_user_message">You will stop seeing what %1$s posts, and they will not be able to message you. You can undo this in Settings.</string>
+    <string name="block_user_confirm">Block</string>
+    <string name="block_user_done">Blocked</string>
+    <string name="unblock_user">Unblock</string>
+    <string name="unblock_user_done">Unblocked</string>
+    <string name="settings_blocked">Blocked people</string>
+    <string name="blocked_empty">Nobody is blocked.</string>
+    <string name="blocked_not_allowed">This site does not let your account block people yet.</string>
+    <string name="post_more_bookmark">Bookmark</string>
+    <string name="post_more_watch">Watch</string>
+    <string name="post_more_watching">Watching</string>
+    <string name="post_more_author">View author</string>
+    <string name="post_more_block_author">Block author</string>
+    <string name="post_more_repost">Repost</string>
+    <string name="profile_report">Report this person</string>
+    <string name="profile_block">Block this person</string>
+    <string name="profile_report_title">Report @%1$s</string>
+</resources>

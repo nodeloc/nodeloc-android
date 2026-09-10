@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The light app icon's own ground. `values-night` carries the dark one;
+         a launcher that follows the system theme picks the matching pair. -->
+    <color name="ic_launcher_background">#FFFFFF</color>
+</resources>

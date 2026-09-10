@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      REQUEST_INSTALL_PACKAGES is declared by the github flavour alone. Play
+      forbids an app it distributes from installing another, and a permission
+      merged in from here would be in the store build whether or not any code
+      reached it.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!--
+      Saving a picture to the gallery. Capped at 28: from Android 10 the
+      MediaStore insert owns the file and no permission is involved.
+    -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
+    <!--
+      The advertising ID, declined.
+
+      Nothing here advertises. Analytics is present for one number — how many
+      people open the app — and that number does not need a per-device
+      identifier that follows somebody across every other app they use. The
+      permission is not written anywhere in this project: `firebase-analytics`
+      merges it in, and this takes it back out.
+
+      Removing the permission stops the collection; the flag below stops the
+      SDK asking in the first place, so the two say the same thing whichever
+      one is read. Both have to stay in step with the Play Console's own
+      advertising-ID declaration, which says the app does not use one.
+    -->
+    <uses-permission
+        android:name="com.google.android.gms.permission.AD_ID"
+        tools:node="remove" />
+    <!--
+      The same identifier under its newer name. Play's own check looks at the
+      GMS permission above, but leaving this one would be declining the
+      advertising ID while still asking for it through the other door.
+
+      Attribution is left alone: `ACCESS_ADSERVICES_ATTRIBUTION` is a different
+      API and not what is being declined here.
+    -->
+    <uses-permission
+        android:name="android.permission.ACCESS_ADSERVICES_AD_ID"
+        tools:node="remove" />
+
+    <application
+        android:name=".NodelocApplication"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:supportsRtl="true"
+        android:localeConfig="@xml/locales_config"
+        android:enableOnBackInvokedCallback="true"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:theme="@style/Theme.Nodeloc.Splash">
+
+        <!-- The other half of declining the advertising ID; see above. -->
+        <meta-data
+            android:name="google_analytics_adid_collection_enabled"
+            android:value="false" />
+
+        <!--
+            Portrait only. Every screen in the app is a single column of rows,
+            and the one thing that genuinely wants the long edge — a directory
+            app, which is somebody else's page — runs in its own activity below.
+        -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity,DiscouragedApi"
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode|density|fontScale"
+            android:theme="@style/Theme.Nodeloc.Splash">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- User API Key redirect for the website OAuth flow. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="nodeloc" android:host="auth" />
+            </intent-filter>
+
+            <!--
+                No https filter on purpose. Android 12+ ignores an unverified
+                web-link filter entirely — it never opens the app unless the
+                user digs into Settings > Open by default — so declaring one
+                without verification only looks like the feature works.
+
+                Turning it on needs /.well-known/assetlinks.json served from
+                www.nodeloc.com carrying this app's signing certificate
+                fingerprint. Once that is live, restore the filter with
+                android:autoVerify="true". Until then a nodeloc.com link
+                still reaches the reader when the notification or the mini
+                program hands it over (MainActivity.handleIntent).
+            -->
+        </activity>
+
+        <!--
+            A directory app runs beside the app, not inside it: documentLaunchMode
+            plus the per-app data URI gives each one its own Recents card, which
+            is what lets one be parked and come back to. It is also the one
+            surface that rotates: its page belongs to whoever wrote it, and some
+            of them are games meant to be held sideways.
+        -->
+        <activity
+            android:name=".MiniAppActivity"
+            android:exported="false"
+            android:screenOrientation="fullUser"
+            android:taskAffinity=":miniapp"
+            android:documentLaunchMode="intoExisting"
+            android:autoRemoveFromRecents="false"
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode|density|fontScale"
+            android:theme="@style/Theme.Nodeloc" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!--
+            Notifications arrive here now. The poll WorkManager still runs is
+            the net under a dropped delivery rather than the delivery itself,
+            so it is scheduled hours apart once a token is registered.
+        -->
+        <service
+            android:name=".core.store.NodelocMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- The channel a message lands in when it names none of ours. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="system" />
+
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge" />
+    </application>
+</manifest>

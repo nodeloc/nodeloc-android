@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Telegram's mark is a blue disc with a white plane: never tinted. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#26A5E4"
+        android:pathData="M12,0C5.373,0 0,5.373 0,12s5.373,12 12,12 12,-5.373 12,-12S18.627,0 12,0z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M5.5,11.9l11,-4.24c0.51,-0.19 0.96,0.12 0.79,0.9l-1.87,8.82c-0.14,0.63 -0.52,0.79 -1.05,0.49l-2.9,-2.14 -1.4,1.35c-0.15,0.15 -0.28,0.28 -0.58,0.28l0.21,-2.99 5.44,-4.92c0.24,-0.21 -0.05,-0.33 -0.36,-0.12l-6.72,4.23 -2.9,-0.91c-0.63,-0.2 -0.64,-0.63 0.14,-0.93z" />
+</vector>

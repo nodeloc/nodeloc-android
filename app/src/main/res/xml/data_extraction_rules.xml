@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The credential stores are excluded from both cloud backup and device
+    transfer, because backing them up cannot work: `nodeloc.secure` is
+    AES-GCM ciphertext wrapped by an AndroidKeyStore key, and that key is
+    hardware-bound — it never leaves the device it was generated on. A
+    restored install would hold bytes it can never decrypt, silently read
+    them as "signed out", and be worse off than with no backup at all.
+
+    `nodeloc.install` holds the per-install client id, which the MessageBus
+    uses to identify this device to the server. Restoring it onto a second
+    device gives two installs the same id, and the server then cancels one
+    long-poll every time the other one starts.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="nodeloc.secure.xml" />
+        <exclude domain="sharedpref" path="nodeloc.install.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="nodeloc.secure.xml" />
+        <exclude domain="sharedpref" path="nodeloc.install.xml" />
+    </device-transfer>
+</data-extraction-rules>

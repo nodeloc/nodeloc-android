@@ -1,0 +1,11 @@
+{
+  "_comment": [
+    "Copy to app/google-services.json (untracked) to enable push notifications.",
+    "Download it from the Firebase console for an Android app whose package",
+    "name is com.nodeloc.app.",
+    "",
+    "Without this file the Google Services plugin is not applied and the app",
+    "builds and runs normally — it simply never obtains a push token, and the",
+    "notification poll that already exists is what delivers instead."
+  ]
+}
