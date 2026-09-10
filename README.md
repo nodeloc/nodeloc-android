@@ -138,3 +138,9 @@ There is no push server: Discourse only relays to its own app. Delivery is a
 with one system channel per category so Android's own settings can mute them
 separately. The first poll after enabling **only sets the baseline** — otherwise
 turning push on would dump the entire unread backlog into the shade.
+
+## Licence
+
+MIT — see [LICENSE](LICENSE).
+
+The dependencies keep their own terms; the Gradle files name every one of them.
