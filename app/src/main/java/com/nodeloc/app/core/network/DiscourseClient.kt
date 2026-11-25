@@ -263,6 +263,7 @@ class DiscourseClient(
     suspend fun topics(sort: String = "latest", page: Int = 0): LatestResponse {
         val list = when (sort) {
             "hot", "top" -> topicPage("hot", "api/v1/topics", listOf("sort" to "hot"), page, offsetPaging = true)
+            "rising" -> topicPage("rising", "api/v1/topics", listOf("sort" to "rising"), page, offsetPaging = true)
             "best" -> topicPage("best", "api/v1/feed/personal", emptyList(), page, offsetPaging = true)
             "featured" -> topicPage("featured", "api/v1/topics", listOf("featured" to "1"), page, offsetPaging = false)
             "following" -> topicPage("following", "api/v1/topics", listOf("joined" to "1"), page, offsetPaging = false)

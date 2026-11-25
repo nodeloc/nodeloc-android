@@ -2013,4 +2013,6 @@
     <string name="me4_node_owner">Node owner</string>
     <string name="sidebar_apps">Games &amp; apps</string>
     <string name="sidebar_drafts_count">\u0020· %1$d</string>
+    <string name="sort_rising">Rising</string>
+    <string name="sort_rising_detail">Topics gaining momentum right now</string>
 </resources>

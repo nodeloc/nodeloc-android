@@ -2001,4 +2001,6 @@
     <string name="me4_node_owner">ノード管理人</string>
     <string name="sidebar_apps">ミニゲームとアプリ</string>
     <string name="sidebar_drafts_count">\u0020· %1$d 件</string>
+    <string name="sort_rising">急上昇</string>
+    <string name="sort_rising_detail">今まさに注目を集めているトピック</string>
 </resources>

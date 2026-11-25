@@ -2002,4 +2002,6 @@
     <string name="me4_node_owner">节点主理人</string>
     <string name="sidebar_apps">小游戏和应用</string>
     <string name="sidebar_drafts_count">\u0020· %1$d 篇</string>
+    <string name="sort_rising">上升中</string>
+    <string name="sort_rising_detail">热度正在上升的主题</string>
 </resources>

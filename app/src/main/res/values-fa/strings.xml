@@ -2012,4 +2012,6 @@
     <string name="me4_node_owner">مالک گره</string>
     <string name="sidebar_apps">بازی‌ها و برنامه‌ها</string>
     <string name="sidebar_drafts_count">\u0020· %1$d</string>
+    <string name="sort_rising">رو به رشد</string>
+    <string name="sort_rising_detail">موضوع‌هایی که الان داغ‌تر می‌شوند</string>
 </resources>

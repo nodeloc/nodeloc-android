@@ -611,7 +611,7 @@ private fun PrefsRows(top: Int) {
     SetRow(homeTitle) {
         SetChoiceButton(
             homeTitle,
-            listOf("hot", "latest", "featured", "following", "best").map { it to stringResource(homeLabel(it)) },
+            listOf("hot", "rising", "latest", "featured", "following", "best").map { it to stringResource(homeLabel(it)) },
             defaultHome,
         ) { value -> scope.launch { preferences.setDefaultHome(value) } }
     }
@@ -623,6 +623,7 @@ private const val LANGUAGE_SYSTEM = "system"
 private fun homeLabel(value: String): Int = when (value) {
     "best" -> R.string.sort_best
     "hot" -> R.string.sort_hot
+    "rising" -> R.string.sort_rising
     "featured" -> R.string.sort_featured
     "following" -> R.string.sort_following
     else -> R.string.sort_latest

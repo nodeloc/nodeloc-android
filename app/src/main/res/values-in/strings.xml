@@ -2003,4 +2003,6 @@
     <string name="me4_node_owner">Pemilik node</string>
     <string name="sidebar_apps">Game &amp; aplikasi</string>
     <string name="sidebar_drafts_count">\u0020· %1$d</string>
+    <string name="sort_rising">Naik daun</string>
+    <string name="sort_rising_detail">Topik yang sedang naik</string>
 </resources>

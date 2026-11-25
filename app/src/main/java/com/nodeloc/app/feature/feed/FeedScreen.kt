@@ -200,10 +200,10 @@ fun FeedScreen(
 
 
 /**
- * The design's order: 热门 / 最新 / 精华 / 关注, then 推荐 kept from the old
- * home. 上升中 is on the website but `GET /api/v1/topics` has no such sort yet.
+ * The design's order: 热门 / 上升中 / 最新 / 精华 / 关注, then 推荐 kept from the
+ * old home.
  */
-private val FEED_SORTS = listOf(NodeSort.Hot, NodeSort.Latest, NodeSort.Featured, NodeSort.Following, NodeSort.Best)
+private val FEED_SORTS = listOf(NodeSort.Hot, NodeSort.Rising, NodeSort.Latest, NodeSort.Featured, NodeSort.Following, NodeSort.Best)
 
 @Composable
 private fun FeedSortChips(selected: NodeSort, isSignedIn: Boolean, onSelect: (NodeSort) -> Unit) {

@@ -231,6 +231,13 @@ enum class NodeSort(
     Latest("latest", R.string.sort_latest, R.string.sort_latest_detail),
     New("new", R.string.sort_new, R.string.sort_new_detail, requiresAuth = true),
     Hot("hot", R.string.sort_hot, R.string.sort_hot_detail),
+
+    /**
+     * Posted in the last three days and moving fastest over the last twelve
+     * hours (`sort=rising`, offset paged like hot). Home only: the server
+     * scopes it to a node too, but node pages have no chip row for it.
+     */
+    Rising("rising", R.string.sort_rising, R.string.sort_rising_detail, feedOnly = true),
     Featured("featured", R.string.sort_featured, R.string.sort_featured_detail),
     Top("top", R.string.sort_top, R.string.sort_top_detail),
 

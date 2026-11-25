@@ -2053,4 +2053,6 @@
     <string name="me4_node_owner">مالك العقدة</string>
     <string name="sidebar_apps">الألعاب والتطبيقات</string>
     <string name="sidebar_drafts_count">\u0020· %1$d</string>
+    <string name="sort_rising">الصاعدة</string>
+    <string name="sort_rising_detail">مواضيع يتزايد الاهتمام بها الآن</string>
 </resources>
