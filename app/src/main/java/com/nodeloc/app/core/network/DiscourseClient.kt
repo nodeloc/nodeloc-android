@@ -1298,8 +1298,14 @@ class DiscourseClient(
         call("DELETE", "api/v1/me/identities/$provider")
     }
 
+    /** Throws [CaptchaCancelled] if the reader closes the challenge. */
     suspend fun requestPasswordReset(login: String) {
-        call("POST", "api/v1/auth/password-reset", buildJsonObject { put("email", login.trim()) })
+        Captcha.guarded(api, Captcha.Action.PasswordReset, upfront = true) { captcha ->
+            call("POST", "api/v1/auth/password-reset", buildJsonObject {
+                put("email", login.trim())
+                captcha?.let { put("captcha", it) }
+            })
+        }
     }
 
     /** The native reauth window is short and unknown to the client; always ask. */

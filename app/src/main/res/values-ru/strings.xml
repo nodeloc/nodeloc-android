@@ -1506,4 +1506,8 @@
     <string name="compose2_title_edit">Редактирование</string>
     <string name="compose2_title_message">Новое сообщение</string>
     <string name="compose2_attach_after_publish">Прикрепится к теме после публикации</string>
+    <string name="captcha_title">Подтвердите, что вы человек</string>
+    <string name="captcha_body">Перед продолжением сайт просит пройти короткую проверку.</string>
+    <string name="captcha_failed">Проверка не загрузилась или истекла. Попробуйте ещё раз.</string>
+    <string name="captcha_cancelled">Проверка отменена.</string>
 </resources>

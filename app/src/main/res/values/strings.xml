@@ -1477,4 +1477,8 @@
     <string name="compose2_title_edit">Edit post</string>
     <string name="compose2_title_message">New message</string>
     <string name="compose2_attach_after_publish">Attached to the post once it\'s published</string>
+    <string name="captcha_title">Verify you\'re human</string>
+    <string name="captcha_body">The site asks for a quick check before you continue.</string>
+    <string name="captcha_failed">Verification didn\'t load or expired. Try again.</string>
+    <string name="captcha_cancelled">Verification was cancelled.</string>
 </resources>

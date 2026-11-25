@@ -1461,4 +1461,8 @@
     <string name="compose2_title_edit">Sửa bài viết</string>
     <string name="compose2_title_message">Tin nhắn mới</string>
     <string name="compose2_attach_after_publish">Tự gắn vào bài sau khi đăng</string>
+    <string name="captcha_title">Xác minh bạn là người</string>
+    <string name="captcha_body">Trang web cần một bước kiểm tra nhanh trước khi tiếp tục.</string>
+    <string name="captcha_failed">Không tải được hoặc đã hết hạn. Hãy thử lại.</string>
+    <string name="captcha_cancelled">Đã hủy xác minh.</string>
 </resources>

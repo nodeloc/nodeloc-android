@@ -1460,4 +1460,8 @@
     <string name="compose2_title_edit">投稿を編集</string>
     <string name="compose2_title_message">新しいメッセージ</string>
     <string name="compose2_attach_after_publish">投稿後に自動で添付されます</string>
+    <string name="captcha_title">ロボットでないことの確認</string>
+    <string name="captcha_body">続行する前に簡単な確認をお願いします。</string>
+    <string name="captcha_failed">確認を読み込めないか期限切れです。もう一度お試しください。</string>
+    <string name="captcha_cancelled">確認がキャンセルされました。</string>
 </resources>

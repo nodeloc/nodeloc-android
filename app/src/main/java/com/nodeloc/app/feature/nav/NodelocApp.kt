@@ -164,6 +164,8 @@ fun NodelocApp(startDestination: Any = Route.Home) {
     }
 
     LoginGateSheet(app, onOpenAuth = { signup -> navigator.openAuth(signup = signup) })
+    // Sign-in from any screen may need a human-verification token first.
+    com.nodeloc.app.feature.auth.CaptchaHost()
 }
 
 @Composable

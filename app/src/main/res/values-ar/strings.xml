@@ -1537,4 +1537,8 @@
     <string name="compose2_title_edit">تعديل المنشور</string>
     <string name="compose2_title_message">رسالة جديدة</string>
     <string name="compose2_attach_after_publish">يُرفق بالمنشور بعد نشره</string>
+    <string name="captcha_title">تحقق من أنك إنسان</string>
+    <string name="captcha_body">يطلب الموقع تحققًا سريعًا قبل المتابعة.</string>
+    <string name="captcha_failed">لم يُحمَّل التحقق أو انتهت صلاحيته. حاول مرة أخرى.</string>
+    <string name="captcha_cancelled">أُلغي التحقق.</string>
 </resources>

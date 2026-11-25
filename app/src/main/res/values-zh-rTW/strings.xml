@@ -1461,4 +1461,8 @@
     <string name="compose2_title_edit">編輯貼文</string>
     <string name="compose2_title_message">傳私訊</string>
     <string name="compose2_attach_after_publish">發布成功後自動掛到貼文上</string>
+    <string name="captcha_title">人機驗證</string>
+    <string name="captcha_body">繼續之前，網站需要先做一次簡單的驗證。</string>
+    <string name="captcha_failed">驗證沒載入或已過期，請再試一次。</string>
+    <string name="captcha_cancelled">已取消人機驗證。</string>
 </resources>

@@ -1462,4 +1462,8 @@
     <string name="compose2_title_edit">Edit postingan</string>
     <string name="compose2_title_message">Pesan baru</string>
     <string name="compose2_attach_after_publish">Dilampirkan setelah postingan terbit</string>
+    <string name="captcha_title">Verifikasi bahwa Anda manusia</string>
+    <string name="captcha_body">Situs meminta pemeriksaan singkat sebelum melanjutkan.</string>
+    <string name="captcha_failed">Verifikasi gagal dimuat atau kedaluwarsa. Coba lagi.</string>
+    <string name="captcha_cancelled">Verifikasi dibatalkan.</string>
 </resources>

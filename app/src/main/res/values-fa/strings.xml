@@ -1476,4 +1476,8 @@
     <string name="compose2_title_edit">ویرایش پست</string>
     <string name="compose2_title_message">پیام جدید</string>
     <string name="compose2_attach_after_publish">پس از انتشار به پست پیوست می‌شود</string>
+    <string name="captcha_title">تأیید انسان بودن</string>
+    <string name="captcha_body">سایت پیش از ادامه یک بررسی کوتاه می‌خواهد.</string>
+    <string name="captcha_failed">بررسی بارگیری نشد یا منقضی شد. دوباره تلاش کنید.</string>
+    <string name="captcha_cancelled">بررسی لغو شد.</string>
 </resources>

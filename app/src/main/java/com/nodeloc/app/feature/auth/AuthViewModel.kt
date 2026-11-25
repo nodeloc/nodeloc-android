@@ -170,7 +170,8 @@ class AuthViewModel : ViewModel() {
             if (login.isNotEmpty()) {
                 runCatchingCancellable { client.requestPasswordReset(login) }
                     .onSuccess { ToastCenter.show(R.string.security_reset_sent) }
-                    .onFailure { ToastCenter.showError(it) }
+                    // Closing the challenge is a choice, not a failure.
+                    .onFailure { if (it !is com.nodeloc.app.core.network.CaptchaCancelled) ToastCenter.showError(it) }
             } else {
                 CustomTabsIntent.Builder().build().launchUrl(
                     context,

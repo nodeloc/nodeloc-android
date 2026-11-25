@@ -111,20 +111,29 @@ class AuthService(
         if (login.isEmpty() || password.isEmpty()) throw AuthError.MissingCredentials
         val code = secondFactorToken?.trim()?.takeIf { it.isNotEmpty() }
         val body = try {
-            client.api.sendRaw(
-                "POST",
-                "api/v1/auth/login",
-                buildJsonObject {
-                    put("login", login)
-                    put("password", password)
-                    code?.let { put("code", it) }
-                    // Asking for a code at all means the account has 2FA; a
-                    // phone that just passed it is the device to trust.
-                    put("trust_device", code != null)
-                    put("device", device())
-                },
-                headers = store.get(SecureStore.KEY_TRUST)?.let { mapOf(TRUST_HEADER to it) }.orEmpty(),
-            )
+            // The second-factor step is not asked again: the server remembers
+            // that this login passed the challenge on the first step, for ten
+            // minutes. If that has lapsed it says so and gets a new token.
+            val upfront = code == null && Captcha.loginUpfront(client.api)
+            Captcha.guarded(client.api, Captcha.Action.Login, upfront) { captcha ->
+                client.api.sendRaw(
+                    "POST",
+                    "api/v1/auth/login",
+                    buildJsonObject {
+                        put("login", login)
+                        put("password", password)
+                        code?.let { put("code", it) }
+                        // Asking for a code at all means the account has 2FA; a
+                        // phone that just passed it is the device to trust.
+                        put("trust_device", code != null)
+                        captcha?.let { put("captcha", it) }
+                        put("device", device())
+                    },
+                    headers = store.get(SecureStore.KEY_TRUST)?.let { mapOf(TRUST_HEADER to it) }.orEmpty(),
+                )
+            }
+        } catch (error: CaptchaCancelled) {
+            throw AuthError.LoginFailed(context.getString(R.string.captcha_cancelled))
         } catch (error: DiscourseError.BadResponse) {
             when (error.fault?.type) {
                 "second_factor_required" -> throw AuthError.SecondFactorRequired
@@ -173,18 +182,23 @@ class AuthService(
         val mail = email.trim()
         if (user.isEmpty() || mail.isEmpty() || password.isEmpty()) throw AuthError.MissingCredentials
         val body = try {
-            client.api.sendRaw(
-                "POST",
-                "api/v1/auth/register",
-                buildJsonObject {
-                    put("username", user)
-                    put("name", name.trim())
-                    put("email", mail)
-                    put("password", password)
-                    inviteCodeField().forEach { (key, value) -> put(key, value) }
-                    put("device", device())
-                },
-            )
+            Captcha.guarded(client.api, Captcha.Action.Register, upfront = true) { captcha ->
+                client.api.sendRaw(
+                    "POST",
+                    "api/v1/auth/register",
+                    buildJsonObject {
+                        put("username", user)
+                        put("name", name.trim())
+                        put("email", mail)
+                        put("password", password)
+                        inviteCodeField().forEach { (key, value) -> put(key, value) }
+                        captcha?.let { put("captcha", it) }
+                        put("device", device())
+                    },
+                )
+            }
+        } catch (error: CaptchaCancelled) {
+            throw AuthError.SignupFailed(context.getString(R.string.captcha_cancelled))
         } catch (error: DiscourseError.BadResponse) {
             throw AuthError.SignupFailed(error.serverMessage ?: context.getString(error.messageRes))
         }
