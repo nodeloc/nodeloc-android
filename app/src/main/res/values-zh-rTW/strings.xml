@@ -1467,4 +1467,15 @@
     <string name="captcha_cancelled">已取消人機驗證。</string>
     <string name="mod_entry_show_all">展開全部 %1$d 個</string>
     <string name="mod_entry_show_less">收起</string>
+    <string name="mod_log_self_delete">%1$s 註銷了自己的帳號</string>
+    <string name="mod_log_generic">%1$s 在「%2$s」裡做了一次操作</string>
+    <string name="mod_log_area_promo">推廣</string>
+    <string name="mod_log_area_pay">支付</string>
+    <string name="mod_log_area_apps">應用</string>
+    <string name="mod_log_area_announcement">公告</string>
+    <string name="mod_log_area_settings">站點設定</string>
+    <string name="mod_log_area_oauth">開放登入</string>
+    <string name="mod_log_area_tags">標籤</string>
+    <string name="mod_log_area_achievements">成就</string>
+    <string name="mod_log_area_broadcast">群發通知</string>
 </resources>

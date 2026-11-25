@@ -1512,4 +1512,15 @@
     <string name="captcha_cancelled">Проверка отменена.</string>
     <string name="mod_entry_show_all">Показать все (%1$d)</string>
     <string name="mod_entry_show_less">Свернуть</string>
+    <string name="mod_log_self_delete">%1$s удалил(а) свой аккаунт</string>
+    <string name="mod_log_generic">%1$s внёс(ла) изменение в разделе «%2$s»</string>
+    <string name="mod_log_area_promo">Продвижение</string>
+    <string name="mod_log_area_pay">Платежи</string>
+    <string name="mod_log_area_apps">Приложения</string>
+    <string name="mod_log_area_announcement">Объявления</string>
+    <string name="mod_log_area_settings">Настройки сайта</string>
+    <string name="mod_log_area_oauth">Вход через сайт</string>
+    <string name="mod_log_area_tags">Теги</string>
+    <string name="mod_log_area_achievements">Достижения</string>
+    <string name="mod_log_area_broadcast">Рассылки</string>
 </resources>

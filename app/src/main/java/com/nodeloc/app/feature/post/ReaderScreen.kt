@@ -711,7 +711,6 @@ fun ReaderScreen(
             scrolledUnder = listState.isScrolledPastTop(threshold = 0),
             onClose = navigator::back,
             onOpenNode = { state.categoryId?.let { navigator.openNode(it) } },
-            onSort = viewModel::applySort,
             onCopyLink = {
                 clipboard?.setPrimaryClip(
                     android.content.ClipData.newPlainText("nodeloc", "${DiscourseConfig.BASE_URL}/t/$topicId"),
@@ -1177,7 +1176,6 @@ private fun ReaderHeader(
     scrolledUnder: Boolean,
     onClose: () -> Unit,
     onOpenNode: () -> Unit,
-    onSort: (ReplySort) -> Unit,
     onCopyLink: () -> Unit,
     onShare: () -> Unit,
     onBookmark: () -> Unit,
@@ -1192,7 +1190,6 @@ private fun ReaderHeader(
     onModerate: () -> Unit,
     onDeleteTopic: () -> Unit,
 ) {
-    var sortMenu by remember { mutableStateOf(false) }
     var moreMenu by remember { mutableStateOf(false) }
 
     FloatingHeaderBar(
@@ -1227,22 +1224,8 @@ private fun ReaderHeader(
         },
         trailing = {
             HeaderGroup {
-                Box {
-                    CapsuleIconButton(Lucide.ArrowUpDown, stringResource(R.string.reader_reply_sort), onClick = { sortMenu = true })
-                    DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
-                        ReplySort.entries.forEach { option ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        stringResource(option.labelRes),
-                                        color = if (option == state.replySort) Nocturne.accent else Nocturne.text,
-                                    )
-                                },
-                                onClick = { sortMenu = false; onSort(option) },
-                            )
-                        }
-                    }
-                }
+                // Reply order lives on the "N 条回复" heading (design: 日常 3);
+                // a second control up here only made two places to change it.
                 Box {
                     CapsuleIconButton(Lucide.EllipsisVertical, stringResource(R.string.common_more), onClick = { moreMenu = true })
                     DropdownMenu(expanded = moreMenu, onDismissRequest = { moreMenu = false }) {

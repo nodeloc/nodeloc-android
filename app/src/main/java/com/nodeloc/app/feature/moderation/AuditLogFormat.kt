@@ -137,9 +137,15 @@ internal fun logSentence(entry: LogEntry): String {
         "access.update" -> stringResource(R.string.mod_log_access_update, actor)
         "risk.false_positive", "risk.lenient" -> stringResource(R.string.mod_log_appeal_accept, actor, target)
         "risk.appeal_reject" -> stringResource(R.string.mod_log_appeal_reject, actor, target)
+        "user.self_delete" -> stringResource(R.string.mod_log_self_delete, target.ifBlank { actor })
         else -> when {
             entry.action.endsWith(".update") -> stringResource(R.string.mod_log_settings_update, actor)
-            else -> listOf(actor, entry.action, target).filter { it.isNotBlank() }.joinToString(" ")
+            // The backend logs some seventy action codes across modules (promo,
+            // pay, apps…); a sentence for each would be a second copy of the
+            // admin site. The area in words reads; the raw code is kept in the
+            // grey line for whoever needs to look it up.
+            else -> stringResource(R.string.mod_log_generic, actor, areaLabel(entry.action.substringBefore('.'))) +
+                (if (target.isNotBlank()) " · $target" else "")
         }
     }.let { sentence -> if (title != null && entry.action.startsWith("topic.")) "$sentence · $title" else sentence }
 }
@@ -161,6 +167,28 @@ internal fun logMeta(entry: LogEntry, time: String): String {
         node?.let { stringResource(R.string.mod_dash_node_slug, it) },
         from?.let { stringResource(R.string.mod_log_from_node, it) },
         reason?.take(80),
+        entry.action.takeIf { isGenericAction(it) },
         time.ifEmpty { null },
     ).joinToString(" · ")
+}
+
+/** Areas the sentence table above covers; anything else is told by area, with its code shown. */
+private val SENTENCE_AREAS = setOf("user", "restrict", "review", "node", "post", "topic", "moderator", "member", "rules", "access", "risk")
+
+private fun isGenericAction(action: String): Boolean =
+    action != "user.self_delete" && !action.endsWith(".update") &&
+        (action.substringBefore('.') !in SENTENCE_AREAS)
+
+@Composable
+private fun areaLabel(area: String): String = when (area) {
+    "promo" -> stringResource(R.string.mod_log_area_promo)
+    "pay" -> stringResource(R.string.mod_log_area_pay)
+    "apps", "app" -> stringResource(R.string.mod_log_area_apps)
+    "announcement", "announce" -> stringResource(R.string.mod_log_area_announcement)
+    "setting", "settings" -> stringResource(R.string.mod_log_area_settings)
+    "oauth" -> stringResource(R.string.mod_log_area_oauth)
+    "tag" -> stringResource(R.string.mod_log_area_tags)
+    "achievement" -> stringResource(R.string.mod_log_area_achievements)
+    "broadcast" -> stringResource(R.string.mod_log_area_broadcast)
+    else -> area
 }

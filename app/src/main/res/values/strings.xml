@@ -1483,4 +1483,15 @@
     <string name="captcha_cancelled">Verification was cancelled.</string>
     <string name="mod_entry_show_all">Show all %1$d</string>
     <string name="mod_entry_show_less">Show less</string>
+    <string name="mod_log_self_delete">%1$s deleted their own account</string>
+    <string name="mod_log_generic">%1$s made a change in %2$s</string>
+    <string name="mod_log_area_promo">Promotion</string>
+    <string name="mod_log_area_pay">Payments</string>
+    <string name="mod_log_area_apps">Apps</string>
+    <string name="mod_log_area_announcement">Announcements</string>
+    <string name="mod_log_area_settings">Site settings</string>
+    <string name="mod_log_area_oauth">Open login</string>
+    <string name="mod_log_area_tags">Tags</string>
+    <string name="mod_log_area_achievements">Achievements</string>
+    <string name="mod_log_area_broadcast">Broadcasts</string>
 </resources>

@@ -1467,4 +1467,15 @@
     <string name="captcha_cancelled">Đã hủy xác minh.</string>
     <string name="mod_entry_show_all">Xem tất cả %1$d</string>
     <string name="mod_entry_show_less">Thu gọn</string>
+    <string name="mod_log_self_delete">%1$s đã xóa tài khoản của mình</string>
+    <string name="mod_log_generic">%1$s đã thao tác trong «%2$s»</string>
+    <string name="mod_log_area_promo">Quảng bá</string>
+    <string name="mod_log_area_pay">Thanh toán</string>
+    <string name="mod_log_area_apps">Ứng dụng</string>
+    <string name="mod_log_area_announcement">Thông báo</string>
+    <string name="mod_log_area_settings">Cài đặt trang</string>
+    <string name="mod_log_area_oauth">Đăng nhập mở</string>
+    <string name="mod_log_area_tags">Thẻ</string>
+    <string name="mod_log_area_achievements">Thành tựu</string>
+    <string name="mod_log_area_broadcast">Thông báo hàng loạt</string>
 </resources>

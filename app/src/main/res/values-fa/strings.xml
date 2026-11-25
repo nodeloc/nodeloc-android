@@ -1482,4 +1482,15 @@
     <string name="captcha_cancelled">بررسی لغو شد.</string>
     <string name="mod_entry_show_all">نمایش همه (%1$d)</string>
     <string name="mod_entry_show_less">نمایش کمتر</string>
+    <string name="mod_log_self_delete">%1$s حساب خود را حذف کرد</string>
+    <string name="mod_log_generic">%1$s در «%2$s» تغییری داد</string>
+    <string name="mod_log_area_promo">تبلیغات</string>
+    <string name="mod_log_area_pay">پرداخت</string>
+    <string name="mod_log_area_apps">برنامه‌ها</string>
+    <string name="mod_log_area_announcement">اطلاعیه‌ها</string>
+    <string name="mod_log_area_settings">تنظیمات سایت</string>
+    <string name="mod_log_area_oauth">ورود باز</string>
+    <string name="mod_log_area_tags">برچسب‌ها</string>
+    <string name="mod_log_area_achievements">دستاوردها</string>
+    <string name="mod_log_area_broadcast">پیام همگانی</string>
 </resources>

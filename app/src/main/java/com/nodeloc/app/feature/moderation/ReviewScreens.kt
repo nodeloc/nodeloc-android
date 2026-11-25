@@ -625,8 +625,15 @@ private fun ItemPills(item: ApiReviewItem) {
         if (item.priority) StatusPill(stringResource(R.string.mod_review_pill_priority), PillTone.Danger)
         if (item.kind == QUEUE_HELD_KIND) heldPill(item.heldReason)
         if (item.reportCount > 0) StatusPill(stringResource(R.string.mod_review_pill_reports, item.reportCount.toInt()), PillTone.Danger)
-        if (item.postDeleted) StatusPill(stringResource(R.string.mod_review_pill_deleted), PillTone.Neutral)
-        else if (item.postHidden) StatusPill(stringResource(R.string.mod_review_pill_hidden), PillTone.Warning)
+        // The post's state and the item's resolution usually say the same thing
+        // ("deleted" twice); the state pill is only worth its room when it
+        // differs — a post deleted outside the queue, or restored since.
+        val resolutionSaysIt = (item.postDeleted && item.resolution == "delete_post") ||
+            (item.postHidden && item.resolution == "hide_post")
+        if (!resolutionSaysIt || item.status == "pending") {
+            if (item.postDeleted) StatusPill(stringResource(R.string.mod_review_pill_deleted), PillTone.Neutral)
+            else if (item.postHidden) StatusPill(stringResource(R.string.mod_review_pill_hidden), PillTone.Warning)
+        }
         if (item.status != "pending") StatusPill(stringResource(resolutionLabel(item.resolution)), PillTone.Accent)
     }
 }

@@ -1468,4 +1468,15 @@
     <string name="captcha_cancelled">Verifikasi dibatalkan.</string>
     <string name="mod_entry_show_all">Tampilkan semua %1$d</string>
     <string name="mod_entry_show_less">Tampilkan lebih sedikit</string>
+    <string name="mod_log_self_delete">%1$s menghapus akunnya sendiri</string>
+    <string name="mod_log_generic">%1$s membuat perubahan di %2$s</string>
+    <string name="mod_log_area_promo">Promosi</string>
+    <string name="mod_log_area_pay">Pembayaran</string>
+    <string name="mod_log_area_apps">Aplikasi</string>
+    <string name="mod_log_area_announcement">Pengumuman</string>
+    <string name="mod_log_area_settings">Pengaturan situs</string>
+    <string name="mod_log_area_oauth">Login terbuka</string>
+    <string name="mod_log_area_tags">Tag</string>
+    <string name="mod_log_area_achievements">Pencapaian</string>
+    <string name="mod_log_area_broadcast">Siaran</string>
 </resources>

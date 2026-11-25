@@ -1543,4 +1543,15 @@
     <string name="captcha_cancelled">أُلغي التحقق.</string>
     <string name="mod_entry_show_all">عرض الكل (%1$d)</string>
     <string name="mod_entry_show_less">عرض أقل</string>
+    <string name="mod_log_self_delete">حذف %1$s حسابه</string>
+    <string name="mod_log_generic">أجرى %1$s تغييرًا في «%2$s»</string>
+    <string name="mod_log_area_promo">الترويج</string>
+    <string name="mod_log_area_pay">المدفوعات</string>
+    <string name="mod_log_area_apps">التطبيقات</string>
+    <string name="mod_log_area_announcement">الإعلانات</string>
+    <string name="mod_log_area_settings">إعدادات الموقع</string>
+    <string name="mod_log_area_oauth">تسجيل الدخول المفتوح</string>
+    <string name="mod_log_area_tags">الوسوم</string>
+    <string name="mod_log_area_achievements">الإنجازات</string>
+    <string name="mod_log_area_broadcast">البث</string>
 </resources>

@@ -1466,4 +1466,15 @@
     <string name="captcha_cancelled">確認がキャンセルされました。</string>
     <string name="mod_entry_show_all">すべて表示（%1$d）</string>
     <string name="mod_entry_show_less">折りたたむ</string>
+    <string name="mod_log_self_delete">%1$s が自分のアカウントを削除しました</string>
+    <string name="mod_log_generic">%1$s が「%2$s」で操作しました</string>
+    <string name="mod_log_area_promo">プロモーション</string>
+    <string name="mod_log_area_pay">決済</string>
+    <string name="mod_log_area_apps">アプリ</string>
+    <string name="mod_log_area_announcement">お知らせ</string>
+    <string name="mod_log_area_settings">サイト設定</string>
+    <string name="mod_log_area_oauth">外部ログイン</string>
+    <string name="mod_log_area_tags">タグ</string>
+    <string name="mod_log_area_achievements">実績</string>
+    <string name="mod_log_area_broadcast">一斉通知</string>
 </resources>

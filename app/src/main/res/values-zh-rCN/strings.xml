@@ -1467,4 +1467,15 @@
     <string name="captcha_cancelled">已取消人机验证。</string>
     <string name="mod_entry_show_all">展开全部 %1$d 个</string>
     <string name="mod_entry_show_less">收起</string>
+    <string name="mod_log_self_delete">%1$s 注销了自己的账号</string>
+    <string name="mod_log_generic">%1$s 在「%2$s」里做了一次操作</string>
+    <string name="mod_log_area_promo">推广</string>
+    <string name="mod_log_area_pay">支付</string>
+    <string name="mod_log_area_apps">应用</string>
+    <string name="mod_log_area_announcement">公告</string>
+    <string name="mod_log_area_settings">站点设置</string>
+    <string name="mod_log_area_oauth">开放登录</string>
+    <string name="mod_log_area_tags">标签</string>
+    <string name="mod_log_area_achievements">成就</string>
+    <string name="mod_log_area_broadcast">群发通知</string>
 </resources>
