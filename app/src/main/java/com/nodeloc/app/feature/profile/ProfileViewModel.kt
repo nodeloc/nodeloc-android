@@ -107,6 +107,8 @@ data class ProfileState(
     val tiers: List<ApiTierInfo> = emptyList(),
     /** Own page only: the nodes the account has joined, for the 常去节点 card. */
     val joinedNodes: List<com.nodeloc.app.core.model.NodeSummary>? = null,
+    /** Someone else's page: every node by slug, to draw the ones their activity names. */
+    val nodeDirectory: Map<String, com.nodeloc.app.core.model.NodeSummary> = emptyMap(),
     /**
      * This account on the energy board, when it made the first page the server
      * serves: the only public source of someone else's balance and rank.
@@ -215,12 +217,25 @@ class ProfileViewModel : ViewModel() {
             // for on the account's own page alone.
             val pointsJob = async { if (own) runCatchingCancellable { client.pointsTotal(username) }.getOrNull() else null }
             val repJob = async { if (own) runCatchingCancellable { growth.reputation() }.getOrNull() else null }
-            val achJob = async { if (own) runCatchingCancellable { growth.achievements() }.getOrNull() else null }
+            // Someone else's page asks too, when signed in: their own count
+            // comes with the profile, but the "/ total" beside it only from here.
+            val achJob = async { if (own || session.isSignedIn.value) runCatchingCancellable { growth.achievements() }.getOrNull() else null }
             val showcaseJob = async { if (!own) runCatchingCancellable { growth.showcase(username) }.getOrNull() else null }
             val checkinJob = async { if (own) runCatchingCancellable { growth.checkinStatus() }.getOrNull() else null }
             val tiersJob = async { TierDirectory.get() }
             val nodesJob = async {
                 if (own) runCatchingCancellable { client.sidebarNodes().communities.orEmpty().map(com.nodeloc.app.feature.node.NodeSummaryFactory::summary) }.getOrNull() else null
+            }
+            // Someone else's 常去节点 are worked out from their activity, which
+            // names nodes by slug alone; the directory (cached) gives them faces.
+            val directoryJob = async {
+                if (own) {
+                    emptyMap()
+                } else {
+                    runCatchingCancellable {
+                        client.nodeDirectory().associate { it.slug to com.nodeloc.app.feature.node.NodeSummaryFactory.summary(com.nodeloc.app.core.network.Legacy.category(it)) }
+                    }.getOrDefault(emptyMap())
+                }
             }
             // One request for the whole first page, not one per profile field:
             // the board is the same for every profile opened.
@@ -242,15 +257,16 @@ class ProfileViewModel : ViewModel() {
                 pointsTotal = pointsJob.await()?.totalScores,
                 reputation = repJob.await(),
                 publicReputation = showcase?.reputation,
-                achievementsUnlocked = overview?.unlockedCount,
-                achievementsTotal = overview?.total,
-                achievementBadges = overview?.achievements
+                achievementsUnlocked = if (own) overview?.unlockedCount else profile?.achievementCount,
+                achievementsTotal = overview?.total?.takeIf { it > 0 },
+                achievementBadges = overview?.takeIf { own }?.achievements
                     ?.filter { it.unlocked }
                     ?.sortedByDescending { it.lastAt ?: it.unlockedAt.orEmpty() }
                     ?.take(3)
                     ?: showcase?.showcase.orEmpty(),
                 tiers = tiersJob.await(),
                 joinedNodes = nodesJob.await(),
+                nodeDirectory = directoryJob.await(),
                 boardRow = boardJob.await()?.firstOrNull { it.username.equals(username, ignoreCase = true) },
                 isFollowing = profile?.isFollowed == true,
                 isLoading = false,

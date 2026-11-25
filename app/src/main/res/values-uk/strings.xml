@@ -2034,4 +2034,5 @@
     <string name="sidebar_drafts_count">\u0020· %1$d</string>
     <string name="sort_rising">Набирають популярність</string>
     <string name="sort_rising_detail">Теми, що зараз набирають обертів</string>
+    <string name="me4_node_owner_of">Власник n/%1$s</string>
 </resources>

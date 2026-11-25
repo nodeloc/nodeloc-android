@@ -1015,6 +1015,10 @@ data class UserProfile(
      */
     val ignoredUsernames: List<String>? = null,
     val canIgnoreUsers: Boolean? = null,
+    /** 2.0: achievements held, shown as "N / total" on the profile. */
+    val achievementCount: Int? = null,
+    /** 2.0: slugs of the nodes this member owns, for the 主理人 pill. */
+    val ownedNodes: List<String> = emptyList(),
 )
 
 @Serializable

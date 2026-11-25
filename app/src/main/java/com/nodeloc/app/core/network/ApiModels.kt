@@ -37,6 +37,10 @@ data class ApiUser(
     val viewerFollowing: Boolean? = null,
     val viewerBlocked: Boolean? = null,
     val canMessage: Boolean? = null,
+    /** How many achievements they hold; public even when the list itself is not. */
+    val achievementCount: Int? = null,
+    /** The nodes they own (主理人), slug and name. */
+    val ownedNodes: List<ApiNodeRef> = emptyList(),
 ) {
     val isAdmin: Boolean get() = role == "admin"
     val isModerator: Boolean get() = role == "moderator" || role == "admin"
@@ -677,3 +681,7 @@ data class ApiAchievements(val showcase: List<ApiAchievement> = emptyList())
 
 @Serializable
 data class ApiFlags(val flags: Map<String, Boolean> = emptyMap())
+
+/** A node named in passing: a user's `owned_nodes`. */
+@Serializable
+data class ApiNodeRef(val slug: String = "", val name: String? = null)

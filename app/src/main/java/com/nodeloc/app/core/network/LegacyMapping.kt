@@ -506,6 +506,8 @@ object Legacy {
                 canFollow = true,
                 isFollowed = u.viewerFollowing,
                 canIgnoreUsers = true,
+                achievementCount = u.achievementCount,
+                ownedNodes = u.ownedNodes.map { it.slug }.filter { it.isNotEmpty() },
             ),
         )
     }

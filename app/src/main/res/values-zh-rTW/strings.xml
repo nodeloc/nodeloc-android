@@ -2004,4 +2004,5 @@
     <string name="sidebar_drafts_count">\u0020· %1$d 篇</string>
     <string name="sort_rising">上升中</string>
     <string name="sort_rising_detail">熱度正在上升的主題</string>
+    <string name="me4_node_owner_of">n/%1$s 主理人</string>
 </resources>
