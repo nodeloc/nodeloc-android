@@ -117,6 +117,7 @@ data class TopicListItem(
     val bumpedAt: String? = null,
     val categoryId: Int? = null,
     val pinned: Boolean? = null,
+    val featured: Boolean? = null,
     /** Per-user read state; only present when signed in. */
     val unseen: Boolean? = null,
     val lastReadPostNumber: Int? = null,

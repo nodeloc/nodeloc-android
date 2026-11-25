@@ -37,12 +37,31 @@ value class PostTextStyle(val bits: Int) {
     }
 }
 
+enum class LinkKind { Plain, Node, Tag }
+
+/**
+ * A node reference's avatar as the backend writes it: the node's logo, or a
+ * letter on the node's own colour (`#rrggbb`) when it has none.
+ */
+data class NodeBadge(val logoUrl: String? = null, val letter: String? = null, val color: String? = null)
+
 sealed interface PostInline {
     data class Text(val value: String) : PostInline
     data class Styled(val value: String, val style: PostTextStyle) : PostInline
 
-    /** Children rather than a flat string, so a link can contain styled runs. */
-    data class Link(val href: String, val children: List<PostInline>) : PostInline
+    /**
+     * Children rather than a flat string, so a link can contain styled runs.
+     *
+     * [kind] and [badge] are what the backend's reference markup says about the
+     * target: a node or a tag reads as a place to go, drawn as a chip, and an
+     * ordinary link as prose.
+     */
+    data class Link(
+        val href: String,
+        val children: List<PostInline>,
+        val kind: LinkKind = LinkKind.Plain,
+        val badge: NodeBadge? = null,
+    ) : PostInline
     data class Mention(val username: String) : PostInline
 
     /** `<img class="emoji">`; the shortcode is the fallback while it loads. */

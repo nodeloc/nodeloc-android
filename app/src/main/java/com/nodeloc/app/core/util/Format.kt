@@ -228,6 +228,7 @@ object FeedMapper {
             comments = (topicPostCount(topic) - 1).coerceAtLeast(0),
             hasImage = media.isNotEmpty(),
             pinned = topic.pinned == true,
+            featured = topic.featured == true,
             isUnread = topic.unseen == true || hasUnreadPosts,
             imageUrl = media.firstOrNull()?.url,
             avatarUrl = DiscourseConfig.avatarUrl(author?.avatarTemplate, 80),

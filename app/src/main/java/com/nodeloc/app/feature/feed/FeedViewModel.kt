@@ -31,6 +31,8 @@ data class FeedUiState(
     val isLoading: Boolean = false,
     val isLoadingMore: Boolean = false,
     val hasMore: Boolean = false,
+    /** The last next-page request failed; the foot of the list offers a retry. */
+    val loadMoreFailed: Boolean = false,
     val error: Throwable? = null,
 ) {
     val showSkeleton: Boolean get() = isLoading && posts.isEmpty()
@@ -175,12 +177,17 @@ class FeedViewModel : ViewModel() {
         }
     }
 
-    /** Safe to call repeatedly: a no-op while a page is in flight. */
-    fun loadMore() {
+    /**
+     * Safe to call repeatedly: a no-op while a page is in flight. After a
+     * failure only an explicit [retry] tries again — the end-of-list trigger
+     * fires on every layout pass, and would otherwise hammer a dead connection.
+     */
+    fun loadMore(retry: Boolean = false) {
         val current = _state.value
         if (!current.hasMore || current.isLoadingMore || current.isLoading) return
+        if (current.loadMoreFailed && !retry) return
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoadingMore = true)
+            _state.value = _state.value.copy(isLoadingMore = true, loadMoreFailed = false)
             try {
                 val latest = client.topics(_state.value.sort.key, page + 1)
                 page += 1
@@ -194,8 +201,8 @@ class FeedViewModel : ViewModel() {
                 )
             } catch (error: Throwable) {
                 error.rethrowIfCancellation()
-                // Keep what is shown; the sentinel retries when it reappears.
-                _state.value = _state.value.copy(isLoadingMore = false)
+                // Keep what is shown; the foot of the list says so and offers a retry.
+                _state.value = _state.value.copy(isLoadingMore = false, loadMoreFailed = true)
             }
         }
     }

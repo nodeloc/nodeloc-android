@@ -21,6 +21,11 @@ import com.nodeloc.app.core.network.DiscourseClient
 import com.nodeloc.app.core.network.ApiNotification
 import com.nodeloc.app.core.network.ApiNotificationList
 import com.nodeloc.app.core.network.Legacy
+import com.nodeloc.app.core.network.NodelocApi
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
@@ -228,11 +233,16 @@ data class NotificationMeta(
     val title: String?,
     val body: String?,
     val path: String?,
+    /** The post the note is about: 1 is the topic itself, anything higher a comment in it. */
+    val postNumber: Int? = null,
+    val createdAt: String? = null,
+    /** Whether the viewer already follows the actor — what decides the 回关 button. */
+    val followingActor: Boolean = false,
 ) {
     companion object {
         private val NODE_MANAGE = Regex("^/n/[^/]+/manage")
 
-        fun of(item: ApiNotification): NotificationMeta {
+        fun of(item: ApiNotification, followingActor: Boolean = false): NotificationMeta {
             val data = item.data as? JsonObject
             fun field(name: String): String? =
                 (data?.get(name) as? JsonPrimitive)?.contentOrNull?.trim()?.takeIf { it.isNotEmpty() }
@@ -260,15 +270,33 @@ data class NotificationMeta(
                 title = field("title"),
                 body = field("body"),
                 path = path,
+                postNumber = item.postNumber,
+                createdAt = item.createdAt,
+                followingActor = followingActor,
             )
         }
     }
 }
 
+/** A page of notifications, and the cursor the server handed back for the next one. */
+data class NotificationPage(
+    val rows: List<Pair<InboxNotification, NotificationMeta>>,
+    val nextBefore: Long?,
+)
+
+/** Only the flag the shared notification DTO does not carry; everything else is read through that. */
+@Serializable
+private data class FollowFlags(val notifications: List<FollowFlag> = emptyList())
+
+@Serializable
+private data class FollowFlag(val id: Int = 0, val followingActor: Boolean = false)
+
 data class MessageCenterState(
     val notifications: List<InboxNotification> = emptyList(),
     /** What the native list says about each row that the legacy row has no room for; keyed by id. */
     val notificationMeta: Map<Int, NotificationMeta> = emptyMap(),
+    /** Where the shared list's next page starts; null when the first page was all there is. */
+    val notificationsNextBefore: Long? = null,
     val conversations: List<PrivateMessageSummary> = emptyList(),
     val groupConversations: List<PrivateMessageSummary> = emptyList(),
     val messageGroups: List<String> = emptyList(),
@@ -335,9 +363,10 @@ class MessageCenterRepository(
         val current = session.refresh(force = true)
         val groups = current?.groups.orEmpty().filter { it.hasMessages == true }.map { it.name }
 
-        val fetched = runCatchingCancellable { fetchNotifications(filter = null) }
+        val page = runCatchingCancellable { fetchNotificationPage(filter = null) }
             .onFailure { error = it }
-            .getOrDefault(emptyList())
+            .getOrNull()
+        val fetched = page?.rows.orEmpty()
         val notifications = fetched.map { it.first }
         val meta = fetched.associate { it.first.id to it.second }
 
@@ -359,6 +388,7 @@ class MessageCenterRepository(
         _state.value = _state.value.copy(
             notifications = notifications,
             notificationMeta = meta,
+            notificationsNextBefore = page?.nextBefore,
             conversations = conversations,
             messageGroups = groups,
             channels = channels,
@@ -468,19 +498,85 @@ class MessageCenterRepository(
      *
      * [filter] is the server's own (`reply`, `mention`, `system`, …); null is all.
      */
-    suspend fun fetchNotifications(filter: String?): List<Pair<InboxNotification, NotificationMeta>> {
-        val list = client.api.get<ApiNotificationList>(
+    suspend fun fetchNotifications(filter: String?): List<Pair<InboxNotification, NotificationMeta>> =
+        fetchNotificationPage(filter).rows
+
+    /**
+     * One page of the list, and where the next one starts.
+     *
+     * The body is decoded twice: `following_actor` is not on the shared DTO,
+     * and it is the only way to know whether a follower has been followed
+     * back without asking about each of them in turn.
+     */
+    suspend fun fetchNotificationPage(filter: String?, before: Long? = null): NotificationPage {
+        val raw = client.api.getRaw(
             "api/v1/notifications",
             buildList {
                 add("limit" to "50")
                 filter?.let { add("filter" to it) }
+                before?.let { add("before" to it.toString()) }
             },
         )
-        return list.notifications.map { item ->
-            val row = NotificationFormatter.row(context, Legacy.notification(item))
-                .copy(avatarUrl = DiscourseConfig.absoluteUrl(item.actorAvatar))
-            row to NotificationMeta.of(item)
+        val list = NodelocApi.json.decodeFromString<ApiNotificationList>(raw)
+        val following = runCatching { NodelocApi.json.decodeFromString<FollowFlags>(raw) }.getOrNull()
+            ?.notifications.orEmpty()
+            .associate { it.id to it.followingActor }
+        return NotificationPage(
+            rows = list.notifications.map { item ->
+                val row = NotificationFormatter.row(context, Legacy.notification(item))
+                    .copy(avatarUrl = DiscourseConfig.absoluteUrl(item.actorAvatar))
+                row to NotificationMeta.of(item, following[item.id] == true)
+            },
+            nextBefore = list.nextBefore,
+        )
+    }
+
+    /** The next page of the shared list, appended where the badge and the "all" view read it. */
+    suspend fun loadMoreNotifications() {
+        val before = _state.value.notificationsNextBefore ?: return
+        val page = fetchNotificationPage(null, before)
+        val known = _state.value.notifications.map { it.id }.toSet()
+        val fresh = page.rows.filter { it.first.id !in known }
+        _state.value = _state.value.copy(
+            notifications = _state.value.notifications + fresh.map { it.first },
+            notificationMeta = _state.value.notificationMeta + fresh.associate { it.first.id to it.second },
+            notificationsNextBefore = page.nextBefore,
+        ).let { it.copy(unreadNotifications = countUnread(it.notifications)) }
+    }
+
+    /**
+     * Puts a read note back to unread, for a reader who wants it to keep
+     * nagging. Optimistic like reading it; a failure restores the row and is
+     * rethrown so the screen can say so — this one the user asked for.
+     */
+    suspend fun markNotificationUnread(id: Int) {
+        val row = _state.value.notifications.firstOrNull { it.id == id }
+        if (row != null && row.read) {
+            _state.value = _state.value.copy(
+                notifications = _state.value.notifications.map { if (it.id == id) it.copy(read = false) else it },
+            ).let { it.copy(unreadNotifications = countUnread(it.notifications)) }
         }
+        try {
+            client.api.sendRaw("POST", "api/v1/notifications/unread", buildJsonObject { put("id", id) })
+        } catch (error: Throwable) {
+            if (row != null) {
+                _state.value = _state.value.copy(
+                    notifications = _state.value.notifications.map { if (it.id == id) row else it },
+                ).let { it.copy(unreadNotifications = countUnread(it.notifications)) }
+            }
+            throw error
+        }
+    }
+
+    /** After a follow back, every note from that person should stop offering one. */
+    fun setFollowingActor(actor: String, following: Boolean) {
+        val meta = _state.value.notificationMeta
+        if (meta.values.none { it.actor.equals(actor, ignoreCase = true) }) return
+        _state.value = _state.value.copy(
+            notificationMeta = meta.mapValues { (_, m) ->
+                if (m.actor.equals(actor, ignoreCase = true)) m.copy(followingActor = following) else m
+            },
+        )
     }
 
     /**

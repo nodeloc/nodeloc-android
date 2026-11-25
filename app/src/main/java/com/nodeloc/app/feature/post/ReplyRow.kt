@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.composables.icons.lucide.EllipsisVertical
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.ChevronDown
+import com.composables.icons.lucide.CircleCheck
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pin
 import com.composables.icons.lucide.Trash2
@@ -70,6 +72,7 @@ import com.nodeloc.app.core.design.Type
 import com.nodeloc.app.core.design.VoteControl
 import com.nodeloc.app.core.design.colors
 import com.nodeloc.app.core.html.PostContentView
+import com.nodeloc.app.core.html.PostLinks
 import com.nodeloc.app.core.html.PostVideo
 import com.nodeloc.app.core.html.PostImage
 import com.nodeloc.app.core.model.PostComment
@@ -136,6 +139,8 @@ fun ReplyRow(
     onLoadMoreChildren: (Int) -> Unit,
     pollSlot: @Composable (String) -> Unit,
     modifier: Modifier = Modifier,
+    /** Link cards and this reply's click counts; see [ReaderState.linksFor]. */
+    links: PostLinks = PostLinks.Empty,
     /** Written by the topic's author: the 楼主 pill. */
     isOp: Boolean = false,
     /** This reply is the topic's accepted answer. */
@@ -187,7 +192,7 @@ fun ReplyRow(
                 .padding(end = Space.page, top = 10.dp, bottom = 8.dp),
             verticalArrangement = Arrangement.spacedBy(Space.s2),
         ) {
-            AuthorRow(comment, collapsed, isOp, isAccepted)
+            AuthorRow(comment, collapsed, isOp, isAccepted, onShowHistory)
 
             // Collapsing hides a whole subtree, so the body slides rather than
             // vanishes — otherwise everything below it jumps and the reader
@@ -213,6 +218,7 @@ fun ReplyRow(
                             onOpenVideo = onOpenVideo,
                             onOpenMention = onOpenAuthor,
                             pollSlot = pollSlot,
+                            links = links,
                         )
                     }
                     // Folded by score, which is a different thing from the
@@ -317,8 +323,36 @@ private fun DeletedReply(
                 }
             }
             if (revealed != null) {
-                Text(stringResource(R.string.reader2_original_private), style = Type.body(12), color = Nocturne.textTertiary)
-                Text(revealed, style = Type.body(14), color = Nocturne.textSecondary)
+                val panel = RoundedCornerShape(10.dp)
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(panel)
+                        .background(Nocturne.bg)
+                        .border(1.dp, Nocturne.neutral500, panel)
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        SmallPill(stringResource(R.string.reader2_original_private), PillTone.Warning)
+                        Text(
+                            stringResource(R.string.reader3_original_of, comment.author),
+                            style = Type.body(12),
+                            color = Nocturne.textSecondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    Text(revealed, style = Type.body(14), color = Nocturne.textSecondary)
+                }
+            }
+            // Who can undo it, said where the undo is: the server lets only the
+            // author bring back what they deleted themselves.
+            when {
+                deletion == null -> Unit
+                byAuthor -> Text(stringResource(R.string.reader3_deleted_self_note), style = Type.body(12), color = Nocturne.textTertiary)
+                deletion.actor != null ->
+                    Text(stringResource(R.string.reader3_deleted_actor, deletion.actor), style = Type.body(12), color = Nocturne.textTertiary)
             }
             // Recovery stays where it was, under the placeholder rather than in
             // a menu the placeholder no longer has.
@@ -340,6 +374,7 @@ private fun AuthorRow(
     collapsed: Boolean,
     isOp: Boolean,
     isAccepted: Boolean,
+    onShowHistory: (() -> Unit)? = null,
 ) {
     Row(
         Modifier.fillMaxWidth(),
@@ -387,6 +422,17 @@ private fun AuthorRow(
                 )
             }
             Text("· ${comment.time}", style = Type.body(13), color = Nocturne.textSecondary, maxLines = 1)
+            // An edited reply says so beside its time, for everyone; only those
+            // the server shows the history to can open it from here.
+            if (comment.version > 1) {
+                Text(
+                    "· " + stringResource(R.string.chat_edited),
+                    style = Type.body(12),
+                    color = Nocturne.textTertiary,
+                    maxLines = 1,
+                    modifier = if (onShowHistory != null) Modifier.clickable(onClick = onShowHistory) else Modifier,
+                )
+            }
             if (comment.locked) {
                 TagChip(stringResource(R.string.reader_locked_badge))
             }
@@ -505,6 +551,23 @@ private fun ActionRow(
             onClick = onReactionDetail,
         )
         Spacer(Modifier.weight(1f))
+        // Out of the menu for the people who can use it: the board puts
+        // 采纳 in the row itself, since accepting is what a question's author
+        // came back to do. Everyone else still sees no trace of it.
+        onToggleAccepted?.let { toggle ->
+            Row(
+                Modifier.clickable(onClick = toggle),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(Lucide.CircleCheck, null, tint = if (isAccepted) Nocturne.accent else ink, modifier = Modifier.size(15.dp))
+                Text(
+                    stringResource(if (isAccepted) R.string.reader3_accepted else R.string.reader3_accept),
+                    style = Type.body(13, FontWeight.Bold),
+                    color = if (isAccepted) Nocturne.accent else ink,
+                )
+            }
+        }
 
         Box {
             Icon(

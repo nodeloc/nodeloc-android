@@ -53,6 +53,8 @@ data class Post(
     val comments: Int,
     val hasImage: Boolean,
     val pinned: Boolean = false,
+    /** 精华: labels a pinned card as such on the node page. */
+    val featured: Boolean = false,
     /** New, or read progress trailing the latest post — drives the unread dot. */
     val isUnread: Boolean = false,
     val imageUrl: String? = null,

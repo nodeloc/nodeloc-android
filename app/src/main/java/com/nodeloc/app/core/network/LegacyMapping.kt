@@ -63,6 +63,7 @@ object Legacy {
             bumpedAt = topic.lastPostedAt ?: topic.createdAt,
             categoryId = nodeId,
             pinned = topic.pinned,
+            featured = topic.featured,
             lastReadPostNumber = lastRead,
             highestPostNumber = highest,
             excerpt = topic.excerpt,

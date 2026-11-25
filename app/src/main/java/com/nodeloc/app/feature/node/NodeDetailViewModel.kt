@@ -42,13 +42,24 @@ data class NodeDetailState(
      * first page stays in the list with its pin glyph.
      */
     val pinnedIds: Set<Int> = emptySet(),
-    /** The 关于 tab is showing instead of a topic list. */
-    val showAbout: Boolean = false,
+    /** 规则 or 关于 is showing instead of a topic list; null for the list itself. */
+    val panel: NodePanel? = null,
+    /** The last next-page request failed; the foot of the list offers a retry. */
+    val loadMoreFailed: Boolean = false,
+    /** An unblock is in flight; the button holds still until it lands. */
+    val unblocking: Boolean = false,
     val about: NodeAbout? = null,
     val aboutLoading: Boolean = false,
     val aboutFailed: Boolean = false,
 ) {
     val showSkeleton: Boolean get() = isLoading && posts.isEmpty()
+
+    /**
+     * The reader has blocked this node. Its bell reads "muted" exactly when it
+     * is blocked: the 2.0 backend implements the muted level as the block, and
+     * the directory folds `/me/nodes`' `muted` list into that level.
+     */
+    val isBlocked: Boolean get() = notificationLevel == NodeNotificationLevel.Muted
 }
 
 /** One node: its header, its membership, and its topic list under a sort. */
@@ -82,7 +93,7 @@ class NodeDetailViewModel : ViewModel() {
 
     fun load() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true, error = null, notFound = false)
+            _state.value = _state.value.copy(isLoading = true, error = null, notFound = false, loadMoreFailed = false)
             page = 0
             usersById.clear()
 
@@ -139,6 +150,7 @@ class NodeDetailViewModel : ViewModel() {
                     pinnedIds = pinnedOf(posts),
                     hasMore = response.topicList?.moreTopicsUrl != null,
                     error = null,
+                    loadMoreFailed = false,
                 )
             }
             // Same as the feed: with a list already on screen there is no empty
@@ -146,12 +158,14 @@ class NodeDetailViewModel : ViewModel() {
             .onFailure { if (_state.value.posts.isNotEmpty()) ToastCenter.showError(it) }
     }
 
-    fun loadMore() {
+    /** See FeedViewModel.loadMore: after a failure only an explicit [retry] goes again. */
+    fun loadMore(retry: Boolean = false) {
         val current = _state.value
         if (!current.hasMore || current.isLoadingMore || current.isLoading) return
+        if (current.loadMoreFailed && !retry) return
         val category = site.category(categoryId) ?: return
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoadingMore = true)
+            _state.value = _state.value.copy(isLoadingMore = true, loadMoreFailed = false)
             val path = site.slugPath(category)
             runCatchingCancellable { client.nodeTopics(path, categoryId, _state.value.sort.key, page + 1) }
                 .onSuccess { response ->
@@ -167,19 +181,20 @@ class NodeDetailViewModel : ViewModel() {
                         isLoadingMore = false,
                     )
                 }
-                .onFailure { _state.value = _state.value.copy(isLoadingMore = false) }
+                .onFailure { _state.value = _state.value.copy(isLoadingMore = false, loadMoreFailed = true) }
         }
     }
 
     fun selectSort(sort: NodeSort) {
-        if (_state.value.showAbout) _state.value = _state.value.copy(showAbout = false)
+        if (_state.value.panel != null) _state.value = _state.value.copy(panel = null)
         if (sort == _state.value.sort) return
-        _state.value = _state.value.copy(sort = sort, posts = emptyList(), pinnedIds = emptySet())
+        _state.value = _state.value.copy(sort = sort, posts = emptyList(), pinnedIds = emptySet(), loadMoreFailed = false)
         load()
     }
 
-    fun selectAbout() {
-        _state.value = _state.value.copy(showAbout = true)
+    /** 规则 and 关于 both come from the one node detail, fetched on first use. */
+    fun selectPanel(panel: NodePanel) {
+        _state.value = _state.value.copy(panel = panel)
         if (_state.value.about == null && !_state.value.aboutLoading) loadAbout()
     }
 
@@ -234,6 +249,36 @@ class NodeDetailViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Lifts the block from the banner's 取消屏蔽. Not optimistic: the level the
+     * bell returns to is the member's stored one, which the directory hid
+     * behind "muted" while the block stood, so there is nothing true to show
+     * until the directory is read again.
+     */
+    fun unblock() {
+        val slug = _state.value.node?.slug ?: return
+        if (_state.value.unblocking) return
+        _state.value = _state.value.copy(unblocking = true)
+        viewModelScope.launch {
+            runCatchingCancellable { client.api.unblockNode(slug) }
+                .onSuccess {
+                    site.refresh()
+                    val level = NodeNotificationLevel.from(site.category(categoryId)?.notificationLevel)
+                    _state.value = _state.value.copy(
+                        unblocking = false,
+                        // A stale directory still saying "muted" must not leave the
+                        // banner up after the server has said it is gone.
+                        notificationLevel = if (level == NodeNotificationLevel.Muted) NodeNotificationLevel.Regular else level,
+                    )
+                    ToastCenter.show(R.string.node3_unblocked)
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(unblocking = false)
+                    ToastCenter.showError(it)
+                }
+        }
+    }
+
     /** discourse-vote from a row; see [com.nodeloc.app.core.util.TopicVoting]. */
     fun vote(topicId: Int, tapped: VoteDirection, face: String? = null) {
         TopicVoting.cast(
@@ -257,3 +302,6 @@ class NodeDetailViewModel : ViewModel() {
     private fun map(topic: com.nodeloc.app.core.model.TopicListItem): Post =
         FeedMapper.post(topic, usersById, site.category(topic.categoryId ?: categoryId))
 }
+
+/** The two tabs that are not a topic list. */
+enum class NodePanel { Rules, About }

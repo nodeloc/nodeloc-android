@@ -156,6 +156,7 @@ import com.nodeloc.app.feature.feed.ReaderSkeleton
 import com.nodeloc.app.feature.feed.RepliesSkeleton
 import com.nodeloc.app.feature.nav.AppViewModel
 import com.nodeloc.app.feature.nav.Navigator
+import com.nodeloc.app.feature.nav.Route
 import kotlinx.coroutines.launch
 
 /**
@@ -333,6 +334,8 @@ fun ReaderScreen(
 
     LaunchedEffect(topicId) { viewModel.bind(topicId) }
     listState.OnReachedEnd { viewModel.loadMoreComments() }
+    // Each page of bodies that lands may carry pasted URLs and counted links.
+    LaunchedEffect(state.firstPostId, state.comments.size) { viewModel.ensureLinkData() }
 
     // Deep link: once the thread is in place, scroll to the linked floor. Once
     // only — this used to re-key on the comment count, so every "load more"
@@ -402,13 +405,17 @@ fun ReaderScreen(
                             // A notch under the component default: a forum post
                             // is dense text, and 16sp reads like a pull quote.
                             baseSize = 15,
-                            onOpenLink = { navigator.openUrl(context, it) },
+                            onOpenLink = {
+                                viewModel.recordLinkClick(state.firstPostId, it)
+                                navigator.openUrl(context, it)
+                            },
                             onOpenImage = { image ->
                                 viewer = imageViewerFor(state.content.images, image, state.imageViewerSource())
                             },
                             onOpenVideo = { video ->
                                 videoUrl = DiscourseConfig.absoluteUrl(video.src)
                             },
+                            links = state.linksFor(state.firstPostId),
                             onOpenMention = { navigator.openProfile(it) },
                             pollSlot = { name ->
                                 state.polls.firstOrNull { it.pollName == name }?.let { poll ->
@@ -494,11 +501,13 @@ fun ReaderScreen(
                         answer = answer,
                         byOp = state.acceptedByOp,
                         onOpenAuthor = { navigator.openProfile(it) },
-                        onOpenLink = { navigator.openUrl(context, it) },
                         onOpen = {
                             val index = state.visibleComments.indexOfFirst { it.postNumber == answer.postNumber }
                             if (index >= 0) scope.launch { listState.animateScrollToItem(index + HeaderItemCount) }
                         },
+                        // The same rule as the reply menu's accept item: the topic's
+                        // author or a moderator.
+                        onWithdraw = viewModel::withdrawAccepted.takeIf { isSignedIn && (isTopicOwner || isStaff) },
                     )
                 }
             }
@@ -596,7 +605,11 @@ fun ReaderScreen(
                     isStaff = isStaff,
                     onModerate = { moderatingReply = comment }.takeIf { isStaff },
                     onShowHistory = { historyPost = comment.id }.takeIf { comment.version > 1 && (isStaff || comment.canEdit) },
-                    onOpenLink = { navigator.openUrl(context, it) },
+                    onOpenLink = {
+                        viewModel.recordLinkClick(comment.id, it)
+                        navigator.openUrl(context, it)
+                    },
+                    links = state.linksFor(comment.id),
                     onOpenImage = { image ->
                         viewer = imageViewerFor(comment.content.images, image, state.imageViewerSource(withActions = false))
                     },
@@ -665,6 +678,13 @@ fun ReaderScreen(
                         onSelect = viewModel::selectRelated,
                         onMore = viewModel::nextRelatedBatch,
                         onOpen = { navigator.openTopic(it) },
+                        // Where the list came from: the node for its own list, the
+                        // home feed for the site's hot one.
+                        onBrowseMore = {
+                            val node = state.categoryId
+                            if (relatedSource == RelatedSource.Node && node != null) navigator.openNode(node, state.nodeSlug)
+                            else navigator.navigate(Route.Home) { popUpTo(Route.Home) { inclusive = false }; launchSingleTop = true }
+                        },
                     )
                 }
             }

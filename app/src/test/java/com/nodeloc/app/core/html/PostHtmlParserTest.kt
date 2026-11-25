@@ -378,6 +378,61 @@ val b = 2</code></pre>"""
         assertEquals("a b", plainTextFromHtml("<p>a</p><p>b</p>"))
     }
 
+    @Test
+    fun `a node reference keeps its letter avatar and colour`() {
+        val html = """<p>发在 <a class="mention mn-node" href="/n/indie" data-hc="node:indie" data-ref="${'$'}indie" title="独立开发">""" +
+            """<span class="mn-av" data-letter="独" style="background:#007A52" aria-hidden="true"></span>n/indie</a> 里</p>"""
+        val link = (PostHtmlParser.parseSync(html).blocks.single() as PostBlock.Paragraph).inlines
+            .filterIsInstance<PostInline.Link>().single()
+        assertEquals(LinkKind.Node, link.kind)
+        assertEquals("n/indie", link.children.plainText)
+        assertEquals(NodeBadge(logoUrl = null, letter = "独", color = "#007A52"), link.badge)
+    }
+
+    @Test
+    fun `a node logo wins and its dark twin is ignored`() {
+        val html = """<p><a class="mention mn-node" href="/n/dev"><img class="mn-av light-only" src="/l.png" alt="">""" +
+            """<img class="mn-av dark-only" src="/d.png" alt="">n/dev</a></p>"""
+        val link = (PostHtmlParser.parseSync(html).blocks.single() as PostBlock.Paragraph).inlines
+            .filterIsInstance<PostInline.Link>().single()
+        assertEquals("/l.png", link.badge?.logoUrl)
+        assertEquals("n/dev", link.children.plainText.trim())
+    }
+
+    @Test
+    fun `a tag reference is a tag link and the text after it survives`() {
+        val html = """<p>带 <a class="mention mn-tag" href="/tag/%E5%BC%80%E6%BA%90" data-hc="tag:开源">#开源</a> 标签</p>"""
+        val inlines = (PostHtmlParser.parseSync(html).blocks.single() as PostBlock.Paragraph).inlines
+        val link = inlines.filterIsInstance<PostInline.Link>().single()
+        assertEquals(LinkKind.Tag, link.kind)
+        assertEquals("#开源", link.children.plainText)
+        assertTrue(inlines.plainText.endsWith("标签"))
+    }
+
+    @Test
+    fun `a styled node reference keeps its kind`() {
+        val html = """<p><strong><a class="mention mn-node" href="/n/a"><span data-letter="A" style="background:#112233"></span>n/a</a></strong></p>"""
+        val link = (PostHtmlParser.parseSync(html).blocks.single() as PostBlock.Paragraph).inlines
+            .filterIsInstance<PostInline.Link>().single()
+        assertEquals(LinkKind.Node, link.kind)
+        assertEquals("#112233", link.badge?.color)
+    }
+
+    @Test
+    fun `an ordinary link stays plain`() {
+        val link = (PostHtmlParser.parseSync("""<p><a href="https://x.dev">x</a></p>""").blocks.single() as PostBlock.Paragraph)
+            .inlines.filterIsInstance<PostInline.Link>().single()
+        assertEquals(LinkKind.Plain, link.kind)
+        assertEquals(null, link.badge)
+    }
+
+    @Test
+    fun `consecutive image paragraphs stay separate image blocks in order`() {
+        val html = """<p><img src="/a.png" alt="设置页"></p><p><img src="/b.png"><br><img src="/c.png"></p>"""
+        val blocks = PostHtmlParser.parseSync(html).blocks
+        assertEquals(listOf("/a.png", "/b.png", "/c.png"), blocks.map { (it as PostBlock.Image).image.src })
+    }
+
     /** `<p>&nbsp;</p>` is spacing markup and must not survive as a paragraph. */
     @Test
     fun `a spacer paragraph is still dropped`() {

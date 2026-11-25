@@ -1,7 +1,6 @@
 package com.nodeloc.app.feature.profile
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,16 +8,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
@@ -41,20 +39,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.composables.icons.lucide.Award
 import com.composables.icons.lucide.Ban
 import com.composables.icons.lucide.Bell
-import com.composables.icons.lucide.CalendarHeart
 import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.CircleAlert
 import com.composables.icons.lucide.EllipsisVertical
@@ -62,7 +58,6 @@ import com.composables.icons.lucide.FilePen
 import com.composables.icons.lucide.Flag
 import com.composables.icons.lucide.LayoutGrid
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Mail
 import com.composables.icons.lucide.MessageCircle
 import com.composables.icons.lucide.Settings
 import com.composables.icons.lucide.TrendingUp
@@ -117,10 +112,8 @@ import com.nodeloc.app.feature.feed.RowsSkeleton
 import com.nodeloc.app.feature.moderation.ModTopBar
 import com.nodeloc.app.feature.nav.AppViewModel
 import com.nodeloc.app.feature.nav.Navigator
-import java.time.Instant
+import com.nodeloc.app.feature.nav.Route
 import java.time.ZoneId
-import java.time.temporal.ChronoUnit
-import kotlin.math.roundToInt
 
 /** 我的 — the signed-in user's own profile, or the guest placeholder. */
 @Composable
@@ -171,12 +164,14 @@ fun ProfileScreen(
                 ProfileBody(
                     state = state,
                     listState = listState,
-                    contentPadding = contentPadding,
+                    contentPadding = PaddingValues(
+                        top = floatingHeaderInset,
+                        bottom = contentPadding.calculateBottomPadding(),
+                    ),
                     isOwn = true,
+                    isSignedIn = true,
                     navigator = navigator,
-                    onRetry = viewModel::retry,
-                    onSelectTab = viewModel::selectTab,
-                    onLoadMoreActivity = viewModel::loadMoreActivity,
+                    viewModel = viewModel,
                     onCheckin = {
                         // A claimed day is answered from the device. The
                         // endpoint rate-limits every attempt and only forgives
@@ -190,9 +185,6 @@ fun ProfileScreen(
 
         FloatingHeaderBar(
             scrolled = listState.isScrolledPastTop(threshold = 0),
-            // Only over the signed-in header's dark band; a guest page is plain white
-            // and the scrim would leave white icons on nothing.
-            overMedia = isSignedIn,
             leading = { com.nodeloc.app.feature.nav.DrawerMenuButton(onClick = onOpenDrawer) },
             centerVisible = listState.isScrolledPastTop(threshold = 120),
             center = {
@@ -212,11 +204,12 @@ fun ProfileScreen(
     }
 }
 
-/** Someone else's profile: the same header, with follow and message in place of the shortcuts. */
+/** Someone else's profile: the same page, with message and follow in place of edit and check-in. */
 @Composable
 fun PublicProfileScreen(username: String, app: AppViewModel, navigator: Navigator) {
     val viewModel: ProfileViewModel = viewModel()
     val state by viewModel.state.collectAsState()
+    val isSignedIn by app.isSignedIn.collectAsState()
     val listState = rememberLazyListState()
     var menuOpen by remember { mutableStateOf(false) }
     var notifyMenuOpen by remember { mutableStateOf(false) }
@@ -236,7 +229,7 @@ fun PublicProfileScreen(username: String, app: AppViewModel, navigator: Navigato
     LaunchedEffect(username) { viewModel.bind(username) }
 
     // The design's plain Material bar over a short cover band, not the own
-    // page's floating bar over a tall one: here the person is the content.
+    // page's floating bar: here the person is the content.
     Column(Modifier.fillMaxSize().background(Nocturne.bg)) {
         ModTopBar(
             title = if (listState.isScrolledPastTop(threshold = 120)) username else "",
@@ -339,21 +332,13 @@ fun PublicProfileScreen(username: String, app: AppViewModel, navigator: Navigato
                 listState = listState,
                 contentPadding = PaddingValues(),
                 isOwn = false,
+                isSignedIn = isSignedIn,
                 navigator = navigator,
-                onRetry = viewModel::retry,
-                onSelectTab = viewModel::selectTab,
-                onLoadMoreActivity = viewModel::loadMoreActivity,
-                onToggleFollow = viewModel::toggleFollow,
+                viewModel = viewModel,
             )
         }
     }
 }
-
-/**
- * The dark band the header card overlaps: the bar's own height plus as much
- * again as the design leaves above the card's middle.
- */
-private val BandExtra = 62.dp
 
 @Composable
 private fun ProfileBody(
@@ -361,11 +346,9 @@ private fun ProfileBody(
     listState: LazyListState,
     contentPadding: PaddingValues,
     isOwn: Boolean,
+    isSignedIn: Boolean,
     navigator: Navigator,
-    onRetry: () -> Unit,
-    onSelectTab: (ActivityTab) -> Unit,
-    onLoadMoreActivity: () -> Unit,
-    onToggleFollow: () -> Unit = {},
+    viewModel: ProfileViewModel,
     onCheckin: () -> Unit = {},
 ) {
     val profile = state.profile
@@ -385,51 +368,42 @@ private fun ProfileBody(
                     icon = if (offline) Lucide.WifiOff else Lucide.User,
                     title = stringResource(if (offline) R.string.error_offline else R.string.error_action_failed),
                     retryLabel = stringResource(R.string.common_retry),
-                    onRetry = onRetry,
+                    onRetry = viewModel::retry,
                 )
             }
         } else {
-            ProfileSkeleton(Modifier.padding(bottom = contentPadding.calculateBottomPadding()))
+            ProfileSkeleton(Modifier.padding(contentPadding))
         }
         return
     }
 
+    val context = LocalContext.current
     val tabs = if (isOwn) ActivityTab.own else ActivityTab.public
+    val displayName = profile.name?.takeIf { it.isNotBlank() } ?: profile.username
+    val openNode: (String) -> Unit = { slug -> navigator.openUrl(context, "${DiscourseConfig.BASE_URL}/n/$slug") }
+    val share: (String, String?) -> Unit = { path, title -> navigator.share(context, DiscourseConfig.BASE_URL + path, title) }
 
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding() + 24.dp),
+        contentPadding = PaddingValues(
+            top = contentPadding.calculateTopPadding(),
+            bottom = contentPadding.calculateBottomPadding() + 24.dp,
+        ),
         overscrollEffect = rememberTapSafeOverscroll(),
     ) {
-        if (!isOwn) {
-            item(key = "header") {
-                PublicHeader(
-                    state = state,
-                    profile = profile,
-                    navigator = navigator,
-                    onToggleFollow = onToggleFollow,
-                    onShowAchievements = { onSelectTab(ActivityTab.Achievements) },
-                )
-            }
-        } else item(key = "header") {
-            Box(Modifier.fillMaxWidth()) {
-                Banner(profile, Modifier.fillMaxWidth().height(floatingHeaderInset + BandExtra))
-                HeaderCard(
-                    state = state,
-                    profile = profile,
-                    isOwn = isOwn,
-                    navigator = navigator,
-                    onToggleFollow = onToggleFollow,
-                    onCheckin = onCheckin,
-                    onShowAchievements = { onSelectTab(ActivityTab.Achievements) },
-                    modifier = Modifier.padding(
-                        top = floatingHeaderInset + if (isOwn) 16.dp else 28.dp,
-                        start = Space.page,
-                        end = Space.page,
-                    ),
-                )
-            }
+        item(key = "header") {
+            ProfileHeader(
+                state = state,
+                profile = profile,
+                isOwn = isOwn,
+                navigator = navigator,
+                onToggleFollow = {
+                    if (isSignedIn) viewModel.toggleFollow() else navigator.openAuth()
+                },
+                onCheckin = onCheckin,
+                onShowAchievements = { viewModel.selectTab(ActivityTab.Achievements) },
+            )
         }
 
         if (isOwn) {
@@ -437,34 +411,25 @@ private fun ProfileBody(
         }
 
         item(key = "tabs") {
-            FilterPillRow(
-                contentPadding = if (isOwn) {
-                    PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)
-                } else {
-                    PaddingValues(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 10.dp)
-                },
-            ) {
+            FilterPillRow(contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 0.dp, bottom = 10.dp)) {
                 tabs.forEach { tab ->
                     FilterPill(
-                        text = stringResource(
-                            // The same list, named for whose it is: on your own
-                            // page they are your posts, on someone else's they
-                            // are that person's replies.
-                            if (!isOwn && tab == ActivityTab.Posts) R.string.me2_replies else tab.labelRes,
-                        ),
+                        text = stringResource(tab.labelRes),
                         selected = tab == state.tab,
-                        onClick = { onSelectTab(tab) },
+                        onClick = { viewModel.selectTab(tab) },
                     )
                 }
             }
-            if (!isOwn) HairLine()
+            HairLine()
         }
 
+        val tab = state.tab
         when {
-            state.tab == ActivityTab.About -> aboutItems(state, profile)
-            state.tab == ActivityTab.Achievements -> showcaseItems(state.achievementBadges)
-            state.isLoadingTab -> item { RowsSkeleton(rows = 5, avatar = false) }
-            state.tabError != null -> item {
+            tab == ActivityTab.About -> aboutItems(state, profile)
+            tab == ActivityTab.Achievements -> showcaseItems(state.achievementBadges)
+            tab.isPrivateFor(isOwn) -> item(key = "private") { PrivateListState(profile.username) }
+            state.isLoadingTab -> item(key = "loading") { RowsSkeleton(rows = 5, avatar = false) }
+            state.tabError != null -> item(key = "error") {
                 val offline = state.tabError.isOfflineError()
                 EmptyStateView(
                     icon = if (offline) Lucide.WifiOff else Lucide.CircleAlert,
@@ -472,66 +437,126 @@ private fun ProfileBody(
                         if (offline) R.string.error_offline else R.string.profile_tab_load_failed,
                     ),
                     retryLabel = stringResource(R.string.common_retry),
-                    onRetry = { onSelectTab(state.tab) },
+                    onRetry = { viewModel.selectTab(state.tab, force = true) },
                 )
             }
-            state.tab == ActivityTab.Points -> {
-                if (isOwn) {
-                    item(key = "points-summary") {
-                        PointsSummary(
-                            balance = state.pointsTotal?.toLong() ?: state.boardRow?.balance,
-                            rank = state.boardRow?.rank,
-                            onRank = navigator::openWealthRank,
-                            onLedger = navigator::openEnergyHistory,
-                        )
-                    }
-                }
-                if (state.points.isEmpty()) {
-                    item { EmptyStateView(Lucide.User, stringResource(R.string.profile_empty_points)) }
+            tab == ActivityTab.Points -> pointsItems(state, navigator)
+            tab == ActivityTab.Bookmarks -> bookmarkItems(state, navigator, viewModel::loadMoreActivity)
+            tab == ActivityTab.Topics -> {
+                if (state.topics.isEmpty()) {
+                    item(key = "empty") { ActivityEmpty(stringResource(R.string.me3_empty_posts)) }
                 } else {
-                    // Indexed: the fields here are not unique — two "daily check-in
-                    // +5" entries with no timestamp produce the same key, and a
-                    // duplicate key is a crash rather than a glitch.
-                    itemsIndexed(state.points) { _, entry ->
-                        PointsRow(entry)
-                        HairLine()
+                    // Indexed: a topic that moves between pages while the
+                    // reader scrolls arrives twice, and a duplicate key is a
+                    // crash rather than a glitch.
+                    itemsIndexed(state.topics) { index, topic ->
+                        if (index == state.topics.lastIndex) {
+                            LaunchedEffect(tab, state.topics.size) { viewModel.loadMoreActivity() }
+                        }
+                        TopicRow(topic, state, isSignedIn, navigator, viewModel, openNode, share)
                     }
                 }
             }
             else -> {
-                val actions = state.currentActivity
-                if (actions.isEmpty()) {
-                    item { EmptyStateView(Lucide.User, stringResource(R.string.common_empty)) }
-                } else {
-                    // Indexed for the same reason the points list is: every field
-                    // in that composite key is nullable, so two entries the server
-                    // returns with all four absent crash the list rather than
-                    // merely drawing oddly. The list is replaced wholesale, never
-                    // appended to, so position is a truthful identity here.
-                    itemsIndexed(actions) { index, action ->
-                        // Asking from the row itself rather than watching scroll
-                        // offsets: the list is inside the profile's own column, so
-                        // there is no separate LazyListState to observe.
-                        if (index == actions.lastIndex) {
-                            LaunchedEffect(state.tab, actions.size) { onLoadMoreActivity() }
-                        }
-                        ActivityRow(action) {
-                            navigator.openTopic(action.topicId ?: return@ActivityRow, action.postNumber)
-                        }
+                // 概览 and 评论: the posts list, openers drawn as topics.
+                val rows = if (tab == ActivityTab.Comments) state.posts.filter { it.postNumber > 1 } else state.posts
+                if (rows.isEmpty()) {
+                    item(key = "empty") {
+                        ActivityEmpty(
+                            stringResource(if (tab == ActivityTab.Comments) R.string.me3_empty_comments else R.string.common_empty),
+                        )
                     }
-                    if (state.isLoadingMoreTab) {
-                        item {
-                            Box(
-                                Modifier.fillMaxWidth().height(56.dp),
-                                contentAlignment = Alignment.Center,
-                            ) { NodelocLoader(height = 22.dp) }
+                } else {
+                    val byId = state.topicsById
+                    val opened = state.openedTopics
+                    itemsIndexed(rows) { index, post ->
+                        if (index == rows.lastIndex) {
+                            LaunchedEffect(tab, rows.size) { viewModel.loadMoreActivity() }
+                        }
+                        val summary = byId[post.topicId]
+                        if (post.postNumber == 1) {
+                            if (summary != null) {
+                                TopicRow(summary, state, isSignedIn, navigator, viewModel, openNode, share)
+                            } else {
+                                val saved = state.saved[post.id] ?: false
+                                TopicActivityRow(
+                                    title = post.topicTitle.orEmpty(),
+                                    nodeSlug = post.nodeSlug,
+                                    nodeName = post.nodeName,
+                                    createdAt = post.createdAt,
+                                    imageUrl = null,
+                                    vote = null,
+                                    replyCount = null,
+                                    saved = saved,
+                                    onOpen = { navigator.openTopic(post.topicId) },
+                                    onNode = post.nodeSlug?.let { { openNode(it) } },
+                                    onVote = null,
+                                    onShare = { share("/t/${post.topicId}", post.topicTitle) },
+                                    onSave = if (isSignedIn) ({ viewModel.toggleSave(post.id, saved) }) else null,
+                                )
+                            }
+                        } else {
+                            CommentActivityRow(
+                                author = displayName,
+                                isOp = post.topicId in opened,
+                                nodeSlug = post.nodeSlug,
+                                nodeName = post.nodeName,
+                                topicTitle = post.topicTitle,
+                                createdAt = post.createdAt,
+                                excerpt = post.excerpt,
+                                onOpen = { navigator.openTopic(post.topicId, post.postNumber) },
+                                onNode = post.nodeSlug?.let { { openNode(it) } },
+                                onShare = { share("/t/${post.topicId}/${post.postNumber}", post.topicTitle) },
+                            )
                         }
                     }
                 }
             }
         }
+
+        if (state.isLoadingMoreTab) {
+            item(key = "more") {
+                Box(Modifier.fillMaxWidth().height(56.dp), contentAlignment = Alignment.Center) {
+                    NodelocLoader(height = 22.dp)
+                }
+            }
+        }
     }
 }
+
+@Composable
+private fun TopicRow(
+    topic: ApiUserTopicRow,
+    state: ProfileState,
+    isSignedIn: Boolean,
+    navigator: Navigator,
+    viewModel: ProfileViewModel,
+    openNode: (String) -> Unit,
+    share: (String, String?) -> Unit,
+) {
+    val postId = topic.firstPostId
+    val saved = postId?.let { state.saved[it] } ?: false
+    TopicActivityRow(
+        title = topic.title.orEmpty(),
+        nodeSlug = topic.nodeSlug,
+        nodeName = topic.nodeName,
+        createdAt = topic.createdAt,
+        // An adult topic's picture stays folded here as it does in the feed.
+        imageUrl = topic.imageUrl?.takeIf { !topic.adult },
+        vote = state.votes[topic.id] ?: TopicVote(voteOf(topic.viewerVote), topic.voteScore),
+        replyCount = topic.replyCount,
+        saved = saved,
+        onOpen = { navigator.openTopic(topic.id) },
+        onNode = topic.nodeSlug?.let { { openNode(it) } },
+        onVote = if (postId == null) null else { direction ->
+            if (isSignedIn) viewModel.vote(topic, direction) else navigator.openAuth()
+        },
+        onShare = { share("/t/${topic.id}", topic.title) },
+        onSave = if (postId != null && isSignedIn) ({ viewModel.toggleSave(postId, saved) }) else null,
+    )
+}
+
+// ------------------------------------------------------------------ header
 
 /** The member's own cover when they have one; the site's night colour when not. */
 @Composable
@@ -544,8 +569,15 @@ private fun Banner(profile: UserProfile, modifier: Modifier) {
     }
 }
 
+/**
+ * The profile head, one layout for both pages since the 2026-11 v3 boards: a
+ * short cover, the avatar breaking out of it with the page's two actions
+ * beside it (编辑资料 / 签到 on your own, 私信 / 关注 on someone else's), then
+ * name, handle and join month, bio, three figures, the energy line and the
+ * achievements strip — each a quiet grey block.
+ */
 @Composable
-private fun HeaderCard(
+private fun ProfileHeader(
     state: ProfileState,
     profile: UserProfile,
     isOwn: Boolean,
@@ -553,301 +585,250 @@ private fun HeaderCard(
     onToggleFollow: () -> Unit,
     onCheckin: () -> Unit,
     onShowAchievements: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
-    val shape = RoundedCornerShape(20.dp)
-    val privileges by ServiceLocator.get.moderation.privileges.collectAsState()
     val tier = state.tiers.level(profile.trustLevel)
-    Column(
-        modifier
-            .fillMaxWidth()
-            .shadow(12.dp, shape, clip = false)
-            .clip(shape)
-            .background(Nocturne.bg)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            RemoteAvatar(
-                DiscourseConfig.avatarUrl(profile.avatarTemplate, 240),
-                profile.username.take(1).uppercase().ifEmpty { "?" },
-                size = 60.dp,
-            )
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        profile.name?.takeIf { it.isNotBlank() } ?: profile.username,
-                        style = Type.heading(if (isOwn) 22 else 21, FontWeight.Bold),
-                        color = Nocturne.text,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false),
-                    )
-                    // Your own page names your role; someone else's names their
-                    // tier, which is what a stranger wants to know first.
-                    if (isOwn) {
-                        val admin = privileges.isAdmin || profile.admin == true
-                        val moderator = privileges.role == "moderator" || profile.moderator == true
-                        when {
-                            admin -> StatusPill(stringResource(R.string.profile_admin), PillTone.Accent)
-                            moderator -> StatusPill(stringResource(R.string.profile_moderator), PillTone.Accent)
-                        }
+    val privileges by ServiceLocator.get.moderation.privileges.collectAsState()
+    Column(Modifier.fillMaxWidth()) {
+        Box(Modifier.fillMaxWidth().height(114.dp)) {
+            Banner(profile, Modifier.fillMaxWidth().height(64.dp))
+            Box(
+                Modifier
+                    .padding(start = 16.dp, top = 32.dp)
+                    .size(72.dp)
+                    .clip(CircleShape)
+                    .background(Nocturne.bg)
+                    .padding(3.dp),
+            ) {
+                RemoteAvatar(
+                    DiscourseConfig.avatarUrl(profile.avatarTemplate, 240),
+                    profile.username.take(1).uppercase().ifEmpty { "?" },
+                    size = 66.dp,
+                )
+            }
+            Row(
+                Modifier.align(Alignment.BottomEnd).padding(end = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                if (isOwn) {
+                    SecondaryButton(stringResource(R.string.me3_edit_profile)) {
+                        navigator.openSettingsRoute(Route.ProfileEdit)
+                    }
+                    // Greyed once the day is claimed — spent, not broken. Still
+                    // live underneath: the tap is what says *why* it is grey,
+                    // and costs nothing, since the answer comes from the device.
+                    if (state.checkedInToday) {
+                        SecondaryButton(stringResource(R.string.me2_checked_in), modifier = Modifier.widthIn(min = 84.dp), onClick = onCheckin)
                     } else {
-                        tier?.name?.let { TierPill(it, tier) }
-                        when {
-                            profile.admin == true -> StatusPill(stringResource(R.string.profile_admin), PillTone.Accent)
-                            profile.moderator == true -> StatusPill(stringResource(R.string.profile_moderator), PillTone.Accent)
-                        }
+                        PrimaryButton(
+                            stringResource(R.string.checkin_action),
+                            modifier = Modifier.widthIn(min = 84.dp),
+                            enabled = !state.isCheckingIn,
+                            onClick = onCheckin,
+                        )
+                    }
+                } else {
+                    SecondaryButton(stringResource(R.string.profile_message)) {
+                        navigator.openCompose(pmRecipient = profile.username)
+                    }
+                    if (state.isFollowing) {
+                        SecondaryButton(stringResource(R.string.profile_following), modifier = Modifier.widthIn(min = 84.dp), onClick = onToggleFollow)
+                    } else {
+                        PrimaryButton(stringResource(R.string.profile_follow), modifier = Modifier.widthIn(min = 84.dp), onClick = onToggleFollow)
                     }
                 }
+            }
+        }
+
+        Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    subtitle(profile, isOwn),
-                    style = Type.body(13),
-                    color = Nocturne.textSecondary,
-                    maxLines = 2,
+                    profile.name?.takeIf { it.isNotBlank() } ?: profile.username,
+                    style = Type.heading(22, FontWeight.Bold),
+                    color = Nocturne.text,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
                 )
-            }
-            if (isOwn) CheckinButton(done = state.checkedInToday, busy = state.isCheckingIn, onClick = onCheckin)
-        }
-
-        // The badge title and group flair the member chose. Not in the design,
-        // which has nowhere to put them, but both are the member's own choice
-        // of how to be seen, so they stay — under the name, quietly. A title
-        // that merely repeats the tier is the server filling a blank, and is
-        // dropped.
-        val title = profile.title?.takeIf { it.isNotBlank() && it != tier?.name }
-        if (title != null || profile.flairUrl != null || profile.flairName != null) {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                title?.let { BadgeTitleText(it, size = 13) }
-                FlairBadge(
-                    flairUrl = profile.flairUrl,
-                    flairName = profile.flairName,
-                    backgroundColor = profile.flairBgColor,
-                    foregroundColor = profile.flairColor,
-                )
-            }
-        }
-
-        StatsRow(state, profile, isOwn)
-
-        if (isOwn) {
-            state.reputation?.let { rep ->
-                TierProgressLine(rep, tier?.name ?: rep.tierName.orEmpty()) {
-                    navigator.openUpgradeProgress(profile.username)
+                // Your own role comes from your permissions, which know about
+                // node moderators the profile flags do not.
+                val admin = profile.admin == true || (isOwn && privileges.isAdmin)
+                val moderator = profile.moderator == true || (isOwn && privileges.role == "moderator")
+                when {
+                    admin -> StatusPill(stringResource(R.string.profile_admin), PillTone.Accent)
+                    moderator -> StatusPill(stringResource(R.string.profile_moderator), PillTone.Accent)
                 }
             }
+            Text(
+                listOfNotNull("u/${profile.username}", joinedLine(profile.createdAt)).joinToString(" · "),
+                style = Type.body(13),
+                color = Nocturne.textSecondary,
+            )
+            profile.bioExcerpt?.let { com.nodeloc.app.core.html.plainTextFromHtml(it) }?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                Text(it, style = Type.body(14), color = Nocturne.text, modifier = Modifier.padding(top = 6.dp))
+            }
+
+            // The badge title and group flair the member chose: not on the
+            // board, but their own choice of how to be seen, so they stay. A
+            // title that merely repeats the tier is the server filling a
+            // blank, and is dropped.
+            val title = profile.title?.takeIf { it.isNotBlank() && it != tier?.name }
+            if (title != null || profile.flairUrl != null || profile.flairName != null) {
+                FlowRow(
+                    Modifier.padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    title?.let { BadgeTitleText(it, size = 13) }
+                    FlairBadge(
+                        flairUrl = profile.flairUrl,
+                        flairName = profile.flairName,
+                        backgroundColor = profile.flairBgColor,
+                        foregroundColor = profile.flairColor,
+                    )
+                }
+            }
+
+            Row(
+                Modifier
+                    .padding(top = 12.dp)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Nocturne.surface)
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                val summary = state.summary
+                val topics = (summary?.topicCount ?: profile.topicCount)?.toLong()
+                val posts = (summary?.postCount ?: profile.postCount)?.toLong()
+                // 贡献 is topics and replies together, as the web counts it.
+                val contribution = if (topics == null && posts == null) null else (topics ?: 0) + (posts ?: 0)
+                val reputation = if (isOwn) state.reputation?.reputation?.toLong() else state.publicReputation
+                Figure(stringResource(R.string.profile_reputation), reputation, Modifier.weight(1f))
+                Figure(stringResource(R.string.me2_contribution), contribution, Modifier.weight(1f))
+                Figure(stringResource(R.string.me2_followers_label), profile.totalFollowers?.toLong(), Modifier.weight(1f))
+            }
+
+            // Your own balance is always known; someone else's only when they
+            // made the board's first page, the one public source of it.
+            val balance = if (isOwn) state.pointsTotal?.toLong() ?: state.boardRow?.balance else state.boardRow?.balance
+            EnergyLine(
+                balance = balance,
+                rank = state.boardRow?.rank,
+                tierName = tier?.name ?: state.reputation?.tierName,
+                onRank = navigator::openWealthRank,
+            )
+
             val total = state.achievementsTotal
-            if (total != null) {
-                AchievementsLine(
+            if (isOwn && total != null) {
+                AchievementsStrip(
                     badges = state.achievementBadges,
-                    label = stringResource(R.string.me2_achievements_count, state.achievementsUnlocked ?: 0, total),
+                    label = stringResource(R.string.me3_ach_unlocked, state.achievementsUnlocked ?: 0, total),
                     onClick = { navigator.openAchievements() },
                 )
-            }
-        } else {
-            if (state.achievementBadges.isNotEmpty()) {
-                AchievementsLine(
+            } else if (!isOwn && state.achievementBadges.isNotEmpty()) {
+                AchievementsStrip(
                     badges = state.achievementBadges,
                     label = stringResource(R.string.me2_showcase_label),
                     onClick = onShowAchievements,
                 )
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FollowButton(
-                    following = state.isFollowing,
-                    onClick = onToggleFollow,
-                    modifier = Modifier.weight(1f),
-                )
-                OutlinedPillButton(
-                    text = stringResource(R.string.profile_message),
-                    icon = Lucide.Mail,
-                    onClick = { navigator.openCompose(pmRecipient = profile.username) },
-                    modifier = Modifier.weight(1f),
-                )
-            }
         }
     }
 }
 
-/** "@moss · 5,912 关注者 · 2022 年加入" on your page; "@linjc · bio" on someone else's. */
 @Composable
-private fun subtitle(profile: UserProfile, isOwn: Boolean): String {
-    val parts = mutableListOf("@${profile.username}")
-    if (isOwn) {
-        profile.totalFollowers?.let { parts += stringResource(R.string.me2_followers, formatCount(it.toLong())) }
-        DiscourseFormat.instant(profile.createdAt)?.let {
-            parts += stringResource(R.string.me2_joined_year, it.atZone(ZoneId.systemDefault()).year.toString())
-        }
-    } else {
-        profile.bioExcerpt?.let { com.nodeloc.app.core.html.plainTextFromHtml(it) }
-            ?.lineSequence()?.firstOrNull { it.isNotBlank() }?.trim()
-            ?.let { parts += it }
-    }
-    return parts.joinToString(" · ")
-}
-
-@Composable
-private fun CheckinButton(done: Boolean, busy: Boolean, onClick: () -> Unit) {
-    // Greyed once the day is claimed — spent, not broken. Still live
-    // underneath: the tap is what says *why* it is grey, and costs nothing,
-    // since the answer comes from the device.
+private fun AchievementsStrip(badges: List<ApiAchItem>, label: String, onClick: () -> Unit) {
+    val press = rememberPressSource()
     Row(
         Modifier
-            .height(36.dp)
-            .clip(CircleShape)
-            .background(if (done) Nocturne.neutral400 else Nocturne.accent)
-            .clickable(enabled = !busy, role = Role.Button, onClick = onClick)
-            .padding(horizontal = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
-    ) {
-        val ink = if (done) Nocturne.textSecondary else Nocturne.bg
-        Icon(Lucide.CalendarHeart, null, tint = ink, modifier = Modifier.size(16.dp))
-        Text(
-            stringResource(if (done) R.string.me2_checked_in else R.string.checkin_action),
-            style = Type.body(14, FontWeight.SemiBold),
-            color = ink,
-            maxLines = 1,
-        )
-    }
-}
-
-@Composable
-private fun FollowButton(following: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    if (following) {
-        OutlinedPillButton(stringResource(R.string.profile_following), null, onClick, modifier)
-    } else {
-        Box(
-            modifier
-                .height(40.dp)
-                .clip(CircleShape)
-                .background(Nocturne.accent)
-                .clickable(role = Role.Button, onClick = onClick),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(stringResource(R.string.profile_follow), style = Type.body(14, FontWeight.SemiBold), color = Nocturne.bg)
-        }
-    }
-}
-
-@Composable
-private fun OutlinedPillButton(text: String, icon: ImageVector?, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Row(
-        modifier
-            .height(40.dp)
-            .clip(CircleShape)
-            .border(1.dp, Nocturne.textTertiary, CircleShape)
-            .clickable(role = Role.Button, onClick = onClick),
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        icon?.let { Icon(it, null, tint = Nocturne.accent, modifier = Modifier.size(16.dp)) }
-        Text(text, style = Type.body(14, FontWeight.SemiBold), color = Nocturne.accent)
-    }
-}
-
-@Composable
-private fun StatsRow(state: ProfileState, profile: UserProfile, isOwn: Boolean) {
-    Row(
-        Modifier
+            .padding(top = 8.dp)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
+            .pressScale(press)
+            .clip(RoundedCornerShape(12.dp))
             .background(Nocturne.surface)
-            .padding(vertical = 10.dp),
-    ) {
-        // Counts come from the profile's own stats block first, then the
-        // summary call; either may be missing when the account hides them.
-        val summary = state.summary
-        val topics = (summary?.topicCount ?: profile.topicCount)?.toLong()
-        if (isOwn) {
-            Stat(stringResource(R.string.profile_energy), state.pointsTotal?.toLong())
-            Stat(stringResource(R.string.profile_reputation), state.reputation?.reputation?.toLong())
-            Stat(stringResource(R.string.profile_topics), topics)
-            Stat(stringResource(R.string.me2_replies), (summary?.postCount ?: profile.postCount)?.toLong())
-        } else {
-            Stat(stringResource(R.string.profile_reputation), state.publicReputation)
-            Stat(stringResource(R.string.profile_topics), topics)
-            Stat(stringResource(R.string.me2_followers_label), profile.totalFollowers?.toLong())
-            StatText(stringResource(R.string.me2_joined_label), membershipLength(profile.createdAt) ?: "--")
-        }
-    }
-}
-
-@Composable
-private fun RowScope.Stat(label: String, value: Long?) = StatText(label, value?.let(::formatCount) ?: "--")
-
-@Composable
-private fun RowScope.StatText(label: String, value: String) {
-    Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, style = Type.body(18, FontWeight.Bold), color = Nocturne.text, maxLines = 1)
-        Text(label, style = Type.body(12), color = Nocturne.textSecondary, maxLines = 1)
-    }
-}
-
-/** "2 年" — whole years once there are any, then months, then days. */
-@Composable
-private fun membershipLength(createdAt: String?): String? {
-    val start = DiscourseFormat.instant(createdAt) ?: return null
-    val zone = ZoneId.systemDefault()
-    val from = start.atZone(zone).toLocalDate()
-    val to = Instant.now().atZone(zone).toLocalDate()
-    val years = ChronoUnit.YEARS.between(from, to)
-    val months = ChronoUnit.MONTHS.between(from, to)
-    return when {
-        years >= 1 -> stringResource(R.string.me2_years, years.toInt())
-        months >= 1 -> stringResource(R.string.me2_months, months.toInt())
-        else -> stringResource(R.string.me2_days, ChronoUnit.DAYS.between(from, to).toInt().coerceAtLeast(1))
-    }
-}
-
-/** "钻石 · 升级进度 ··· 81%" over a bar; at the top tier, the name and nothing to climb. */
-@Composable
-private fun TierProgressLine(rep: ApiRepSummary, tierName: String, onClick: () -> Unit) {
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(tierName, style = Type.body(13, FontWeight.Bold), color = Nocturne.text)
-            Text(
-                " · " + stringResource(if (rep.next == null) R.string.me2_top_tier else R.string.me2_upgrade_progress),
-                style = Type.body(13),
-                color = Nocturne.textSecondary,
-                modifier = Modifier.weight(1f),
-            )
-            if (rep.next != null) {
-                Text("${(rep.progress * 100).roundToInt()}%", style = Type.body(13), color = Nocturne.textSecondary)
-            }
-        }
-        GrowthBar(if (rep.next == null) 1f else rep.progress.toFloat())
-    }
-}
-
-@Composable
-private fun AchievementsLine(badges: List<ApiAchItem>, label: String, onClick: () -> Unit) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick),
+            .clickable(interactionSource = press, indication = ripple(), role = Role.Button, onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        badges.take(4).forEach { AchievementDisc(it, 34.dp) }
-        Text(label, style = Type.body(13), color = Nocturne.textSecondary, modifier = Modifier.weight(1f))
+        badges.take(3).forEach { AchievementDisc(it, 44.dp) }
+        Text(
+            label,
+            style = Type.body(13),
+            color = Nocturne.textSecondary,
+            modifier = Modifier.weight(1f).padding(start = 4.dp),
+        )
         Icon(Lucide.ChevronRight, null, tint = Nocturne.textTertiary, modifier = Modifier.size(18.dp))
     }
 }
 
+/** "2022 年 9 月加入": the month, in the reader's own date order. */
 @Composable
-private fun AchievementDisc(item: ApiAchItem, size: Dp) {
+private fun joinedLine(createdAt: String?): String? {
+    val start = DiscourseFormat.instant(createdAt) ?: return null
+    val month = remember(start) {
+        java.time.format.DateTimeFormatter
+            .ofPattern(android.text.format.DateFormat.getBestDateTimePattern(java.util.Locale.getDefault(), "yMMM"))
+            .format(start.atZone(ZoneId.systemDefault()))
+    }
+    return stringResource(R.string.me2_joined_at, month)
+}
+
+@Composable
+private fun Figure(label: String, value: Long?, modifier: Modifier) {
+    Column(modifier) {
+        Text(value?.let(::formatCount) ?: "--", style = Type.heading(18, FontWeight.ExtraBold), color = Nocturne.text, maxLines = 1)
+        Text(label, style = Type.body(12), color = Nocturne.textSecondary, maxLines = 1)
+    }
+}
+
+/**
+ * "14,770 能量 · 财富榜第 128 名 · 钻石". Off the board's first page there is
+ * no rank to give, and for someone else no balance either; the line keeps
+ * what is known and goes to the board only when it has something on it.
+ */
+@Composable
+private fun EnergyLine(balance: Long?, rank: Int?, tierName: String?, onRank: () -> Unit) {
+    if (balance == null && rank == null && tierName == null) return
+    val press = rememberPressSource()
+    val linked = balance != null
+    Row(
+        Modifier
+            .padding(top = 8.dp)
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .then(if (linked) Modifier.pressScale(press) else Modifier)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Nocturne.surface)
+            .then(
+                if (linked) {
+                    Modifier.clickable(interactionSource = press, indication = ripple(), role = Role.Button, onClick = onRank)
+                } else {
+                    Modifier
+                },
+            )
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        balance?.let {
+            Text(stringResource(R.string.rank_energy_amount, formatCount(it)), style = Type.body(14, FontWeight.Bold), color = Nocturne.text)
+        }
+        val rest = listOfNotNull(rank?.let { stringResource(R.string.me2_board_rank, it) }, tierName)
+        Text(
+            (if (balance != null && rest.isNotEmpty()) "· " else "") + rest.joinToString(" · "),
+            style = Type.body(14),
+            color = Nocturne.textSecondary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+        if (linked) Icon(Lucide.ChevronRight, null, tint = Nocturne.textTertiary, modifier = Modifier.size(18.dp))
+    }
+}
+
+@Composable
+private fun AchievementDisc(item: ApiAchItem, size: androidx.compose.ui.unit.Dp) {
     val (ground, ink) = achTierColors(item.tier)
     Box(
         Modifier.size(size).clip(CircleShape).background(ground),
@@ -859,7 +840,7 @@ private fun AchievementDisc(item: ApiAchItem, size: Dp) {
 
 private data class Shortcut(val icon: ImageVector, val label: Int, val tone: PillTone, val open: () -> Unit)
 
-/** The eight ways out of 我的, four to a row. */
+/** The eight ways out of 我的, four to a row on one grey tray. */
 @Composable
 private fun Shortcuts(navigator: Navigator, username: String) {
     val items = listOf(
@@ -872,22 +853,31 @@ private fun Shortcuts(navigator: Navigator, username: String) {
         Shortcut(Lucide.LayoutGrid, R.string.me2_sc_apps, PillTone.Danger) { navigator.openApps() },
         Shortcut(Lucide.Settings, R.string.me2_sc_settings, PillTone.Neutral) { navigator.openSettings() },
     )
-    Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp)) {
+    Column(
+        Modifier
+            .padding(start = 12.dp, end = 12.dp, bottom = 14.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(Nocturne.surface)
+            .padding(horizontal = 4.dp, vertical = 6.dp),
+    ) {
         items.chunked(4).forEach { row ->
             Row(Modifier.fillMaxWidth()) {
                 row.forEach { item ->
                     val (ground, ink) = item.tone.colorsForShortcut()
+                    val press = rememberPressSource()
                     Column(
                         Modifier
                             .weight(1f)
+                            .pressScale(press)
                             .clip(RoundedCornerShape(14.dp))
-                            .clickable(role = Role.Button, onClick = item.open)
+                            .clickable(interactionSource = press, indication = ripple(), role = Role.Button, onClick = item.open)
                             .padding(vertical = 8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         Box(
-                            Modifier.size(40.dp).clip(RoundedCornerShape(14.dp)).background(ground),
+                            Modifier.size(44.dp).clip(RoundedCornerShape(16.dp)).background(ground),
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(item.icon, null, tint = ink, modifier = Modifier.size(20.dp))
@@ -906,15 +896,17 @@ private fun Shortcuts(navigator: Navigator, username: String) {
     }
 }
 
-/** The neutral tile is a shade lighter than a neutral pill: it sits on the page, not on a card. */
+/** The tiles sit on the grey tray, so the neutral one steps up to the page's white. */
 @Composable
 private fun PillTone.colorsForShortcut() = when (this) {
-    PillTone.Neutral -> Nocturne.neutral300 to Nocturne.text
+    PillTone.Neutral -> Nocturne.bg to Nocturne.text
     PillTone.Accent -> Nocturne.accent100 to Nocturne.accent700
     PillTone.Warning -> Nocturne.warningBg to Nocturne.warning
     PillTone.Danger -> Nocturne.dangerBg to Nocturne.danger
     PillTone.Info -> Nocturne.infoBg to Nocturne.info
 }
+
+// ------------------------------------------------------------------ tabs
 
 private fun LazyListScope.showcaseItems(badges: List<ApiAchItem>) {
     if (badges.isEmpty()) {
@@ -971,207 +963,40 @@ private fun LazyListScope.aboutItems(state: ProfileState, profile: UserProfile) 
     }
 }
 
-// ------------------------------------------------------- Someone's page
-
-/**
- * The 用户主页 header: a short cover band, the avatar breaking out of it with
- * 私信 and 关注 beside it, then name, join date, bio, three figures, the energy
- * line and the achievements strip — each a quiet grey block, as on the board.
- */
-@Composable
-private fun PublicHeader(
-    state: ProfileState,
-    profile: UserProfile,
-    navigator: Navigator,
-    onToggleFollow: () -> Unit,
-    onShowAchievements: () -> Unit,
-) {
-    val tier = state.tiers.level(profile.trustLevel)
-    Column(Modifier.fillMaxWidth()) {
-        Box(Modifier.fillMaxWidth().height(114.dp)) {
-            Banner(profile, Modifier.fillMaxWidth().height(64.dp))
-            Box(
-                Modifier
-                    .padding(start = 16.dp, top = 32.dp)
-                    .size(72.dp)
-                    .clip(CircleShape)
-                    .background(Nocturne.bg)
-                    .padding(3.dp),
-            ) {
-                RemoteAvatar(
-                    DiscourseConfig.avatarUrl(profile.avatarTemplate, 240),
-                    profile.username.take(1).uppercase().ifEmpty { "?" },
-                    size = 66.dp,
-                )
-            }
-            Row(
-                Modifier.align(Alignment.BottomEnd).padding(end = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                SecondaryButton(stringResource(R.string.profile_message)) {
-                    navigator.openCompose(pmRecipient = profile.username)
-                }
-                if (state.isFollowing) {
-                    OutlinedPillButton(stringResource(R.string.profile_following), null, onToggleFollow, Modifier.width(96.dp))
-                } else {
-                    PrimaryButton(stringResource(R.string.profile_follow), modifier = Modifier.width(84.dp), onClick = onToggleFollow)
-                }
-            }
-        }
-
-        Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    profile.name?.takeIf { it.isNotBlank() } ?: profile.username,
-                    style = Type.heading(22, FontWeight.Bold),
-                    color = Nocturne.text,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
-                when {
-                    profile.admin == true -> StatusPill(stringResource(R.string.profile_admin), PillTone.Accent)
-                    profile.moderator == true -> StatusPill(stringResource(R.string.profile_moderator), PillTone.Accent)
-                }
-            }
-            Text(
-                listOfNotNull("u/${profile.username}", joinedLine(profile.createdAt)).joinToString(" · "),
-                style = Type.body(13),
-                color = Nocturne.textSecondary,
-            )
-            profile.bioExcerpt?.let { com.nodeloc.app.core.html.plainTextFromHtml(it) }?.trim()?.takeIf { it.isNotEmpty() }?.let {
-                Text(it, style = Type.body(14), color = Nocturne.text, modifier = Modifier.padding(top = 6.dp))
-            }
-
-            // The badge title and group flair the member chose: not on the
-            // board, but their own choice of how to be seen, so they stay.
-            val title = profile.title?.takeIf { it.isNotBlank() && it != tier?.name }
-            if (title != null || profile.flairUrl != null || profile.flairName != null) {
-                FlowRow(
-                    Modifier.padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    title?.let { BadgeTitleText(it, size = 13) }
-                    FlairBadge(
-                        flairUrl = profile.flairUrl,
-                        flairName = profile.flairName,
-                        backgroundColor = profile.flairBgColor,
-                        foregroundColor = profile.flairColor,
-                    )
-                }
-            }
-
-            Row(
-                Modifier
-                    .padding(top = 12.dp)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Nocturne.surface)
-                    .padding(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                val summary = state.summary
-                val topics = (summary?.topicCount ?: profile.topicCount)?.toLong()
-                val posts = (summary?.postCount ?: profile.postCount)?.toLong()
-                // 贡献 is topics and replies together, as the web counts it.
-                val contribution = if (topics == null && posts == null) null else (topics ?: 0) + (posts ?: 0)
-                Figure(stringResource(R.string.profile_reputation), state.publicReputation, Modifier.weight(1f))
-                Figure(stringResource(R.string.me2_contribution), contribution, Modifier.weight(1f))
-                Figure(stringResource(R.string.me2_followers_label), profile.totalFollowers?.toLong(), Modifier.weight(1f))
-            }
-
-            EnergyLine(state.boardRow, tier?.name, onRank = navigator::openWealthRank)
-
-            if (state.achievementBadges.isNotEmpty()) {
-                val press = rememberPressSource()
-                Row(
-                    Modifier
-                        .padding(top = 8.dp)
-                        .fillMaxWidth()
-                        .pressScale(press)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Nocturne.surface)
-                        .clickable(interactionSource = press, indication = ripple(), role = Role.Button, onClick = onShowAchievements)
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    state.achievementBadges.take(3).forEach { AchievementDisc(it, 44.dp) }
-                    Text(
-                        stringResource(R.string.me2_showcase_label),
-                        style = Type.body(13),
-                        color = Nocturne.textSecondary,
-                        modifier = Modifier.weight(1f).padding(start = 4.dp),
-                    )
-                    Icon(Lucide.ChevronRight, null, tint = Nocturne.textTertiary, modifier = Modifier.size(18.dp))
-                }
-            }
-        }
-    }
-}
-
-/** "2022 年 9 月加入": the month, in the reader's own date order. */
-@Composable
-private fun joinedLine(createdAt: String?): String? {
-    val start = DiscourseFormat.instant(createdAt) ?: return null
-    val month = remember(start) {
-        java.time.format.DateTimeFormatter
-            .ofPattern(android.text.format.DateFormat.getBestDateTimePattern(java.util.Locale.getDefault(), "yMMM"))
-            .format(start.atZone(ZoneId.systemDefault()))
-    }
-    return stringResource(R.string.me2_joined_at, month)
-}
-
-@Composable
-private fun Figure(label: String, value: Long?, modifier: Modifier) {
-    Column(modifier) {
-        Text(value?.let(::formatCount) ?: "--", style = Type.heading(18, FontWeight.ExtraBold), color = Nocturne.text, maxLines = 1)
-        Text(label, style = Type.body(12), color = Nocturne.textSecondary, maxLines = 1)
-    }
-}
-
-/**
- * "14,770 能量 · 财富榜第 128 名 · 钻石". Someone else's balance is public only
- * through the board's first page, so off it the line keeps just the tier, and
- * goes nowhere.
- */
-@Composable
-private fun EnergyLine(row: ApiLeaderRow?, tierName: String?, onRank: () -> Unit) {
-    if (row == null && tierName == null) return
-    val press = rememberPressSource()
-    Row(
-        Modifier
-            .padding(top = 8.dp)
-            .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .then(if (row != null) Modifier.pressScale(press) else Modifier)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Nocturne.surface)
-            .then(
-                if (row != null) {
-                    Modifier.clickable(interactionSource = press, indication = ripple(), role = Role.Button, onClick = onRank)
-                } else {
-                    Modifier
-                },
-            )
-            .padding(horizontal = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        row?.let {
-            Text(stringResource(R.string.rank_energy_amount, formatCount(it.balance)), style = Type.body(14, FontWeight.Bold), color = Nocturne.text)
-        }
-        val rest = listOfNotNull(row?.let { stringResource(R.string.me2_board_rank, it.rank) }, tierName)
-        Text(
-            (if (row != null) "· " else "") + rest.joinToString(" · "),
-            style = Type.body(14),
-            color = Nocturne.textSecondary,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
+private fun LazyListScope.pointsItems(state: ProfileState, navigator: Navigator) {
+    item(key = "points-summary") {
+        PointsSummary(
+            balance = state.pointsTotal?.toLong() ?: state.boardRow?.balance,
+            rank = state.boardRow?.rank,
+            onRank = navigator::openWealthRank,
+            onLedger = navigator::openEnergyHistory,
         )
-        if (row != null) Icon(Lucide.ChevronRight, null, tint = Nocturne.textTertiary, modifier = Modifier.size(18.dp))
+    }
+    if (state.points.isEmpty()) {
+        item(key = "points-empty") { ActivityEmpty(stringResource(R.string.profile_empty_points)) }
+    } else {
+        // Indexed: the fields here are not unique — two "daily check-in +5"
+        // entries with no timestamp produce the same key, and a duplicate key
+        // is a crash rather than a glitch.
+        itemsIndexed(state.points) { _, entry -> PointsRow(entry) }
+    }
+}
+
+private fun LazyListScope.bookmarkItems(state: ProfileState, navigator: Navigator, onLoadMore: () -> Unit) {
+    val rows = state.bookmarks
+    if (rows.isEmpty()) {
+        item(key = "saved-empty") { ActivityEmpty(stringResource(R.string.me3_empty_saved)) }
+        return
+    }
+    // Indexed: every field of a bookmark row is nullable, and two with all of
+    // them absent would collide as keys.
+    itemsIndexed(rows) { index, action ->
+        if (index == rows.lastIndex) {
+            LaunchedEffect(ActivityTab.Bookmarks, rows.size) { onLoadMore() }
+        }
+        SavedRow(action) {
+            navigator.openTopic(action.topicId ?: return@SavedRow, action.postNumber)
+        }
     }
 }
 
@@ -1199,51 +1024,51 @@ private fun PointsSummary(balance: Long?, rank: Int?, onRank: () -> Unit, onLedg
     }
 }
 
-/** The header's own shape: band, overlapping card, then rows. */
+/** The header's own shape: cover, avatar, name lines, the figures block and a few rows. */
 @Composable
 private fun ProfileSkeleton(modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxSize()) {
-        Box(Modifier.fillMaxWidth().height(floatingHeaderInset + BandExtra).background(Nocturne.accent900))
-        Column(Modifier.fillMaxSize().padding(top = floatingHeaderInset + 16.dp)) {
-            Column(
-                Modifier
-                    .padding(horizontal = Space.page)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(Nocturne.bg)
-                    .padding(horizontal = 16.dp, vertical = 14.dp)
-                    .skeletonPulsing(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+    Column(modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxWidth().height(114.dp)) {
+            Box(Modifier.fillMaxWidth().height(64.dp).background(Nocturne.neutral300))
+            Box(
+                Modifier.padding(start = 16.dp, top = 32.dp).size(72.dp).clip(CircleShape).background(Nocturne.bg).padding(3.dp),
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    SkeletonBox(Modifier.size(60.dp), corner = 30.dp)
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        SkeletonLine(Modifier.width(120.dp), height = 20.dp)
-                        SkeletonLine(Modifier.width(180.dp), height = 12.dp)
-                    }
-                }
-                SkeletonBox(Modifier.fillMaxWidth().height(56.dp), corner = 14.dp)
-                SkeletonLine(Modifier.fillMaxWidth(), height = 12.dp)
+                SkeletonBox(Modifier.size(66.dp).skeletonPulsing(), corner = 33.dp)
             }
-            Spacer(Modifier.height(Space.s4))
-            RowsSkeleton(rows = 4, avatar = false)
         }
+        Column(
+            Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp).skeletonPulsing(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            SkeletonLine(Modifier.width(140.dp), height = 22.dp)
+            SkeletonLine(Modifier.width(200.dp), height = 13.dp)
+            SkeletonLine(widthFraction = 0.9f, height = 13.dp)
+            SkeletonBox(Modifier.fillMaxWidth().height(64.dp), corner = 12.dp)
+            SkeletonBox(Modifier.fillMaxWidth().height(48.dp), corner = 12.dp)
+        }
+        Spacer(Modifier.height(Space.s4))
+        RowsSkeleton(rows = 4, avatar = false)
     }
 }
 
+/** A saved post: when, the topic it is in, and what it said. */
 @Composable
-private fun ActivityRow(action: UserActionItem, onClick: () -> Unit) {
+private fun SavedRow(action: UserActionItem, onClick: () -> Unit) {
     Column(
         Modifier
             .fillMaxWidth()
             .clickable(enabled = action.topicId != null, onClick = onClick)
-            .padding(horizontal = Space.page, vertical = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+            .padding(horizontal = Space.page, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Text(DiscourseFormat.relative(action.createdAt), style = Type.body(13), color = Nocturne.textSecondary)
+        Text(
+            listOfNotNull(action.username, DiscourseFormat.relative(action.createdAt).takeIf { it.isNotEmpty() }).joinToString(" · "),
+            style = Type.body(12),
+            color = Nocturne.textSecondary,
+        )
         Text(
             action.title.orEmpty(),
-            style = Type.body(17, FontWeight.SemiBold),
+            style = Type.body(16, FontWeight.Bold),
             color = Nocturne.text,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
@@ -1251,7 +1076,7 @@ private fun ActivityRow(action: UserActionItem, onClick: () -> Unit) {
         action.excerpt?.takeIf { it.isNotBlank() }?.let {
             Text(
                 com.nodeloc.app.core.html.plainTextFromHtml(it),
-                style = Type.body(15),
+                style = Type.body(14),
                 color = Nocturne.textSecondary,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -1261,27 +1086,30 @@ private fun ActivityRow(action: UserActionItem, onClick: () -> Unit) {
     HairLine()
 }
 
+/** One ledger line: what it was, when, and the amount in green or orange. */
 @Composable
 private fun PointsRow(entry: PointsHistoryEntry) {
     Row(
-        Modifier.fillMaxWidth().padding(horizontal = Space.page, vertical = 11.dp),
+        Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = Space.page, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column(Modifier.weight(1f)) {
-            Text(entry.description.orEmpty(), style = Type.body(14), color = Nocturne.text)
+            Text(entry.description.orEmpty(), style = Type.body(14), color = Nocturne.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
                 DiscourseFormat.day(entry.createdAt ?: entry.date),
-                style = Type.body(11),
-                color = Nocturne.muted(0.4f),
+                style = Type.body(12),
+                color = Nocturne.textSecondary,
             )
         }
         val points = (entry.points ?: 0).toLong()
         Text(
             formatSigned(points),
-            style = Type.body(14, FontWeight.SemiBold),
-            color = if (points >= 0) Nocturne.accent else Nocturne.danger,
+            style = Type.body(14, FontWeight.Bold),
+            color = if (points >= 0) Nocturne.accent700 else Nocturne.danger,
         )
     }
+    HairLine()
 }
 
 /**

@@ -1,6 +1,7 @@
 package com.nodeloc.app.feature.post
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,12 +29,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.ArrowBigUp
 import com.composables.icons.lucide.ChevronDown
+import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.CircleCheck
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.MessageCircle
 import com.composables.icons.lucide.RefreshCw
 import com.nodeloc.app.R
 import com.nodeloc.app.core.design.FilterPill
@@ -40,9 +49,11 @@ import com.nodeloc.app.core.design.FilterPillRow
 import com.nodeloc.app.core.design.HairLine
 import com.nodeloc.app.core.design.Nocturne
 import com.nodeloc.app.core.design.RemoteAvatar
+import com.nodeloc.app.core.design.RemoteImage
+import com.nodeloc.app.core.design.pressScale
+import com.nodeloc.app.core.design.rememberPressSource
 import com.nodeloc.app.core.design.Space
 import com.nodeloc.app.core.design.Type
-import com.nodeloc.app.core.html.PostContentView
 import com.nodeloc.app.core.model.ReplySort
 import com.nodeloc.app.core.util.DiscourseFormat
 
@@ -86,51 +97,114 @@ internal fun RepliesHeading(count: Int, sort: ReplySort, onSort: (ReplySort) -> 
     }
 }
 
-/** The accepted reply, lifted above the thread on a green ground. Tapping it goes to it. */
+/**
+ * The accepted reply, lifted above the thread: who answered, a three-line
+ * teaser, and the way to its floor. The teaser is plain text on purpose — the
+ * full body, pictures and all, is one tap away and would push the thread off
+ * the screen here.
+ */
 @Composable
 internal fun BestAnswerCard(
     answer: BestAnswer,
     byOp: Boolean,
     onOpenAuthor: (String) -> Unit,
-    onOpenLink: (String) -> Unit,
     onOpen: () -> Unit,
+    /** Null unless the reader may withdraw it: the topic's author or a moderator. */
+    onWithdraw: (() -> Unit)?,
 ) {
+    val shape = RoundedCornerShape(16.dp)
     Column(
         Modifier
-            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .padding(start = Space.page, end = Space.page, top = 4.dp, bottom = 8.dp)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Nocturne.accent100)
-            .clickable(onClick = onOpen)
-            .padding(horizontal = Space.card, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+            .clip(shape)
+            .background(Nocturne.accent100.copy(alpha = 0.5f))
+            .border(1.dp, Nocturne.accent300, shape)
+            .padding(Space.card),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            Icon(Lucide.CircleCheck, null, tint = Nocturne.accent700, modifier = Modifier.size(15.dp))
-            Text(stringResource(R.string.reader2_best_answer), style = Type.body(13, FontWeight.Bold), color = Nocturne.accent700)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                Modifier
+                    .height(24.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Nocturne.accent)
+                    .padding(start = 8.dp, end = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(Lucide.CircleCheck, null, tint = Nocturne.bg, modifier = Modifier.size(14.dp))
+                Text(stringResource(R.string.reader2_best_answer), style = Type.body(12, FontWeight.Bold), color = Nocturne.bg)
+            }
+            // The board adds "回答者获得 20 声望" here. The +20 is conditional
+            // (weekly caps, the asker's standing) and nothing tells a client
+            // whether it was paid, so the line says only who accepted it.
             Text(
-                stringResource(if (byOp) R.string.reader2_accepted_by_op else R.string.reader2_accepted_by_mod),
-                style = Type.body(13),
-                color = Nocturne.textSecondary,
+                stringResource(if (byOp) R.string.reader3_accepted_by_op else R.string.reader3_accepted_by_mod),
+                style = Type.body(12),
+                color = Nocturne.neutral800,
             )
         }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            Modifier.padding(top = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             RemoteAvatar(
                 answer.avatarUrl,
                 answer.author.take(1).uppercase(),
-                size = 24.dp,
+                size = 28.dp,
                 modifier = Modifier.clickable { onOpenAuthor(answer.author) },
             )
-            Text(answer.author, style = Type.body(13, FontWeight.Bold), color = Nocturne.text, maxLines = 1)
-            Text("· ${answer.time}", style = Type.body(13), color = Nocturne.textSecondary, maxLines = 1)
+            val votes = answer.votes?.let { stringResource(R.string.reader3_votes, DiscourseFormat.count(it)) }
+            val meta = listOfNotNull(answer.time, votes).joinToString(" · ", prefix = "· ")
+            Text(answer.author, style = Type.body(12, FontWeight.Bold), color = Nocturne.text, maxLines = 1)
+            Text(meta, style = Type.body(12), color = Nocturne.textSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        PostContentView(
-            content = answer.content,
-            baseSize = 15,
-            lineExtra = 7,
-            onOpenLink = onOpenLink,
-            onOpenMention = onOpenAuthor,
-        )
+        val teaser = remember(answer.content) { answer.content.excerpt(400) }
+        if (teaser.isNotEmpty()) {
+            Text(
+                teaser,
+                style = Type.body(14).copy(lineHeight = Type.body(14).fontSize * 1.65f),
+                color = Nocturne.text,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
+        Row(
+            Modifier.padding(top = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            val press = rememberPressSource()
+            Row(
+                Modifier
+                    .pressScale(press)
+                    .height(36.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Nocturne.bg)
+                    .border(1.dp, Nocturne.accent200, RoundedCornerShape(18.dp))
+                    .clickable(interactionSource = press, indication = ripple(), onClick = onOpen)
+                    .padding(horizontal = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(stringResource(R.string.reader3_view_floor), style = Type.body(13, FontWeight.Bold), color = Nocturne.text)
+                Icon(Lucide.ChevronRight, null, tint = Nocturne.text, modifier = Modifier.size(14.dp))
+            }
+            onWithdraw?.let {
+                Box(
+                    Modifier
+                        .height(36.dp)
+                        .clip(RoundedCornerShape(18.dp))
+                        .clickable(onClick = it)
+                        .padding(horizontal = 12.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(stringResource(R.string.reader3_withdraw_answer), style = Type.body(13, FontWeight.Bold), color = Nocturne.textSecondary)
+                }
+            }
+        }
     }
 }
 
@@ -146,29 +220,42 @@ internal fun RelatedTopicsSection(
     onSelect: (RelatedSource) -> Unit,
     onMore: () -> Unit,
     onOpen: (Int) -> Unit,
+    onBrowseMore: () -> Unit,
 ) {
     val list = state.related[source].orEmpty()
     val batches = (list.size + RELATED_BATCH - 1) / RELATED_BATCH
-    Column(Modifier.fillMaxWidth()) {
-        Box(Modifier.fillMaxWidth().height(Space.s3).background(Nocturne.surface))
+    Column(Modifier.fillMaxWidth().padding(top = 20.dp)) {
+        Box(Modifier.fillMaxWidth().height(8.dp).background(Nocturne.surface))
         Row(
-            Modifier.fillMaxWidth().padding(start = Space.page, end = Space.page, top = 12.dp, bottom = 8.dp),
+            Modifier.fillMaxWidth().padding(start = Space.page, end = 10.dp, top = 16.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
                 stringResource(R.string.reader2_related),
-                style = Type.heading(17, FontWeight.SemiBold),
+                style = Type.heading(16, FontWeight.Bold),
                 color = Nocturne.text,
                 modifier = Modifier.weight(1f),
             )
             if (batches > 1) {
+                Text(
+                    stringResource(R.string.reader3_related_page, state.relatedBatch + 1, batches),
+                    style = Type.body(12),
+                    color = Nocturne.textTertiary,
+                )
+                val press = rememberPressSource()
                 Row(
-                    Modifier.clickable(onClick = onMore),
+                    Modifier
+                        .pressScale(press)
+                        .height(36.dp)
+                        .clip(RoundedCornerShape(18.dp))
+                        .clickable(interactionSource = press, indication = ripple(), onClick = onMore)
+                        .padding(horizontal = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Icon(Lucide.RefreshCw, null, tint = Nocturne.textSecondary, modifier = Modifier.size(14.dp))
-                    Text(stringResource(R.string.reader2_related_more), style = Type.body(13, FontWeight.SemiBold), color = Nocturne.textSecondary)
+                    Text(stringResource(R.string.reader2_related_more), style = Type.body(13, FontWeight.Bold), color = Nocturne.textSecondary)
                 }
             }
         }
@@ -186,40 +273,85 @@ internal fun RelatedTopicsSection(
                 }
             }
         }
-        list.drop(state.relatedBatch * RELATED_BATCH).take(RELATED_BATCH).forEach { topic ->
-            HairLine()
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .clickable { onOpen(topic.id) }
-                    .padding(horizontal = Space.page, vertical = 11.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                RemoteAvatar(topic.logoUrl, topic.nodeName.take(1).ifEmpty { "N" }, variant = topic.id % 2, size = 32.dp)
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        topic.title,
-                        style = Type.body(15, FontWeight.SemiBold),
-                        color = Nocturne.text,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Spacer(Modifier.height(3.dp))
-                    Text(
-                        stringResource(
-                            R.string.reader2_related_meta,
-                            topic.author,
-                            topic.time,
-                            DiscourseFormat.count(topic.votes),
-                            DiscourseFormat.count(topic.replies),
-                        ),
-                        style = Type.body(12),
-                        color = Nocturne.textSecondary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+        HairLine()
+        list.drop(state.relatedBatch * RELATED_BATCH).take(RELATED_BATCH).forEachIndexed { index, topic ->
+            if (index > 0) HairLine()
+            RelatedRow(topic, onOpen)
+        }
+        HairLine()
+        Row(
+            Modifier.fillMaxWidth().height(48.dp).clickable(onClick = onBrowseMore),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+        ) {
+            Text(stringResource(R.string.reader3_related_browse), style = Type.body(13, FontWeight.Bold), color = Nocturne.accent)
+            Icon(Lucide.ChevronRight, null, tint = Nocturne.accent, modifier = Modifier.size(14.dp))
+        }
+    }
+}
+
+@Composable
+private fun RelatedRow(topic: RelatedTopic, onOpen: (Int) -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable { onOpen(topic.id) }
+            .padding(horizontal = Space.page, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        RemoteAvatar(
+            topic.logoUrl,
+            topic.nodeName.take(1).ifEmpty { topic.nodeSlug.take(1).uppercase().ifEmpty { "N" } },
+            variant = topic.id % 2,
+            size = 32.dp,
+            cornerRadius = 10.dp,
+            modifier = Modifier.align(Alignment.Top).padding(top = 2.dp),
+        )
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                topic.title,
+                style = Type.body(14, FontWeight.Bold).copy(lineHeight = Type.body(14).fontSize * 1.45f),
+                color = Nocturne.text,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                val secondary = Nocturne.textSecondary
+                Text(
+                    buildAnnotatedString {
+                        if (topic.nodeSlug.isNotEmpty()) {
+                            withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = secondary)) {
+                                append("n/${topic.nodeSlug} · ")
+                            }
+                        }
+                        append(listOf(topic.author, topic.time).filter { it.isNotEmpty() }.joinToString(" · "))
+                    },
+                    style = Type.body(12),
+                    color = Nocturne.textTertiary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Icon(Lucide.ArrowBigUp, stringResource(R.string.reader3_related_votes), tint = Nocturne.textTertiary, modifier = Modifier.size(13.dp))
+                    Text(DiscourseFormat.count(topic.votes), style = Type.body(12), color = Nocturne.textTertiary)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Icon(Lucide.MessageCircle, stringResource(R.string.reader3_related_replies), tint = Nocturne.textSecondary, modifier = Modifier.size(13.dp))
+                    Text(DiscourseFormat.count(topic.replies), style = Type.body(12, FontWeight.Medium), color = Nocturne.textSecondary)
+                }
+                if (topic.read) {
+                    Text(stringResource(R.string.reader3_related_read), style = Type.body(12), color = Nocturne.textTertiary)
                 }
             }
+        }
+        topic.imageUrl?.let {
+            RemoteImage(
+                it,
+                modifier = Modifier.size(width = 64.dp, height = 48.dp).clip(RoundedCornerShape(10.dp)),
+                contentScale = ContentScale.Crop,
+            )
         }
     }
 }

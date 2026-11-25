@@ -929,6 +929,9 @@ object PostHtmlParser {
 
             "a" -> {
                 cursor.index++
+                // Read before the children are consumed: the avatar is markup
+                // inside the link, and as inline content it parses to nothing.
+                val badge = if ("mn-node" in classes) nodeBadge(tokens, cursor.index) else null
                 val children = parseInlinesUntil(tokens, cursor, "a", depth)
                 val href = tag.attributes["href"].orEmpty()
                 when {
@@ -937,7 +940,12 @@ object PostHtmlParser {
                     // profile; a node, a tag or a group is a place to go.
                     "mn-node" in classes || "mn-tag" in classes || "mention-group" in classes -> {
                         val label = children.plainText.trim()
-                        if (label.isEmpty()) emptyList() else listOf(PostInline.Link(href, listOf(PostInline.Text(label))))
+                        val kind = when {
+                            "mn-node" in classes -> LinkKind.Node
+                            "mn-tag" in classes -> LinkKind.Tag
+                            else -> LinkKind.Plain
+                        }
+                        if (label.isEmpty()) emptyList() else listOf(PostInline.Link(href, listOf(PostInline.Text(label)), kind, badge))
                     }
 
                     "mention" in classes -> {
@@ -1035,7 +1043,7 @@ object PostHtmlParser {
         when (inline) {
             is PostInline.Text -> PostInline.Styled(inline.value, style)
             is PostInline.Styled -> PostInline.Styled(inline.value, inline.style or style)
-            is PostInline.Link -> PostInline.Link(inline.href, styled(inline.children, style))
+            is PostInline.Link -> inline.copy(children = styled(inline.children, style))
             else -> inline
         }
     }
@@ -1111,6 +1119,35 @@ object PostHtmlParser {
     private fun classList(tag: HtmlTag): List<String> =
         tag.attributes["class"].orEmpty().split(" ").filter { it.isNotEmpty() }.map { it.lowercase() }
 
+    /**
+     * The avatar inside `a.mn-node`, read ahead without moving the cursor: an
+     * `img.mn-av` logo (the `dark-only` twin skipped), or a `span[data-letter]`
+     * whose inline style carries the node's colour.
+     */
+    private fun nodeBadge(tokens: List<HtmlToken>, from: Int): NodeBadge? {
+        var logo: String? = null
+        var letter: String? = null
+        var color: String? = null
+        var index = from
+        while (index < tokens.size) {
+            val tag = (tokens[index++] as? HtmlToken.Tag)?.tag ?: continue
+            if (tag.isClosing && tag.name == "a") break
+            if (tag.isClosing) continue
+            val classes = classList(tag)
+            when {
+                tag.name == "img" && "mn-av" in classes && "dark-only" !in classes ->
+                    logo = logo ?: tag.attributes["src"]?.takeIf { it.isNotBlank() }
+                tag.name == "span" && tag.attributes.containsKey("data-letter") -> {
+                    letter = tag.attributes["data-letter"]?.trim()?.takeIf { it.isNotEmpty() }
+                    color = NODE_COLOR.find(tag.attributes["style"].orEmpty())?.groupValues?.get(1)?.let { "#$it" }
+                }
+            }
+        }
+        return if (logo == null && letter == null) null else NodeBadge(logo, letter, color)
+    }
+
+    private val NODE_COLOR = Regex("""background:\s*#([0-9a-fA-F]{6})\b""")
+
     private fun isEmoji(tag: HtmlTag): Boolean =
         classList(tag).any { it == "emoji" || it.startsWith("emoji-") }
 
@@ -1161,7 +1198,7 @@ object PostHtmlParser {
     private fun collapseSourceNewlines(inline: PostInline): PostInline = when (inline) {
         is PostInline.Text -> PostInline.Text(inline.value.replace('\n', ' '))
         is PostInline.Styled -> PostInline.Styled(inline.value.replace('\n', ' '), inline.style)
-        is PostInline.Link -> PostInline.Link(inline.href, inline.children.map(::collapseSourceNewlines))
+        is PostInline.Link -> inline.copy(children = inline.children.map(::collapseSourceNewlines))
         else -> inline
     }
 

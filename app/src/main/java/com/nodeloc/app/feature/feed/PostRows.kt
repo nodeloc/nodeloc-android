@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
@@ -20,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -55,6 +57,8 @@ import com.nodeloc.app.core.design.TagChip
 import com.nodeloc.app.core.design.TagStyle
 import com.nodeloc.app.core.design.Type
 import com.nodeloc.app.core.design.VoteControl
+import com.nodeloc.app.core.design.pressScale
+import com.nodeloc.app.core.design.rememberPressSource
 import com.nodeloc.app.core.html.breakingLongTokens
 import com.nodeloc.app.core.model.NodeReadingMode
 import com.nodeloc.app.core.model.Post
@@ -96,9 +100,9 @@ fun PostRow(
     when (mode) {
         NodeReadingMode.Compact -> CompactRow(post, byline, modifier, onOpen, onOpenAuthor, more)
         NodeReadingMode.Expand ->
-            ExpandedRow(post, byline, modifier, onOpen, onOpenAuthor, onShare, onVote, onOpenImage, more)
+            ExpandedRow(post, byline, attributeToAuthor, modifier, onOpen, onOpenAuthor, onShare, onVote, onOpenImage, more)
         NodeReadingMode.Card ->
-            CardRow(post, byline, modifier, onOpen, onOpenAuthor, onShare, onVote, onOpenImage, more)
+            CardRow(post, byline, attributeToAuthor, modifier, onOpen, onOpenAuthor, onShare, onVote, onOpenImage, more)
     }
 }
 
@@ -200,6 +204,7 @@ private fun CompactRow(
 private fun ExpandedRow(
     post: Post,
     byline: Byline,
+    attributeToAuthor: Boolean,
     modifier: Modifier,
     onOpen: () -> Unit,
     onOpenAuthor: (String) -> Unit,
@@ -210,15 +215,16 @@ private fun ExpandedRow(
 ) {
     Column(modifier.fillMaxWidth().clickable(onClick = onOpen)) {
         Column(
-            Modifier.padding(horizontal = Space.page, vertical = Space.card),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            Modifier.padding(horizontal = Space.page, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            RowHeader(post, byline, onOpenAuthor, more)
+            RowHeader(post, byline, onOpenAuthor, attributeToAuthor)
             Row(horizontalArrangement = Arrangement.spacedBy(Space.s4)) {
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     RowTitle(post, maxLines = 3)
                     RowExcerpt(post)
-                    if (post.tags.isNotEmpty()) {
+                    // Inside a node the header already carries the first tag.
+                    if (post.tags.isNotEmpty() && !attributeToAuthor) {
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             post.tags.take(3).forEach { TagChip(it, style = TagStyle.Outline) }
                         }
@@ -229,13 +235,13 @@ private fun ExpandedRow(
                         post.media.firstOrNull()?.bestUrl(240) ?: post.imageUrl,
                         modifier = Modifier
                             .size(78.dp)
-                            .clip(RoundedCornerShape(Radius.lg))
+                            .clip(MEDIA_SHAPE)
                             .clickable { onOpenImage(0) },
                         contentScale = ContentScale.Crop,
                     )
                 }
             }
-            ActionRow(post, onShare, onVote)
+            ActionRow(post, onShare, onVote, more)
         }
         HairLine()
     }
@@ -245,6 +251,7 @@ private fun ExpandedRow(
 private fun CardRow(
     post: Post,
     byline: Byline,
+    attributeToAuthor: Boolean,
     modifier: Modifier,
     onOpen: () -> Unit,
     onOpenAuthor: (String) -> Unit,
@@ -254,25 +261,35 @@ private fun CardRow(
     more: PostRowActions?,
 ) {
     Column(modifier.fillMaxWidth().clickable(onClick = onOpen)) {
-        Column(
-            Modifier.padding(horizontal = Space.page, vertical = Space.card),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            RowHeader(post, byline, onOpenAuthor, more)
+        // The v3 board's rhythm: 6 under the byline, 4 under the title, 8
+        // before the picture and 10 before the actions.
+        Column(Modifier.padding(horizontal = Space.page, vertical = 12.dp)) {
+            RowHeader(post, byline, onOpenAuthor, attributeToAuthor)
+            Spacer(Modifier.height(6.dp))
             RowTitle(post, maxLines = 4)
-            RowExcerpt(post)
-            if (post.media.isNotEmpty() || post.videoUrl != null) CardMedia(post, onOpen, onOpenImage)
-            ActionRow(post, onShare, onVote)
+            if (post.excerpt.isNotEmpty()) {
+                Spacer(Modifier.height(4.dp))
+                RowExcerpt(post)
+            }
+            if (post.media.isNotEmpty() || post.videoUrl != null) {
+                Spacer(Modifier.height(8.dp))
+                CardMedia(post, onOpen, onOpenImage)
+            }
+            Spacer(Modifier.height(10.dp))
+            ActionRow(post, onShare, onVote, more)
         }
         HairLine()
     }
 }
 
+/** The v3 boards round media to 12, a step under the card radius. */
+private val MEDIA_SHAPE = RoundedCornerShape(12.dp)
+
 @Composable
 private fun RowTitle(post: Post, maxLines: Int) {
     Text(
         post.title.breakingLongTokens(),
-        style = Type.body(18, FontWeight.SemiBold).copy(lineHeight = Type.lineHeight(18, 7)),
+        style = Type.body(16, FontWeight.Bold).copy(lineHeight = Type.lineHeight(16, 6)),
         color = Nocturne.text,
         maxLines = maxLines,
         overflow = TextOverflow.Ellipsis,
@@ -284,8 +301,10 @@ private fun RowExcerpt(post: Post) {
     if (post.excerpt.isEmpty()) return
     Text(
         post.excerpt,
-        style = Type.body(15).copy(lineHeight = Type.lineHeight(15, 7)),
-        color = Nocturne.textSecondary,
+        style = Type.body(13).copy(lineHeight = Type.lineHeight(13, 6)),
+        // The board sets the excerpt in a near-ink grey, darker than the
+        // secondary text of the byline beside it.
+        color = Nocturne.muted(0.86f),
         maxLines = 2,
         overflow = TextOverflow.Ellipsis,
     )
@@ -300,7 +319,7 @@ private fun RowExcerpt(post: Post) {
  */
 @Composable
 private fun CardMedia(post: Post, onOpen: () -> Unit, onOpenImage: (Int) -> Unit) {
-    val shape = RoundedCornerShape(Radius.lg)
+    val shape = MEDIA_SHAPE
     val first = post.media.firstOrNull()
     // The 2.0 topic list sends only `image_url`, no dimensions. Without them the
     // ratio fell back to a square and the picture was letterboxed inside it — a
@@ -371,15 +390,15 @@ private fun CardMedia(post: Post, onOpen: () -> Unit, onOpenImage: (Int) -> Unit
 
             Box(
                 Modifier
-                    .align(Alignment.BottomEnd)
+                    .align(Alignment.TopEnd)
                     .padding(8.dp)
                     .clip(CircleShape)
                     .background(Color.Black.copy(alpha = 0.55f))
                     .padding(horizontal = 8.dp, vertical = 3.dp),
             ) {
                 Text(
-                    "${pagerState.currentPage + 1}/${post.media.size}",
-                    style = Type.body(11),
+                    "${pagerState.currentPage + 1} / ${post.media.size}",
+                    style = Type.body(11, FontWeight.Bold),
                     color = Color.White,
                 )
             }
@@ -407,44 +426,59 @@ private fun PagerArrow(
     }
 }
 
-/** "n/slug · time", led by the node's logo; the overflow menu at the far end. */
+/**
+ * "n/slug · time", led by the node's logo. Inside a node it is "u/name · time"
+ * and the topic's first tag, which is how the v3 node board tells its rows
+ * apart when every one of them lives in the same place.
+ *
+ * The menu moved from here to the end of the action row in v3, where it shares
+ * one button with 分享.
+ */
 @Composable
 private fun RowHeader(
     post: Post,
     byline: Byline,
     onOpenAuthor: (String) -> Unit,
-    more: PostRowActions?,
+    showTag: Boolean,
 ) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        // The byline gets its own weighted row so the menu always sits at the
-        // far edge: a weighted label next to a weighted spacer splits the slack
-        // between them, and the menu then wandered with the label's length.
-        Row(
-            Modifier.weight(1f),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            BylineAvatar(byline, 28.dp, onOpenAuthor)
-            Text(
-                byline.label,
-                style = Type.body(14, FontWeight.SemiBold),
-                color = Nocturne.text,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f, fill = false),
-            )
-            Text("· ${post.time}", style = Type.body(14), color = Nocturne.textSecondary, maxLines = 1)
-            if (post.isUnread) UnreadDot()
-            if (post.pinned) {
-                Icon(
-                    Lucide.Pin,
-                    stringResource(R.string.feed_pinned),
-                    tint = Nocturne.accent2,
-                    modifier = Modifier.size(13.dp),
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 28.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        BylineAvatar(byline, 24.dp, onOpenAuthor)
+        Text(
+            byline.label,
+            style = Type.body(12, FontWeight.Bold),
+            color = Nocturne.text,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f, fill = false),
+        )
+        Text("· ${post.time}", style = Type.body(12), color = Nocturne.textSecondary, maxLines = 1)
+        if (showTag) {
+            post.tags.firstOrNull()?.let { tag ->
+                Text(
+                    tag,
+                    style = Type.body(12, FontWeight.Medium),
+                    color = Nocturne.text,
+                    maxLines = 1,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(Nocturne.neutral400)
+                        .padding(horizontal = 8.dp),
                 )
             }
         }
-        more?.let { PostRowMenu(it) }
+        if (post.isUnread) UnreadDot()
+        if (post.pinned) {
+            Icon(
+                Lucide.Pin,
+                stringResource(R.string.feed_pinned),
+                tint = Nocturne.accent2,
+                modifier = Modifier.size(13.dp),
+            )
+        }
     }
 }
 
@@ -464,7 +498,12 @@ private fun MetaLine(post: Post, label: String) {
 }
 
 @Composable
-private fun ActionRow(post: Post, onShare: () -> Unit, onVote: ((VoteDirection, String?) -> Unit)?) {
+private fun ActionRow(
+    post: Post,
+    onShare: () -> Unit,
+    onVote: ((VoteDirection, String?) -> Unit)?,
+    more: PostRowActions?,
+) {
     Row(
         Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -473,9 +512,9 @@ private fun ActionRow(post: Post, onShare: () -> Unit, onVote: ((VoteDirection, 
         val score = post.voteScore
         when {
             // Votable, and this list knows how to cast one. The capsule is
-            // drawn here and the control's own ground turned off, so the three
+            // drawn here and the control's own ground turned off, so the
             // pills in the row share one height and one grey.
-            score != null && onVote != null -> RowCapsule(horizontalPadding = 6.dp) {
+            score != null && onVote != null -> RowCapsule(horizontalPadding = 8.dp) {
                 VoteControl(
                     direction = post.voteDirection,
                     score = score,
@@ -495,22 +534,54 @@ private fun ActionRow(post: Post, onShare: () -> Unit, onVote: ((VoteDirection, 
             else -> MetricCapsule(Lucide.ThumbsUp, DiscourseFormat.count(post.baseVotes))
         }
         MetricCapsule(Lucide.MessageCircle, DiscourseFormat.count(post.comments))
-        MetricCapsule(Lucide.Share2, stringResource(R.string.common_share), onClick = onShare)
+        Spacer(Modifier.weight(1f))
+        // v3 folds 分享 and the overflow menu into one round button at the far
+        // end; the menu already leads with 分享. A list with nowhere to host the
+        // menu's dialogs gets the same button doing just the share.
+        if (more != null) {
+            PostRowMenu(more) { open -> RoundActionButton(onClick = open) }
+        } else {
+            RoundActionButton(onClick = onShare)
+        }
     }
 }
 
-/** The design's action pill: 36 high, neutral ground, ink text. */
+@Composable
+private fun RoundActionButton(onClick: () -> Unit) {
+    val press = rememberPressSource()
+    Box(
+        Modifier
+            .pressScale(press)
+            .size(ACTION_HEIGHT)
+            .clip(CircleShape)
+            .background(Nocturne.neutral400)
+            .clickable(interactionSource = press, indication = ripple(), onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            Lucide.Share2,
+            stringResource(R.string.feed3_share_more),
+            tint = Nocturne.text,
+            modifier = Modifier.size(18.dp),
+        )
+    }
+}
+
+/** The v3 boards' action pills are 44 high: a full touch target each. */
+private val ACTION_HEIGHT = 44.dp
+
+/** The design's action pill: 44 high, neutral ground, ink text. */
 @Composable
 private fun RowCapsule(
     onClick: (() -> Unit)? = null,
-    horizontalPadding: androidx.compose.ui.unit.Dp = 12.dp,
+    horizontalPadding: androidx.compose.ui.unit.Dp = 16.dp,
     content: @Composable RowScope.() -> Unit,
 ) {
     Row(
         Modifier
-            .height(36.dp)
+            .height(ACTION_HEIGHT)
             .clip(CircleShape)
-            .background(Nocturne.neutral300)
+            .background(Nocturne.neutral400)
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(horizontal = horizontalPadding),
         verticalAlignment = Alignment.CenterVertically,
@@ -522,8 +593,8 @@ private fun RowCapsule(
 @Composable
 private fun MetricCapsule(icon: ImageVector, value: String, onClick: (() -> Unit)? = null) {
     RowCapsule(onClick = onClick) {
-        Icon(icon, null, tint = Nocturne.textSecondary, modifier = Modifier.size(18.dp))
-        Text(value, style = Type.body(14, FontWeight.SemiBold), color = Nocturne.text)
+        Icon(icon, null, tint = Nocturne.text, modifier = Modifier.size(18.dp))
+        Text(value, style = Type.body(13, FontWeight.Bold), color = Nocturne.text)
     }
 }
 

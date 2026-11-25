@@ -173,14 +173,17 @@ fun FeedScreen(
                                 onOpenImage = { index -> viewer = post.imageViewerAt(index) },
                             )
                         }
-                        if (state.isLoadingMore) {
-                            item {
-                                Box(Modifier.fillMaxSize().height(64.dp), contentAlignment = Alignment.Center) {
-                                    NodelocLoader(height = 24.dp)
-                                }
-                            }
+                        item(key = "footer") {
+                            TopicListFooter(
+                                count = posts.size,
+                                hasMore = state.hasMore,
+                                isLoadingMore = state.isLoadingMore,
+                                failed = state.loadMoreFailed,
+                                onLoadMore = { viewModel.loadMore(retry = true) },
+                                onBackToTop = { listState.requestScrollToTop() },
+                                modifier = Modifier.padding(top = 8.dp),
+                            )
                         }
-                        item { Spacer(Modifier.height(8.dp)) }
                     }
                 }
             }

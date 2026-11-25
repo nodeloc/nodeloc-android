@@ -71,19 +71,26 @@ data class PostRowActions(
  * not to read.
  */
 @Composable
-fun PostRowMenu(actions: PostRowActions, modifier: Modifier = Modifier) {
-    var open by remember { mutableStateOf(false) }
-    Box(modifier) {
+fun PostRowMenu(
+    actions: PostRowActions,
+    modifier: Modifier = Modifier,
+    /** What opens the menu; the compact row's small dots unless a row draws its own. */
+    trigger: @Composable (open: () -> Unit) -> Unit = { open ->
         Icon(
             Lucide.EllipsisVertical,
             stringResource(R.string.common_more),
             tint = Nocturne.muted(0.45f),
             modifier = Modifier
                 .clip(CircleShape)
-                .clickable { open = true }
+                .clickable(onClick = open)
                 .padding(4.dp)
                 .size(16.dp),
         )
+    },
+) {
+    var open by remember { mutableStateOf(false) }
+    Box(modifier) {
+        trigger { open = true }
         DropdownMenu(
             expanded = open,
             onDismissRequest = { open = false },

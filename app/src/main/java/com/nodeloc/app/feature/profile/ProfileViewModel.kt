@@ -12,7 +12,10 @@ import com.nodeloc.app.core.model.UserActionItem
 import com.nodeloc.app.core.model.UserBookmark
 import com.nodeloc.app.core.model.UserProfile
 import com.nodeloc.app.core.model.UserSummary
+import com.nodeloc.app.core.model.VoteDirection
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,34 +23,37 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 /**
- * The profile page's activity tabs. `filter` is Discourse's UserAction type.
+ * The profile page's tabs, in the board's order.
  *
- * Bookmarks and energy have none: neither is a user action, and both are
- * fetched from somewhere else entirely. Bookmarks used to claim type 3, which
- * Discourse deleted along with the rows behind it — the request succeeded and
- * returned nothing, so the tab was empty and looked broken rather than wrong.
+ * 概览 and 评论 read the same list — the account's posts, which include the
+ * openers of its topics — so they share one fetch. 赞同过 is not here: the
+ * backend serves it only to the website's own pages, with no JSON route, and a
+ * tab that could only ever be empty would read as broken.
  */
-enum class ActivityTab(@StringRes val labelRes: Int, val filter: Int?) {
-    Topics(R.string.profile_topics, 4),
-    Posts(R.string.profile_posts, 5),
-    Likes(R.string.profile_likes, 1),
-    Bookmarks(R.string.profile_bookmarks, null),
-    Points(R.string.profile_energy, null),
-    Achievements(R.string.me2_tab_achievements, null),
-    About(R.string.me2_tab_about, null),
+enum class ActivityTab(@StringRes val labelRes: Int) {
+    Overview(R.string.me3_tab_overview),
+    Topics(R.string.profile_posts),
+    Comments(R.string.me3_tab_comments),
+    Points(R.string.me3_tab_points),
+    Bookmarks(R.string.me3_tab_saved),
+    Achievements(R.string.me2_tab_achievements),
+    About(R.string.me2_tab_about),
     ;
 
     /** Drawn from what the header already loaded; there is nothing to fetch. */
     val isLocal: Boolean get() = this == Achievements || this == About
 
+    /**
+     * Energy and saves are the owner's business: `/api/v1/saved` and the
+     * ledger only ever answer with the caller's own, so on someone else's
+     * page those tabs show the board's "only visible to them" state instead
+     * of the reader's own list under the other person's name.
+     */
+    fun isPrivateFor(own: Boolean): Boolean = !own && (this == Points || this == Bookmarks)
+
     companion object {
-        /**
-         * Bookmarks and energy are your own business — `/api/v1/saved` only
-         * ever answers with the caller's, so on someone else's page that tab
-         * would have shown *your* bookmarks under *their* name.
-         */
-        val own = listOf(Topics, Posts, Likes, Bookmarks, Points)
-        val public = listOf(Topics, Posts, Achievements, About)
+        val own = listOf(Overview, Topics, Comments, Points, Bookmarks)
+        val public = listOf(Overview, Topics, Comments, Points, Bookmarks, Achievements, About)
     }
 }
 
@@ -56,19 +62,25 @@ data class ProfileState(
     val profile: UserProfile? = null,
     val summary: UserSummary? = null,
     val pointsTotal: Int? = null,
-    val tab: ActivityTab = ActivityTab.Topics,
-    val activity: Map<ActivityTab, List<UserActionItem>> = emptyMap(),
-    /**
-     * Whether each tab has more behind it.
-     *
-     * The server hands back thirty rows and stops; asking once was all this
-     * screen ever did, so every tab looked capped at thirty no matter how much
-     * the account had. Absent means "not loaded yet", which is not the same as
-     * "nothing more".
-     */
-    val activityHasMore: Map<ActivityTab, Boolean> = emptyMap(),
+    val tab: ActivityTab = ActivityTab.Overview,
+    /** Topics the person started, in the backend's own shape. */
+    val topics: List<ApiUserTopicRow> = emptyList(),
+    val topicsCursor: String? = null,
+    val topicsLoaded: Boolean = false,
+    /** Everything they posted, openers included; newest first. */
+    val posts: List<ApiUserPostRow> = emptyList(),
+    val postsCursor: String? = null,
+    val postsLoaded: Boolean = false,
+    val bookmarks: List<UserActionItem> = emptyList(),
+    val bookmarksHasMore: Boolean = false,
+    val bookmarksLoaded: Boolean = false,
+    /** The reader's votes on openers, by topic id: seeded from the rows, then optimistic. */
+    val votes: Map<Int, TopicVote> = emptyMap(),
+    /** Saves the reader made or undid here, by post id; the rows do not say what was saved before. */
+    val saved: Map<Int, Boolean> = emptyMap(),
     val isLoadingMoreTab: Boolean = false,
     val points: List<PointsHistoryEntry> = emptyList(),
+    val pointsLoaded: Boolean = false,
     val isLoading: Boolean = false,
     val isLoadingTab: Boolean = false,
     /**
@@ -103,9 +115,19 @@ data class ProfileState(
     val isCheckingIn: Boolean = false,
     val error: Throwable? = null,
 ) {
-    val currentActivity: List<UserActionItem> get() = activity[tab].orEmpty()
+    /** Topic ids this person is known to have opened: from 帖子, or an opener met in 概览. */
+    val openedTopics: Set<Int>
+        get() = topics.mapTo(HashSet()) { it.id } + posts.filter { it.postNumber == 1 }.map { it.topicId }
 
-    val currentTabHasMore: Boolean get() = activityHasMore[tab] == true
+    val topicsById: Map<Int, ApiUserTopicRow> get() = topics.associateBy { it.id }
+
+    val currentTabHasMore: Boolean
+        get() = when (tab) {
+            ActivityTab.Overview, ActivityTab.Comments -> postsCursor != null
+            ActivityTab.Topics -> topicsCursor != null
+            ActivityTab.Bookmarks -> bookmarksHasMore
+            else -> false
+        }
 
     /**
      * Compared against the device's day, not the site's.
@@ -121,19 +143,10 @@ data class ProfileState(
 /**
  * One profile — yours or someone else's.
  *
- * Activity tabs load lazily and are cached per tab, so flipping back and forth
- * doesn't re-hit the network for a list already on the device.
+ * Lists load lazily and are kept once loaded, so flipping between tabs doesn't
+ * re-hit the network for a list already on the device.
  */
 class ProfileViewModel : ViewModel() {
-
-    private companion object {
-        /**
-         * What `user_actions.json` returns when asked for no limit, and what
-         * the bookmark list returns per page. A page shorter than this is the
-         * last one — neither endpoint says so directly.
-         */
-        const val ACTIVITY_PAGE = 30
-    }
 
     private val services = ServiceLocator.get
     private val client = services.client
@@ -145,6 +158,8 @@ class ProfileViewModel : ViewModel() {
     private var boundUsername: String? = null
 
     private val growth = GrowthApi.shared
+    private val activity = ProfileActivityApi(client.api)
+    private var tabJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -227,7 +242,7 @@ class ProfileViewModel : ViewModel() {
                 achievementBadges = overview?.achievements
                     ?.filter { it.unlocked }
                     ?.sortedByDescending { it.lastAt ?: it.unlockedAt.orEmpty() }
-                    ?.take(4)
+                    ?.take(3)
                     ?: showcase?.showcase.orEmpty(),
                 tiers = tiersJob.await(),
                 boardRow = boardJob.await()?.firstOrNull { it.username.equals(username, ignoreCase = true) },
@@ -244,15 +259,17 @@ class ProfileViewModel : ViewModel() {
                 },
             )
             val tabs = if (own) ActivityTab.own else ActivityTab.public
-            selectTab(_state.value.tab.takeIf { it in tabs } ?: ActivityTab.Topics, force = true)
+            selectTab(_state.value.tab.takeIf { it in tabs } ?: ActivityTab.Overview, force = true)
         }
     }
 
     fun refresh() {
         _state.value = _state.value.copy(
-            activity = emptyMap(),
-            activityHasMore = emptyMap(),
-            points = emptyList(),
+            topics = emptyList(), topicsCursor = null, topicsLoaded = false,
+            posts = emptyList(), postsCursor = null, postsLoaded = false,
+            bookmarks = emptyList(), bookmarksHasMore = false, bookmarksLoaded = false,
+            points = emptyList(), pointsLoaded = false,
+            votes = emptyMap(), saved = emptyMap(),
         )
         load()
     }
@@ -312,67 +329,114 @@ class ProfileViewModel : ViewModel() {
     }
 
     fun selectTab(tab: ActivityTab, force: Boolean = false) {
-        _state.value = _state.value.copy(tab = tab)
-        if (tab.isLocal) {
+        val current = _state.value
+        _state.value = current.copy(tab = tab)
+        if (tab.isLocal || tab.isPrivateFor(current.isOwn)) {
             _state.value = _state.value.copy(isLoadingTab = false, tabError = null)
             return
         }
-        val username = _state.value.username.ifEmpty { return }
+        val username = current.username.ifEmpty { return }
         if (!force) {
-            val alreadyLoaded = if (tab == ActivityTab.Points) {
-                _state.value.points.isNotEmpty()
-            } else {
-                _state.value.activity.containsKey(tab)
+            val loaded = when (tab) {
+                ActivityTab.Overview -> current.postsLoaded
+                ActivityTab.Comments -> current.postsLoaded
+                ActivityTab.Topics -> current.topicsLoaded
+                ActivityTab.Bookmarks -> current.bookmarksLoaded
+                ActivityTab.Points -> current.pointsLoaded
+                else -> true
             }
-            if (alreadyLoaded) return
+            if (loaded) {
+                _state.value = _state.value.copy(isLoadingTab = false, tabError = null)
+                // Reached from 评论, the posts are here but the openers'
+                // numbers are not; fetched quietly, the cards fill in.
+                if (tab == ActivityTab.Overview && !current.topicsLoaded) {
+                    viewModelScope.launch {
+                        runCatchingCancellable { activity.topics(username, null) }.getOrNull()?.let(::applyTopics)
+                    }
+                }
+                return
+            }
         }
-        viewModelScope.launch {
+        tabJob?.cancel()
+        tabJob = viewModelScope.launch {
             _state.value = _state.value.copy(isLoadingTab = true, tabError = null)
-            if (tab == ActivityTab.Points) {
-                runCatchingCancellable { client.pointsHistory(username) }
-                    .onSuccess {
-                        _state.value = _state.value.copy(
-                            points = it.pointsHistory.orEmpty(),
-                            isLoadingTab = false,
-                        )
-                    }
-                    .onFailure {
-                        _state.value = _state.value.copy(isLoadingTab = false, tabError = it)
-                    }
-            } else if (tab == ActivityTab.Bookmarks) {
-                // Its own endpoint, not a user-action filter — see
-                // DiscourseClient.bookmarks. Shaped into the same row the other
-                // tabs draw so the list below does not have to know.
-                runCatchingCancellable { client.bookmarks(username) }
-                    .onSuccess { response ->
-                        val rows = response.userBookmarkList.bookmarks.map { it.asActivity() }
-                        _state.value = _state.value.copy(
-                            activity = _state.value.activity + (tab to rows),
-                            activityHasMore = _state.value.activityHasMore +
-                                (tab to (response.userBookmarkList.moreBookmarksUrl != null)),
-                            isLoadingTab = false,
-                        )
-                    }
-                    .onFailure {
-                        _state.value = _state.value.copy(isLoadingTab = false, tabError = it)
-                    }
-            } else {
-                val filter = tab.filter ?: return@launch
-                runCatchingCancellable { client.userActions(username, filter) }
-                    .onSuccess {
-                        val rows = it.userActions.orEmpty()
-                        _state.value = _state.value.copy(
-                            activity = _state.value.activity + (tab to rows),
-                            activityHasMore = _state.value.activityHasMore +
-                                (tab to (rows.size >= ACTIVITY_PAGE)),
-                            isLoadingTab = false,
-                        )
-                    }
-                    .onFailure {
-                        _state.value = _state.value.copy(isLoadingTab = false, tabError = it)
-                    }
-            }
+            val outcome = runCatchingCancellable { fetchFirst(tab, username) }
+            _state.value = _state.value.copy(isLoadingTab = false, tabError = outcome.exceptionOrNull())
         }
+    }
+
+    private suspend fun fetchFirst(tab: ActivityTab, username: String) {
+        when (tab) {
+            ActivityTab.Overview, ActivityTab.Comments -> coroutineScope {
+                // The overview draws openers as topic cards; their scores and
+                // counts live on the topics list, so its first page rides along.
+                // Optional: without it those cards just go without the numbers.
+                val topics = async {
+                    if (tab == ActivityTab.Overview && !_state.value.topicsLoaded) {
+                        runCatchingCancellable { activity.topics(username, null) }.getOrNull()
+                    } else {
+                        null
+                    }
+                }
+                val posts = activity.posts(username, null)
+                topics.await()?.let(::applyTopics)
+                _state.value = _state.value.copy(posts = posts.posts, postsCursor = posts.nextCursor, postsLoaded = true)
+                if (tab == ActivityTab.Comments) fillComments(username)
+            }
+            ActivityTab.Topics -> applyTopics(activity.topics(username, null))
+            ActivityTab.Points -> {
+                val history = client.pointsHistory(username)
+                _state.value = _state.value.copy(points = history.pointsHistory.orEmpty(), pointsLoaded = true)
+            }
+            ActivityTab.Bookmarks -> {
+                // Its own endpoint, not a user list — see DiscourseClient.bookmarks.
+                val response = client.bookmarks(username)
+                _state.value = _state.value.copy(
+                    bookmarks = response.userBookmarkList.bookmarks.map { it.asActivity() },
+                    bookmarksHasMore = response.userBookmarkList.moreBookmarksUrl != null,
+                    bookmarksLoaded = true,
+                )
+            }
+            else -> Unit
+        }
+    }
+
+    private fun applyTopics(page: ApiUserTopicPage, append: Boolean = false) {
+        val now = _state.value
+        val known = if (append) now.topics.mapTo(HashSet()) { it.id } else emptySet()
+        val fresh = page.topics.filter { it.id !in known }
+        // A vote made here outranks what a later page says about the same topic.
+        val seeded = fresh.associate { it.id to TopicVote(voteOf(it.viewerVote), it.voteScore) }
+        _state.value = now.copy(
+            topics = if (append) now.topics + fresh else fresh,
+            topicsCursor = page.nextCursor,
+            topicsLoaded = true,
+            votes = seeded + now.votes,
+        )
+    }
+
+    /**
+     * 评论 is the posts list without its openers, so a page can come back with
+     * nothing to show; keep reading until it has something or the list ends,
+     * or the end-of-list trigger would never fire again and the tab would stall.
+     */
+    private suspend fun fillComments(username: String) {
+        repeat(COMMENT_FILL_PAGES) {
+            val now = _state.value
+            if (now.posts.any { it.postNumber > 1 } || now.postsCursor == null) return
+            val page = activity.posts(username, now.postsCursor)
+            appendPosts(page)
+        }
+    }
+
+    private fun appendPosts(page: ApiUserPostPage) {
+        val now = _state.value
+        val known = now.posts.mapTo(HashSet()) { it.id }
+        _state.value = now.copy(
+            posts = now.posts + page.posts.filter { it.id !in known },
+            // A page that brought nothing new is the end, whatever the cursor says.
+            postsCursor = page.nextCursor?.takeIf { page.posts.any { p -> p.id !in known } },
+        )
     }
 
     /**
@@ -385,41 +449,83 @@ class ProfileViewModel : ViewModel() {
     fun loadMoreActivity() {
         val current = _state.value
         val tab = current.tab
-        if (tab == ActivityTab.Points || tab.isLocal) return
+        if (tab.isLocal || tab == ActivityTab.Points || tab.isPrivateFor(current.isOwn)) return
         if (current.isLoadingTab || current.isLoadingMoreTab) return
         if (!current.currentTabHasMore) return
         val username = current.username.ifEmpty { return }
-        val loaded = current.activity[tab].orEmpty()
-        if (loaded.isEmpty()) return
 
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoadingMoreTab = true)
-            val fetched = if (tab == ActivityTab.Bookmarks) {
-                // Bookmarks page; user actions offset. Same idea, two dialects.
-                runCatchingCancellable { client.bookmarks(username, loaded.size / ACTIVITY_PAGE) }
-                    .getOrNull()
-                    ?.let { it.userBookmarkList.bookmarks.map { bm -> bm.asActivity() } to
-                        (it.userBookmarkList.moreBookmarksUrl != null) }
-            } else {
-                val filter = tab.filter
-                if (filter == null) {
-                    null
-                } else {
-                    runCatchingCancellable { client.userActions(username, filter, loaded.size) }
-                        .getOrNull()
-                        ?.let { it.userActions.orEmpty() to (it.userActions.orEmpty().size >= ACTIVITY_PAGE) }
+            runCatchingCancellable {
+                when (tab) {
+                    ActivityTab.Topics -> applyTopics(activity.topics(username, current.topicsCursor), append = true)
+                    ActivityTab.Overview -> appendPosts(activity.posts(username, current.postsCursor))
+                    ActivityTab.Comments -> {
+                        val before = current.posts.count { it.postNumber > 1 }
+                        repeat(COMMENT_FILL_PAGES) {
+                            val cursor = _state.value.postsCursor ?: return@runCatchingCancellable
+                            appendPosts(activity.posts(username, cursor))
+                            if (_state.value.posts.count { it.postNumber > 1 } > before) return@runCatchingCancellable
+                        }
+                    }
+                    ActivityTab.Bookmarks -> {
+                        // Bookmarks page; the user lists cursor. Same idea, two dialects.
+                        val response = client.bookmarks(username, current.bookmarks.size / ProfileActivityApi.PAGE)
+                        val rows = response.userBookmarkList.bookmarks.map { it.asActivity() }
+                        _state.value = _state.value.copy(
+                            bookmarks = _state.value.bookmarks + rows,
+                            bookmarksHasMore = response.userBookmarkList.moreBookmarksUrl != null && rows.isNotEmpty(),
+                        )
+                    }
+                    else -> Unit
                 }
             }
-            if (fetched == null) {
-                _state.value = _state.value.copy(isLoadingMoreTab = false)
-                return@launch
-            }
-            val (rows, more) = fetched
-            _state.value = _state.value.copy(
-                activity = _state.value.activity + (tab to loaded + rows),
-                activityHasMore = _state.value.activityHasMore + (tab to (more && rows.isNotEmpty())),
-                isLoadingMoreTab = false,
-            )
+            // Failing to extend a list is quiet: what is on screen stays true,
+            // and the next scroll to the end asks again.
+            _state.value = _state.value.copy(isLoadingMoreTab = false)
+        }
+    }
+
+    /**
+     * A vote from a topic row, optimistic. Cast as from a list: the server does
+     * not count list votes towards the author's reputation, the same as the feed.
+     */
+    fun vote(topic: ApiUserTopicRow, tapped: VoteDirection) {
+        val postId = topic.firstPostId ?: return
+        if (session.username == null) return
+        val previous = _state.value.votes[topic.id] ?: TopicVote(voteOf(topic.viewerVote), topic.voteScore)
+        val next = previous.direction.after(tapped)
+        val optimistic = TopicVote(next, previous.score + previous.direction.stepTo(next))
+        _state.value = _state.value.copy(votes = _state.value.votes + (topic.id to optimistic))
+        viewModelScope.launch {
+            runCatchingCancellable { client.castVote(postId, next, fromFeed = true) }
+                .onSuccess { result ->
+                    _state.value = _state.value.copy(
+                        votes = _state.value.votes + (topic.id to TopicVote(VoteDirection.entries.firstOrNull { it.wire == result.voteDirection } ?: next, result.voteScore ?: optimistic.score)),
+                    )
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(votes = _state.value.votes + (topic.id to previous))
+                    ToastCenter.showError(it)
+                }
+        }
+    }
+
+    /**
+     * Save or unsave a post, optimistic. The lists do not say whether the
+     * reader has already saved a row, so a row starts unsaved unless it is on
+     * the 收藏 tab — saving it again is harmless, the server keeps one.
+     */
+    fun toggleSave(postId: Int, currentlySaved: Boolean) {
+        val target = !currentlySaved
+        _state.value = _state.value.copy(saved = _state.value.saved + (postId to target))
+        viewModelScope.launch {
+            runCatchingCancellable { if (target) client.bookmark(postId) else client.removeBookmark(postId) }
+                .onSuccess { ToastCenter.show(if (target) R.string.me3_saved_toast else R.string.me3_unsaved_toast) }
+                .onFailure {
+                    _state.value = _state.value.copy(saved = _state.value.saved + (postId to currentlySaved))
+                    ToastCenter.showError(it)
+                }
         }
     }
 
@@ -474,6 +580,11 @@ class ProfileViewModel : ViewModel() {
                     ToastCenter.showError(it)
                 }
         }
+    }
+
+    private companion object {
+        /** How far 评论 reads ahead past openers before it gives up on one page. */
+        const val COMMENT_FILL_PAGES = 3
     }
 }
 

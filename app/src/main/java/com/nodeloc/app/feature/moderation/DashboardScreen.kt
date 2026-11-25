@@ -13,15 +13,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -36,6 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.composables.icons.lucide.CircleAlert
 import com.composables.icons.lucide.Flag
 import com.composables.icons.lucide.Hourglass
+import com.composables.icons.lucide.Inbox
 import com.composables.icons.lucide.ListChecks
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.RefreshCw
@@ -55,6 +64,8 @@ import com.nodeloc.app.core.design.NodelocLoader
 import com.nodeloc.app.core.design.PillTone
 import com.nodeloc.app.core.design.StatusPill
 import com.nodeloc.app.core.design.Type
+import com.nodeloc.app.core.design.pressScale
+import com.nodeloc.app.core.design.rememberPressSource
 import com.nodeloc.app.core.network.ApiReviewItem
 import com.nodeloc.app.core.network.DiscourseConfig
 import com.nodeloc.app.core.network.DiscourseError
@@ -76,6 +87,15 @@ internal val REPORT_KINDS = setOf("report", "node_report", "link_report")
 
 data class DashTiles(val pending: Int, val reports: Int, val appeals: Int?)
 
+/**
+ * The summary card's head. [nodes] is how many nodes the waiting items sit in,
+ * known only when the whole queue fitted in one page; [oldestAt] is the
+ * longest-waiting item seen, and [oldestPartial] says there are older ones
+ * beyond the page — the queue is newest-first, so its first page cannot see
+ * them, and the card says "at least" rather than a number it does not have.
+ */
+data class DashBacklog(val nodes: Int?, val oldestAt: String?, val oldestPartial: Boolean)
+
 /** Today's work, counted off the log; there is no response-time data anywhere. */
 data class DashToday(val handled: Int, val deleted: Int, val penalized: Int)
 
@@ -85,6 +105,7 @@ data class DashboardState(
     val scopeChosen: Boolean = false,
     val loading: Boolean = false,
     val tiles: DashTiles? = null,
+    val backlog: DashBacklog? = null,
     val urgent: List<ApiReviewItem> = emptyList(),
     val today: DashToday? = null,
     val error: Throwable? = null,
@@ -164,6 +185,7 @@ class DashboardViewModel(private val initialSlug: String?) : ViewModel() {
                 reports = reports,
                 appeals = appealCount,
             ),
+            backlog = backlogOf(page.items, page.nextBefore != null, site = true),
             urgent = urgentOf(page.items),
             today = today?.await(),
         )
@@ -172,13 +194,21 @@ class DashboardViewModel(private val initialSlug: String?) : ViewModel() {
     private suspend fun loadNode(slug: String): DashboardState = coroutineScope {
         val queue = async { api.nodeQueue(slug, limit = 50) }
         val today = async { runCatchingCancellable { nodeToday(slug) }.getOrNull() }
-        val items = queue.await().items
+        val page = queue.await()
+        val items = page.items
         val reports = items.count { it.kind in REPORT_KINDS }
         DashboardState(
             tiles = DashTiles(pending = items.size - reports, reports = reports, appeals = null),
+            backlog = backlogOf(items, partial = page.nextBefore != null, site = false),
             urgent = urgentOf(items),
             today = today.await(),
         )
+    }
+
+    private fun backlogOf(items: List<ApiReviewItem>, partial: Boolean, site: Boolean): DashBacklog {
+        val oldest = items.minByOrNull { DiscourseFormat.instant(it.createdAt)?.toEpochMilli() ?: Long.MAX_VALUE }
+        val nodes = if (site && !partial) items.mapNotNull { it.nodeSlug }.distinct().size else null
+        return DashBacklog(nodes = nodes, oldestAt = oldest?.createdAt, oldestPartial = partial)
     }
 
     /**
@@ -300,22 +330,19 @@ private fun DashboardBody(state: DashboardState, privileges: ModPrivileges, navi
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(top = 8.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            DashTile(
-                Lucide.Hourglass, tiles.pending, stringResource(R.string.mod_dash_tile_pending),
-                Nocturne.warningBg, Nocturne.warning, Modifier.weight(1f),
-            ) { navigator.openReviewQueue(scope) }
-            DashTile(
-                Lucide.Flag, tiles.reports, stringResource(R.string.mod_dash_tile_reports),
-                Nocturne.dangerBg, Nocturne.danger, Modifier.weight(1f),
-            ) { navigator.openReviewQueue(scope) }
-            if (tiles.appeals != null) {
-                DashTile(
-                    Lucide.Scale, tiles.appeals, stringResource(R.string.mod_dash_tile_appeals),
-                    Nocturne.infoBg, Nocturne.info, Modifier.weight(1f),
-                ) { navigator.openReviewQueue(null) }
-            }
-        }
+        PendingCard(
+            tiles = tiles,
+            backlog = state.backlog,
+            scope = scope,
+            // The queue has no way in pre-filtered to reports, so both buttons
+            // land on it; 看举报 goes straight to the first report instead when
+            // one is on hand, which is what the reader asked to see.
+            onStart = { navigator.openReviewQueue(scope) },
+            onReports = {
+                val report = state.urgent.firstOrNull { it.kind in REPORT_KINDS }
+                if (report != null) navigator.openReviewItem(report.id, scope) else navigator.openReviewQueue(scope)
+            },
+        )
 
         Column {
             DashSectionLabel(stringResource(R.string.mod_dash_urgent))
@@ -387,26 +414,113 @@ private fun DashboardBody(state: DashboardState, privileges: ModPrivileges, navi
     }
 }
 
+/**
+ * The dark 待处理 card: where the work is and how long it has waited, the
+ * three counts, and the two ways in. Inks are the light neutral on the night
+ * green in both themes — the card is dark by design, not by mode.
+ */
 @Composable
-private fun DashTile(
-    icon: ImageVector,
-    value: Int,
-    label: String,
-    ground: Color,
-    ink: Color,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
+private fun PendingCard(
+    tiles: DashTiles,
+    backlog: DashBacklog?,
+    scope: String?,
+    onStart: () -> Unit,
+    onReports: () -> Unit,
 ) {
+    val ink = Nocturne.neutral100
+    val soft = ink.copy(alpha = 0.72f)
+    val glass = ink.copy(alpha = 0.12f)
+    val total = tiles.pending + tiles.reports + (tiles.appeals ?: 0)
     Column(
-        modifier
-            .dashCard(Nocturne.bg)
-            .clickable(onClick = onClick)
-            .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxWidth()
+            .shadow(12.dp, RoundedCornerShape(24.dp), clip = false)
+            .clip(RoundedCornerShape(24.dp))
+            .background(Nocturne.accent900)
+            .padding(start = 18.dp, end = 18.dp, top = 18.dp, bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        DashIconWell(icon, ground, ink)
-        Text(value.toString(), style = Type.heading(28, FontWeight.Bold), color = Nocturne.text)
-        Text(label, style = Type.body(13), color = Nocturne.textSecondary)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(Lucide.Inbox, null, tint = soft, modifier = Modifier.size(16.dp))
+            Text(
+                when {
+                    total == 0 -> stringResource(R.string.dash3_all_clear)
+                    scope != null -> stringResource(R.string.dash3_pending_node, scope)
+                    backlog?.nodes != null -> stringResource(R.string.dash3_pending_nodes, backlog.nodes)
+                    else -> stringResource(R.string.dash3_pending)
+                },
+                style = Type.body(13),
+                color = soft,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            val waited = backlog?.oldestAt?.takeIf { total > 0 }?.let { waitedFor(it) }
+            if (waited != null) {
+                Box(
+                    Modifier.height(24.dp).clip(RoundedCornerShape(12.dp)).background(glass).padding(horizontal = 10.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        stringResource(if (backlog.oldestPartial) R.string.dash3_oldest_more else R.string.dash3_oldest, waited),
+                        style = Type.body(12, FontWeight.Bold),
+                        color = ink,
+                        maxLines = 1,
+                    )
+                }
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            PendingCount(Lucide.Hourglass, stringResource(R.string.mod_dash_tile_pending), tiles.pending, ink, soft, Modifier.weight(1f))
+            PendingCount(Lucide.Flag, stringResource(R.string.mod_dash_tile_reports), tiles.reports, ink, soft, Modifier.weight(1f))
+            tiles.appeals?.let {
+                PendingCount(Lucide.Scale, stringResource(R.string.mod_dash_tile_appeals), it, ink, soft, Modifier.weight(1f))
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            CardButton(stringResource(R.string.dash3_start), ground = ink, text = Nocturne.accent900, onClick = onStart, modifier = Modifier.weight(1f))
+            CardButton(stringResource(R.string.dash3_reports), ground = glass, text = ink, onClick = onReports, modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun PendingCount(icon: ImageVector, label: String, value: Int, ink: Color, soft: Color, modifier: Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            Icon(icon, null, tint = soft, modifier = Modifier.size(14.dp))
+            Text(label, style = Type.body(12), color = soft, maxLines = 1)
+        }
+        Text(value.toString(), style = Type.heading(30, FontWeight.Bold), color = ink, maxLines = 1)
+    }
+}
+
+@Composable
+private fun CardButton(label: String, ground: Color, text: Color, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val press = rememberPressSource()
+    Box(
+        modifier
+            .pressScale(press)
+            .height(40.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(ground)
+            .clickable(interactionSource = press, indication = ripple(), role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(label, style = Type.body(14, FontWeight.Bold), color = text, maxLines = 1)
+    }
+}
+
+/** "2 小时": how long the oldest item has sat, in the largest whole unit. */
+@Composable
+private fun waitedFor(raw: String): String? {
+    val instant = DiscourseFormat.instant(raw) ?: return null
+    val minutes = ((System.currentTimeMillis() - instant.toEpochMilli()) / 60_000).coerceAtLeast(1)
+    return when {
+        minutes < 60 -> stringResource(R.string.dash3_minutes, minutes.toInt())
+        minutes < 24 * 60 -> stringResource(R.string.dash3_hours, (minutes / 60).toInt())
+        else -> stringResource(R.string.dash3_days, (minutes / (24 * 60)).toInt())
     }
 }
 

@@ -57,6 +57,8 @@ data class BestAnswer(
     val avatarUrl: String?,
     val time: String,
     val content: PostContent,
+    /** Net votes, when the site votes; the card says "N 赞同" only then. */
+    val votes: Int? = null,
 )
 
 enum class RelatedSource { Node, Hot }
@@ -71,6 +73,10 @@ data class RelatedTopic(
     val time: String,
     val votes: Int,
     val replies: Int,
+    /** The reader has opened it before (`last_read_post_number` is set). */
+    val read: Boolean = false,
+    /** The card picture the lists show, when the topic has one. */
+    val imageUrl: String? = null,
 )
 
 /**

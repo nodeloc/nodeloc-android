@@ -13,6 +13,8 @@ import com.nodeloc.app.feature.compose.toMarkdown
 import com.nodeloc.app.core.design.ToastCenter
 import com.nodeloc.app.core.html.PostContent
 import com.nodeloc.app.core.html.PostHtmlParser
+import com.nodeloc.app.core.html.LinkCard
+import com.nodeloc.app.core.html.PostLinks
 import com.nodeloc.app.core.model.PostComment
 import com.nodeloc.app.core.model.PostLottery
 import com.nodeloc.app.core.model.PostPoll
@@ -143,7 +145,15 @@ data class ReaderState(
     val related: Map<RelatedSource, List<RelatedTopic>> = emptyMap(),
     val relatedSource: RelatedSource? = null,
     val relatedBatch: Int = 0,
+    /** Preview cards behind the bodies' bare pasted URLs, keyed by URL; see [LinkDataApi]. */
+    val linkCards: Map<String, LinkCard> = emptyMap(),
+    /** Post id → URL → how often it was opened. */
+    val linkClicks: Map<Int, Map<String, Long>> = emptyMap(),
 ) {
+    /** What a post's body needs to draw its link cards and click counts. */
+    fun linksFor(postId: Int?): PostLinks =
+        PostLinks(cards = linkCards, clicks = postId?.let { linkClicks[it] }.orEmpty())
+
     /** Nothing arrived and the load is over — the screen must say so. */
     val failedToLoad: Boolean
         get() = error != null && !isLoading && content.isEmpty && comments.isEmpty() && title.isEmpty()
@@ -614,6 +624,7 @@ class ReaderViewModel : ViewModel() {
                 avatarUrl = DiscourseConfig.avatarUrl(loaded.avatarTemplate, 80),
                 time = DiscourseFormat.relative(loaded.createdAt),
                 content = contentFor(loaded),
+                votes = loaded.voteScore,
             )
         } else {
             // A reply on a later page, or deep in a fold: one floor on its own.
@@ -627,6 +638,7 @@ class ReaderViewModel : ViewModel() {
                         avatarUrl = DiscourseConfig.avatarUrl(post.authorAvatar, 80),
                         time = DiscourseFormat.relative(post.createdAt),
                         content = withContext(Dispatchers.Default) { PostHtmlParser.parseSync(post.html) },
+                        votes = (post.upvotes - post.downvotes).takeIf { _state.value.firstPostVoteScore != null },
                     )
                 }
         }
@@ -646,13 +658,37 @@ class ReaderViewModel : ViewModel() {
             acceptedPostNumber = if (accept) comment.postNumber else null,
             acceptedByOp = before.firstAuthor?.username?.equals(services.session.username, ignoreCase = true) != false,
             bestAnswer = if (accept) {
-                BestAnswer(comment.id, comment.postNumber, comment.author, comment.avatarUrl, comment.time, comment.content)
+                BestAnswer(comment.id, comment.postNumber, comment.author, comment.avatarUrl, comment.time, comment.content, comment.voteScore)
             } else {
                 null
             },
         )
         viewModelScope.launch {
             runCatchingCancellable { extras.setAccepted(comment.id, accept) }.onFailure { error ->
+                if (_state.value.topicId == topicId) {
+                    _state.value = _state.value.copy(
+                        acceptedPostNumber = before.acceptedPostNumber,
+                        acceptedByOp = before.acceptedByOp,
+                        bestAnswer = before.bestAnswer,
+                    )
+                }
+                ToastCenter.showError(error)
+            }
+        }
+    }
+
+    /**
+     * "撤销采纳" on the answer card. The accepted reply may be on a page not
+     * loaded yet, so this works from the card's own post id rather than
+     * needing the row.
+     */
+    fun withdrawAccepted() {
+        val before = _state.value
+        val answer = before.bestAnswer ?: return
+        val topicId = before.topicId
+        _state.value = before.copy(acceptedPostNumber = null, bestAnswer = null)
+        viewModelScope.launch {
+            runCatchingCancellable { extras.setAccepted(answer.postId, false) }.onFailure { error ->
                 if (_state.value.topicId == topicId) {
                     _state.value = _state.value.copy(
                         acceptedPostNumber = before.acceptedPostNumber,
@@ -676,6 +712,71 @@ class ReaderViewModel : ViewModel() {
             runCatchingCancellable { extras.raw(postId) }
                 .onSuccess { raw -> _state.value = _state.value.copy(revealed = _state.value.revealed + (postId to raw)) }
                 .onFailure { ToastCenter.showError(it) }
+        }
+    }
+
+    private val linkData = LinkDataApi(client.api)
+
+    /** Asked once per topic each; a post or URL already asked about is not asked again. */
+    private val linkStatsAsked = mutableSetOf<Int>()
+    private val linkPreviewsAsked = mutableSetOf<String>()
+    private var linkDataTopic = 0
+
+    /**
+     * Fetches the link cards and click counts for whatever bodies are loaded
+     * and have not been asked about yet. Called as pages land. Decoration: a
+     * failure leaves the plain link, which is what the HTML already says.
+     */
+    fun ensureLinkData() {
+        val state = _state.value
+        val topicId = state.topicId.takeIf { it != 0 } ?: return
+        if (linkDataTopic != topicId) {
+            linkDataTopic = topicId
+            linkStatsAsked.clear()
+            linkPreviewsAsked.clear()
+        }
+        val bodies = buildList {
+            state.firstPostId?.let { add(it to state.content) }
+            state.comments.forEach { if (!it.isLoadMore && !it.deleted && it.id > 0) add(it.id to it.content) }
+        }
+        val posts = bodies.filter { (id, content) -> id !in linkStatsAsked && content.hasOutboundLinks() }.map { it.first }
+        val urls = bodies.flatMap { it.second.oneboxUrls() }.distinct().filter { it !in linkPreviewsAsked }
+        if (posts.isEmpty() && urls.isEmpty()) return
+        linkStatsAsked += posts
+        linkPreviewsAsked += urls
+        viewModelScope.launch {
+            posts.chunked(LinkDataApi.MAX_STATS_POSTS).forEach { chunk ->
+                runCatchingCancellable { linkData.stats(topicId, chunk) }.onSuccess { clicks ->
+                    if (_state.value.topicId == topicId) _state.value = _state.value.copy(linkClicks = _state.value.linkClicks + clicks)
+                }
+            }
+            urls.chunked(LinkDataApi.MAX_PREVIEWS).forEach { chunk ->
+                runCatchingCancellable { linkData.previews(chunk) }.onSuccess { cards ->
+                    if (_state.value.topicId == topicId) _state.value = _state.value.copy(linkCards = _state.value.linkCards + cards)
+                }
+            }
+        }
+    }
+
+    /**
+     * Counts an opened link the way the web does: sent alongside the opening,
+     * never waited on. The count shown takes the server's answer, which already
+     * leaves out a repeat by the same reader. A failure costs one uncounted
+     * click and says nothing — the link itself opened.
+     */
+    fun recordLinkClick(postId: Int?, url: String) {
+        val topicId = _state.value.topicId
+        // A relative href is a place on this site, which the server does not
+        // count; anything else it checks against the post's own links.
+        if (postId == null || !url.startsWith("http")) return
+        viewModelScope.launch {
+            runCatchingCancellable { linkData.click(postId, url) }.onSuccess { result ->
+                val clicks = result.clicks ?: return@onSuccess
+                val current = _state.value
+                if (current.topicId != topicId) return@onSuccess
+                val forPost = current.linkClicks[postId].orEmpty() + (url to clicks)
+                _state.value = current.copy(linkClicks = current.linkClicks + (postId to forPost))
+            }
         }
     }
 
@@ -718,6 +819,8 @@ class ReaderViewModel : ViewModel() {
                     time = DiscourseFormat.relative(topic.createdAt),
                     votes = topic.voteScore ?: 0,
                     replies = topic.replyCount ?: 0,
+                    read = topic.lastReadPostNumber != null,
+                    imageUrl = DiscourseConfig.absoluteUrl(topic.imageUrl),
                 )
             }
         buildMap {

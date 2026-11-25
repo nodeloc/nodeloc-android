@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,21 +22,43 @@ import com.nodeloc.app.core.design.skeletonPulsing
 import com.nodeloc.app.core.model.NodeReadingMode
 
 /**
- * First-load placeholders shaped like whatever mode is active — 3 cards,
- * 10 compact rows, or 5 expanded rows.
+ * First-load placeholders shaped like whatever mode is active — 10 compact
+ * rows, or the v3 board's row (byline, title, a line of excerpt, the two
+ * action pills) for the card and expanded modes. [rows] overrides the count,
+ * for the two-row stand-in at the foot of a list loading its next page.
  *
  * The pulse is attached **once**, on the container: per-row pulses drift out of
  * phase and read as flicker rather than loading.
  */
 @Composable
-fun FeedSkeleton(mode: NodeReadingMode, modifier: Modifier = Modifier) {
+fun FeedSkeleton(mode: NodeReadingMode, modifier: Modifier = Modifier, rows: Int? = null) {
     Column(modifier.fillMaxWidth().skeletonPulsing()) {
         when (mode) {
-            NodeReadingMode.Card -> repeat(3) { CardSkeleton() }
-            NodeReadingMode.Compact -> repeat(10) { CompactSkeleton() }
-            NodeReadingMode.Expand -> repeat(5) { ExpandedSkeleton() }
+            NodeReadingMode.Compact -> repeat(rows ?: 10) { CompactSkeleton() }
+            else -> repeat(rows ?: 6) { RowSkeleton() }
         }
     }
+}
+
+/** The v3 boards' `[data-nl-sk]` row, measure for measure. */
+@Composable
+private fun RowSkeleton() {
+    Column(
+        Modifier.fillMaxWidth().padding(horizontal = Space.page, vertical = Space.card),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            SkeletonBox(Modifier.size(24.dp), corner = 12.dp)
+            SkeletonLine(Modifier.width(140.dp), height = 12.dp)
+        }
+        SkeletonLine(widthFraction = 0.82f, height = 16.dp)
+        SkeletonLine(widthFraction = 0.64f, height = 12.dp)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            SkeletonBox(Modifier.size(width = 92.dp, height = 32.dp), corner = 16.dp)
+            SkeletonBox(Modifier.size(width = 64.dp, height = 32.dp), corner = 16.dp)
+        }
+    }
+    HairLine()
 }
 
 @Composable
@@ -52,47 +73,6 @@ private fun CompactSkeleton() {
             SkeletonLine(widthFraction = 0.42f, height = 10.dp)
         }
     }
-}
-
-@Composable
-private fun ExpandedSkeleton() {
-    Column(
-        Modifier.fillMaxWidth().padding(horizontal = Space.page, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(Space.s3),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.s3)) {
-            SkeletonBox(Modifier.size(26.dp), corner = 13.dp)
-            SkeletonLine(Modifier.width(120.dp), height = 10.dp)
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(Space.s4)) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                SkeletonLine(widthFraction = 0.94f)
-                SkeletonLine(widthFraction = 0.6f)
-            }
-            SkeletonBox(Modifier.size(78.dp))
-        }
-    }
-}
-
-@Composable
-private fun CardSkeleton() {
-    Column(
-        Modifier.fillMaxWidth().padding(horizontal = Space.card, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(Space.s3),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.s3)) {
-            SkeletonBox(Modifier.size(26.dp), corner = 13.dp)
-            SkeletonLine(Modifier.width(140.dp), height = 10.dp)
-        }
-        SkeletonLine(widthFraction = 0.92f)
-        SkeletonLine(widthFraction = 0.55f)
-        SkeletonBox(Modifier.fillMaxWidth().aspectRatio(1.4f))
-        Row(horizontalArrangement = Arrangement.spacedBy(Space.s6)) {
-            SkeletonLine(Modifier.width(44.dp), height = 10.dp)
-            SkeletonLine(Modifier.width(44.dp), height = 10.dp)
-        }
-    }
-    HairLine()
 }
 
 /** Generic list skeleton for the inbox, search results and profile tabs. */
