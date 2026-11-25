@@ -31,7 +31,6 @@
     <string name="common_collapse">Thu gọn</string>
     <string name="common_loading">Đang tải</string>
     <string name="common_checking">Đang kiểm tra…</string>
-    <string name="common_add">Thêm</string>
     <string name="common_or">hoặc</string>
     <string name="common_empty">Chưa có gì ở đây</string>
     <string name="common_empty_hint">Ghé lại sau nhé</string>
@@ -154,8 +153,6 @@
     <string name="reader_locked">Đã khoá chỉnh sửa</string>
     <string name="reader_unlocked">Đã mở khoá chỉnh sửa</string>
     <string name="reader_locked_badge">Đã khoá</string>
-    <string name="reader_topic_close">Đóng chủ đề</string>
-    <string name="reader_topic_reopen">Mở lại chủ đề</string>
     <string name="reader_topic_closed">Đã đóng chủ đề</string>
     <string name="reader_topic_reopened">Đã mở lại chủ đề</string>
     <string name="reader_topic_delete">Xoá chủ đề</string>
@@ -302,12 +299,9 @@
 
     <!-- Tìm kiếm -->
     <string name="search_hint">Tìm bài viết, node và thành viên</string>
-    <string name="search_scope_all">Tất cả</string>
     <string name="search_scope_nodes">Node</string>
-    <string name="search_scope_posts">Bài viết</string>
     <string name="search_scope_users">Thành viên</string>
     <string name="search_scope_apps">Ứng dụng</string>
-    <string name="search_scope_media">Media</string>
     <string name="search_recent">Tìm gần đây</string>
     <string name="search_hot">Đang thịnh hành</string>
     <string name="search_empty">Không có kết quả nào</string>
@@ -348,8 +342,6 @@
     <string name="profile_following">Đang theo dõi</string>
     <string name="profile_admin">Quản trị viên</string>
     <string name="profile_moderator">Điều hành viên</string>
-    <string name="profile_last_seen">Hoạt động %1$s</string>
-    <string name="profile_joined">Tham gia %1$s</string>
     <string name="profile_energy">Năng lượng</string>
     <string name="profile_reputation">Uy tín</string>
     <string name="profile_topics">Chủ đề</string>
@@ -359,9 +351,6 @@
     <string name="profile_empty_points">Chưa có lịch sử năng lượng</string>
 
     <!-- Cài đặt -->
-    <string name="settings_account">Tài khoản</string>
-    <string name="settings_preferences">Tuỳ chọn</string>
-    <string name="settings_account_section">Ứng dụng này</string>
     <string name="settings_profile">Trang cá nhân</string>
     <string name="settings_associated">Tài khoản đã liên kết</string>
     <string name="settings_security">Bảo mật</string>
@@ -488,7 +477,6 @@
 
     <!-- Đăng nhập -->
     <string name="auth_terms">Đăng nhập nghĩa là bạn chấp nhận điều khoản và chính sách riêng tư của NODELOC.</string>
-    <string name="auth_website">Tiếp tục với trang NodeLoc</string>
     <string name="auth_identifier">Email hoặc tên đăng nhập</string>
     <string name="auth_identifier_hint">you@example.com</string>
     <string name="auth_password">Mật khẩu</string>
@@ -529,17 +517,12 @@
     <string name="auth_gate_title">Tham gia NODELOC</string>
     <string name="auth_gate_detail">Đăng nhập để đăng bài, trả lời, thích và đánh dấu. Đọc thì không cần tài khoản.</string>
 
-    <string name="auth_error_key_generation">Không tạo được khoá bảo mật.</string>
     <string name="auth_error_missing_payload">Phản hồi đăng nhập không đầy đủ.</string>
-    <string name="auth_error_lost_keypair">Quá trình đăng nhập bị gián đoạn. Hãy bắt đầu lại.</string>
-    <string name="auth_error_decrypt">Không xác minh được phản hồi đăng nhập.</string>
-    <string name="auth_error_nonce">Xác minh đăng nhập thất bại. Vui lòng thử lại.</string>
     <string name="auth_error_cancelled">Đã huỷ đăng nhập.</string>
     <string name="auth_error_missing_fields">Vui lòng điền đầy đủ các ô.</string>
     <string name="auth_error_second_factor">Tài khoản này dùng xác thực hai bước — hãy nhập mã.</string>
     <string name="auth_error_incomplete">Đăng nhập chưa hoàn tất. Vui lòng thử lại.</string>
     <string name="auth_error_no_session">Đăng nhập không trả về phiên của trang web.</string>
-    <string name="auth_error_session_start">Không bắt đầu được phiên đăng nhập.</string>
     <string name="auth_error_bad_code">Mã không đúng. Vui lòng thử lại.</string>
     <string name="auth_error_login_failed">Đăng nhập thất bại, vui lòng thử lại</string>
     <string name="auth_error_signup_failed">Đăng ký thất bại, vui lòng thử lại</string>
@@ -593,7 +576,6 @@
     <string name="trim_too_large">Video này quá lớn. Hãy cắt ngắn rồi thử lại.</string>
 
     <!-- Danh bạ ứng dụng -->
-    <string name="apps_title">Danh bạ ứng dụng</string>
     <string name="apps_more">Thêm ứng dụng</string>
     <string name="apps_recent">Ứng dụng gần đây</string>
     <string name="apps_empty">Không có ứng dụng</string>
@@ -674,9 +656,7 @@
     <string name="profile_notify_muted_detail">Không nhận thông báo từ người này.</string>
     <string name="profile_notify_ignored_detail">Bài viết của họ cũng bị ẩn luôn.</string>
     <string name="profile_notify_saved">Đã lưu</string>
-    <string name="auth_failed">Đăng nhập chưa hoàn tất</string>
     <string name="auth_continue_with">Tiếp tục với %1$s</string>
-    <string name="auth_or_password">hoặc đăng nhập bằng mật khẩu</string>
 
     <!-- Cập nhật -->
     <string name="update_check">Kiểm tra cập nhật</string>
@@ -717,22 +697,6 @@
     <!-- Tiến độ thăng cấp -->
     <string name="upgrade_title">Tiến độ thăng cấp</string>
     <string name="upgrade_load_failed">Không tải được tiến độ thăng cấp</string>
-    <string name="upgrade_next_level">Cấp tiếp theo: %1$s</string>
-    <string name="upgrade_met_count">Đạt %1$d trong %2$d</string>
-    <string name="upgrade_all_met">Mọi điều kiện cho cấp tiếp theo đều đã đạt.</string>
-    <string name="upgrade_maintaining">Đang giữ cấp</string>
-    <string name="upgrade_retention_title">Điều kiện để giữ cấp này</string>
-    <string name="upgrade_locked">Cấp tin cậy đang bị khoá; nó sẽ không tự thay đổi.</string>
-    <string name="upgrade_group_standing">Tình trạng tài khoản</string>
-    <string name="upgrade_group_activity">Hoạt động</string>
-    <string name="upgrade_group_recent">%1$d ngày qua</string>
-    <string name="upgrade_group_recent_plain">Hoạt động gần đây</string>
-    <string name="upgrade_group_all_time">Toàn thời gian</string>
-    <string name="upgrade_target">Mục tiêu %1$d</string>
-    <string name="upgrade_limit">Giới hạn %1$d</string>
-    <string name="upgrade_condition_met">Đã đạt</string>
-    <string name="upgrade_condition_over">Vượt giới hạn</string>
-    <string name="upgrade_condition_remaining">Còn %1$d</string>
 
     <!-- Nguồn đăng bài -->
     <string name="post_source_title">Nguồn đăng bài</string>

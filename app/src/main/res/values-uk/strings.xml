@@ -31,7 +31,6 @@
     <string name="common_collapse">Згорнути</string>
     <string name="common_loading">Завантаження</string>
     <string name="common_checking">Перевіряємо…</string>
-    <string name="common_add">Додати</string>
     <string name="common_or">або</string>
     <string name="common_empty">Тут поки порожньо</string>
     <string name="common_empty_hint">Зазирніть пізніше</string>
@@ -154,8 +153,6 @@
     <string name="reader_locked">Редагування заборонено</string>
     <string name="reader_unlocked">Редагування дозволено</string>
     <string name="reader_locked_badge">Заблоковано</string>
-    <string name="reader_topic_close">Закрити тему</string>
-    <string name="reader_topic_reopen">Відкрити тему знову</string>
     <string name="reader_topic_closed">Тему закрито</string>
     <string name="reader_topic_reopened">Тему відкрито знову</string>
     <string name="reader_topic_delete">Видалити тему</string>
@@ -302,12 +299,9 @@
 
     <!-- Пошук -->
     <string name="search_hint">Пошук дописів, нод і людей</string>
-    <string name="search_scope_all">Усе</string>
     <string name="search_scope_nodes">Ноди</string>
-    <string name="search_scope_posts">Дописи</string>
     <string name="search_scope_users">Люди</string>
     <string name="search_scope_apps">Застосунки</string>
-    <string name="search_scope_media">Медіа</string>
     <string name="search_recent">Нещодавні запити</string>
     <string name="search_hot">Популярне</string>
     <string name="search_empty">Нічого не знайдено</string>
@@ -348,8 +342,6 @@
     <string name="profile_following">Ви стежите</string>
     <string name="profile_admin">Адміністратор</string>
     <string name="profile_moderator">Модератор</string>
-    <string name="profile_last_seen">Був(ла) %1$s</string>
-    <string name="profile_joined">З нами від %1$s</string>
     <string name="profile_energy">Енергія</string>
     <string name="profile_reputation">Репутація</string>
     <string name="profile_topics">Теми</string>
@@ -359,9 +351,6 @@
     <string name="profile_empty_points">Історії енергії немає</string>
 
     <!-- Налаштування -->
-    <string name="settings_account">Обліковий запис</string>
-    <string name="settings_preferences">Уподобання</string>
-    <string name="settings_account_section">Цей застосунок</string>
     <string name="settings_profile">Профіль</string>
     <string name="settings_associated">Повʼязані акаунти</string>
     <string name="settings_security">Безпека</string>
@@ -488,7 +477,6 @@
 
     <!-- Вхід і реєстрація -->
     <string name="auth_terms">Входячи, ви приймаєте умови та політику конфіденційності NODELOC.</string>
-    <string name="auth_website">Продовжити через сайт NodeLoc</string>
     <string name="auth_identifier">Пошта або імʼя користувача</string>
     <string name="auth_identifier_hint">you@example.com</string>
     <string name="auth_password">Пароль</string>
@@ -529,17 +517,12 @@
     <string name="auth_gate_title">Долучайтеся до NODELOC</string>
     <string name="auth_gate_detail">Увійдіть, щоб писати, відповідати, ставити вподобання й додавати в закладки. Читати можна без облікового запису.</string>
 
-    <string name="auth_error_key_generation">Не вдалося створити ключі безпеки.</string>
     <string name="auth_error_missing_payload">Відповідь на вхід виявилася неповною.</string>
-    <string name="auth_error_lost_keypair">Вхід було перервано. Почніть спочатку.</string>
-    <string name="auth_error_decrypt">Не вдалося перевірити відповідь на вхід.</string>
-    <string name="auth_error_nonce">Перевірка входу не пройшла. Спробуйте ще раз.</string>
     <string name="auth_error_cancelled">Вхід скасовано.</string>
     <string name="auth_error_missing_fields">Заповніть, будь ласка, всі поля.</string>
     <string name="auth_error_second_factor">У цьому обліковому записі увімкнено двофакторний захист — уведіть код.</string>
     <string name="auth_error_incomplete">Вхід не завершився. Спробуйте ще раз.</string>
     <string name="auth_error_no_session">Вхід не повернув сеанс сайту.</string>
-    <string name="auth_error_session_start">Не вдалося почати сеанс входу.</string>
     <string name="auth_error_bad_code">Код хибний. Спробуйте ще раз.</string>
     <string name="auth_error_login_failed">Увійти не вдалося, спробуйте ще раз</string>
     <string name="auth_error_signup_failed">Зареєструватися не вдалося, спробуйте ще раз</string>
@@ -593,7 +576,6 @@
     <string name="trim_too_large">Цей ролик завеликий. Обріжте його коротше й спробуйте ще раз.</string>
 
     <!-- Каталог застосунків -->
-    <string name="apps_title">Каталог застосунків</string>
     <string name="apps_more">Ще застосунки</string>
     <string name="apps_recent">Нещодавні застосунки</string>
     <string name="apps_empty">Застосунків немає</string>
@@ -719,9 +701,7 @@
     <string name="profile_notify_muted_detail">Сповіщень від цієї людини не буде.</string>
     <string name="profile_notify_ignored_detail">Її дописи теж будуть сховані.</string>
     <string name="profile_notify_saved">Збережено</string>
-    <string name="auth_failed">Вхід не завершився</string>
     <string name="auth_continue_with">Продовжити через %1$s</string>
-    <string name="auth_or_password">або увійти за паролем</string>
 
     <!-- Оновлення -->
     <string name="update_check">Перевірити оновлення</string>
@@ -762,22 +742,6 @@
     <!-- Поступ рівня -->
     <string name="upgrade_title">Поступ рівня</string>
     <string name="upgrade_load_failed">Не вдалося завантажити поступ рівня</string>
-    <string name="upgrade_next_level">Наступний рівень: %1$s</string>
-    <string name="upgrade_met_count">Виконано %1$d з %2$d</string>
-    <string name="upgrade_all_met">Усі вимоги для наступного рівня виконано.</string>
-    <string name="upgrade_maintaining">Утримання</string>
-    <string name="upgrade_retention_title">Що потрібно, щоб утримати рівень</string>
-    <string name="upgrade_locked">Рівень довіри зафіксовано, сам він не зміниться.</string>
-    <string name="upgrade_group_standing">Стан облікового запису</string>
-    <string name="upgrade_group_activity">Активність</string>
-    <string name="upgrade_group_recent">Останні %1$d днів</string>
-    <string name="upgrade_group_recent_plain">Нещодавня активність</string>
-    <string name="upgrade_group_all_time">За весь час</string>
-    <string name="upgrade_target">Мета %1$d</string>
-    <string name="upgrade_limit">Межа %1$d</string>
-    <string name="upgrade_condition_met">Виконано</string>
-    <string name="upgrade_condition_over">Межу перевищено</string>
-    <string name="upgrade_condition_remaining">Лишилося %1$d</string>
 
     <!-- Джерело допису -->
     <string name="post_source_title">Джерело допису</string>

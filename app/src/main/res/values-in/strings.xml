@@ -32,7 +32,6 @@
     <string name="common_collapse">Ciutkan</string>
     <string name="common_loading">Memuat</string>
     <string name="common_checking">Memeriksa…</string>
-    <string name="common_add">Tambah</string>
     <string name="common_or">atau</string>
     <string name="common_empty">Belum ada apa-apa di sini</string>
     <string name="common_empty_hint">Coba lihat lagi nanti</string>
@@ -155,8 +154,6 @@
     <string name="reader_locked">Penyuntingan dikunci</string>
     <string name="reader_unlocked">Kunci penyuntingan dibuka</string>
     <string name="reader_locked_badge">Terkunci</string>
-    <string name="reader_topic_close">Tutup topik</string>
-    <string name="reader_topic_reopen">Buka lagi topik</string>
     <string name="reader_topic_closed">Topik ditutup</string>
     <string name="reader_topic_reopened">Topik dibuka lagi</string>
     <string name="reader_topic_delete">Hapus topik</string>
@@ -303,12 +300,9 @@
 
     <!-- Pencarian -->
     <string name="search_hint">Cari kiriman, node, dan orang</string>
-    <string name="search_scope_all">Semua</string>
     <string name="search_scope_nodes">Node</string>
-    <string name="search_scope_posts">Kiriman</string>
     <string name="search_scope_users">Orang</string>
     <string name="search_scope_apps">Aplikasi</string>
-    <string name="search_scope_media">Media</string>
     <string name="search_recent">Pencarian terakhir</string>
     <string name="search_hot">Sedang ramai</string>
     <string name="search_empty">Tidak ada yang cocok</string>
@@ -349,8 +343,6 @@
     <string name="profile_following">Mengikuti</string>
     <string name="profile_admin">Admin</string>
     <string name="profile_moderator">Moderator</string>
-    <string name="profile_last_seen">Terakhir terlihat %1$s</string>
-    <string name="profile_joined">Bergabung %1$s</string>
     <string name="profile_energy">Energi</string>
     <string name="profile_reputation">Reputasi</string>
     <string name="profile_topics">Topik</string>
@@ -360,9 +352,6 @@
     <string name="profile_empty_points">Tidak ada riwayat energi</string>
 
     <!-- Pengaturan -->
-    <string name="settings_account">Akun</string>
-    <string name="settings_preferences">Preferensi</string>
-    <string name="settings_account_section">Aplikasi ini</string>
     <string name="settings_profile">Profil</string>
     <string name="settings_associated">Akun terhubung</string>
     <string name="settings_security">Keamanan</string>
@@ -489,7 +478,6 @@
 
     <!-- Masuk dan daftar -->
     <string name="auth_terms">Dengan masuk, Anda menerima ketentuan dan kebijakan privasi NODELOC.</string>
-    <string name="auth_website">Lanjutkan lewat situs NodeLoc</string>
     <string name="auth_identifier">Email atau nama pengguna</string>
     <string name="auth_identifier_hint">you@example.com</string>
     <string name="auth_password">Kata sandi</string>
@@ -530,17 +518,12 @@
     <string name="auth_gate_title">Gabung NODELOC</string>
     <string name="auth_gate_detail">Masuk untuk mengirim, membalas, menyukai, dan memarkah. Membaca tidak butuh akun.</string>
 
-    <string name="auth_error_key_generation">Tidak bisa membuat kunci keamanan.</string>
     <string name="auth_error_missing_payload">Balasan proses masuk tidak lengkap.</string>
-    <string name="auth_error_lost_keypair">Proses masuk terputus. Silakan mulai lagi.</string>
-    <string name="auth_error_decrypt">Tidak bisa memverifikasi balasan proses masuk.</string>
-    <string name="auth_error_nonce">Verifikasi proses masuk gagal. Silakan coba lagi.</string>
     <string name="auth_error_cancelled">Proses masuk dibatalkan.</string>
     <string name="auth_error_missing_fields">Silakan isi semua kolom.</string>
     <string name="auth_error_second_factor">Akun ini memakai autentikasi dua faktor — masukkan kode Anda.</string>
     <string name="auth_error_incomplete">Proses masuk belum selesai. Silakan coba lagi.</string>
     <string name="auth_error_no_session">Proses masuk tidak mengembalikan sesi situs.</string>
-    <string name="auth_error_session_start">Tidak bisa memulai sesi masuk.</string>
     <string name="auth_error_bad_code">Kode itu tidak benar. Silakan coba lagi.</string>
     <string name="auth_error_login_failed">Gagal masuk, silakan coba lagi</string>
     <string name="auth_error_signup_failed">Gagal mendaftar, silakan coba lagi</string>
@@ -594,7 +577,6 @@
     <string name="trim_too_large">Klip ini terlalu besar. Potong lebih pendek lalu coba lagi.</string>
 
     <!-- Direktori aplikasi -->
-    <string name="apps_title">Direktori aplikasi</string>
     <string name="apps_more">Aplikasi lain</string>
     <string name="apps_recent">Aplikasi terakhir</string>
     <string name="apps_empty">Tidak ada aplikasi</string>
@@ -675,9 +657,7 @@
     <string name="profile_notify_muted_detail">Tidak ada notifikasi dari orang ini.</string>
     <string name="profile_notify_ignored_detail">Kirimannya juga disembunyikan.</string>
     <string name="profile_notify_saved">Tersimpan</string>
-    <string name="auth_failed">Proses masuk belum selesai</string>
     <string name="auth_continue_with">Lanjutkan dengan %1$s</string>
-    <string name="auth_or_password">atau masuk dengan kata sandi</string>
 
     <!-- Pembaruan -->
     <string name="update_check">Periksa pembaruan</string>
@@ -718,22 +698,6 @@
     <!-- Kemajuan naik tingkat -->
     <string name="upgrade_title">Kemajuan naik tingkat</string>
     <string name="upgrade_load_failed">Tidak bisa memuat kemajuan naik tingkat</string>
-    <string name="upgrade_next_level">Tingkat berikutnya: %1$s</string>
-    <string name="upgrade_met_count">%1$d dari %2$d terpenuhi</string>
-    <string name="upgrade_all_met">Semua syarat untuk tingkat berikutnya sudah terpenuhi.</string>
-    <string name="upgrade_maintaining">Mempertahankan</string>
-    <string name="upgrade_retention_title">Syarat untuk mempertahankan tingkat ini</string>
-    <string name="upgrade_locked">Tingkat kepercayaan terkunci; tidak akan berubah otomatis.</string>
-    <string name="upgrade_group_standing">Keadaan akun</string>
-    <string name="upgrade_group_activity">Aktivitas</string>
-    <string name="upgrade_group_recent">%1$d hari terakhir</string>
-    <string name="upgrade_group_recent_plain">Aktivitas terakhir</string>
-    <string name="upgrade_group_all_time">Sepanjang waktu</string>
-    <string name="upgrade_target">Target %1$d</string>
-    <string name="upgrade_limit">Batas %1$d</string>
-    <string name="upgrade_condition_met">Terpenuhi</string>
-    <string name="upgrade_condition_over">Melewati batas</string>
-    <string name="upgrade_condition_remaining">Kurang %1$d</string>
 
     <!-- Sumber kiriman -->
     <string name="post_source_title">Sumber kiriman</string>

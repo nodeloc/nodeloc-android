@@ -31,7 +31,6 @@
     <string name="common_collapse">Свернуть</string>
     <string name="common_loading">Загрузка</string>
     <string name="common_checking">Проверяем…</string>
-    <string name="common_add">Добавить</string>
     <string name="common_or">или</string>
     <string name="common_empty">Здесь пока пусто</string>
     <string name="common_empty_hint">Загляните позже</string>
@@ -154,8 +153,6 @@
     <string name="reader_locked">Правка запрещена</string>
     <string name="reader_unlocked">Правка разрешена</string>
     <string name="reader_locked_badge">Закрыто</string>
-    <string name="reader_topic_close">Закрыть тему</string>
-    <string name="reader_topic_reopen">Открыть тему снова</string>
     <string name="reader_topic_closed">Тема закрыта</string>
     <string name="reader_topic_reopened">Тема открыта снова</string>
     <string name="reader_topic_delete">Удалить тему</string>
@@ -302,12 +299,9 @@
 
     <!-- Поиск -->
     <string name="search_hint">Поиск по сообщениям, нодам и людям</string>
-    <string name="search_scope_all">Всё</string>
     <string name="search_scope_nodes">Ноды</string>
-    <string name="search_scope_posts">Сообщения</string>
     <string name="search_scope_users">Люди</string>
     <string name="search_scope_apps">Приложения</string>
-    <string name="search_scope_media">Медиа</string>
     <string name="search_recent">Недавние запросы</string>
     <string name="search_hot">Популярное</string>
     <string name="search_empty">Ничего не найдено</string>
@@ -348,8 +342,6 @@
     <string name="profile_following">Вы подписаны</string>
     <string name="profile_admin">Администратор</string>
     <string name="profile_moderator">Модератор</string>
-    <string name="profile_last_seen">Был(а) %1$s</string>
-    <string name="profile_joined">С нами с %1$s</string>
     <string name="profile_energy">Энергия</string>
     <string name="profile_reputation">Репутация</string>
     <string name="profile_topics">Темы</string>
@@ -359,9 +351,6 @@
     <string name="profile_empty_points">Истории энергии нет</string>
 
     <!-- Настройки -->
-    <string name="settings_account">Учётная запись</string>
-    <string name="settings_preferences">Предпочтения</string>
-    <string name="settings_account_section">Это приложение</string>
     <string name="settings_profile">Профиль</string>
     <string name="settings_associated">Связанные аккаунты</string>
     <string name="settings_security">Безопасность</string>
@@ -488,7 +477,6 @@
 
     <!-- Вход и регистрация -->
     <string name="auth_terms">Входя, вы принимаете условия и политику конфиденциальности NODELOC.</string>
-    <string name="auth_website">Продолжить через сайт NodeLoc</string>
     <string name="auth_identifier">Почта или имя пользователя</string>
     <string name="auth_identifier_hint">you@example.com</string>
     <string name="auth_password">Пароль</string>
@@ -529,17 +517,12 @@
     <string name="auth_gate_title">Присоединяйтесь к NODELOC</string>
     <string name="auth_gate_detail">Войдите, чтобы писать, отвечать, ставить симпатии и добавлять в закладки. Читать можно без учётной записи.</string>
 
-    <string name="auth_error_key_generation">Не удалось создать ключи безопасности.</string>
     <string name="auth_error_missing_payload">Ответ на вход оказался неполным.</string>
-    <string name="auth_error_lost_keypair">Вход был прерван. Начните заново.</string>
-    <string name="auth_error_decrypt">Не удалось проверить ответ на вход.</string>
-    <string name="auth_error_nonce">Проверка входа не прошла. Попробуйте ещё раз.</string>
     <string name="auth_error_cancelled">Вход отменён.</string>
     <string name="auth_error_missing_fields">Заполните, пожалуйста, все поля.</string>
     <string name="auth_error_second_factor">В этой учётной записи включена двухфакторная защита — введите код.</string>
     <string name="auth_error_incomplete">Вход не завершился. Попробуйте ещё раз.</string>
     <string name="auth_error_no_session">Вход не вернул сеанс сайта.</string>
-    <string name="auth_error_session_start">Не удалось начать сеанс входа.</string>
     <string name="auth_error_bad_code">Код неверен. Попробуйте ещё раз.</string>
     <string name="auth_error_login_failed">Войти не удалось, попробуйте ещё раз</string>
     <string name="auth_error_signup_failed">Зарегистрироваться не удалось, попробуйте ещё раз</string>
@@ -593,7 +576,6 @@
     <string name="trim_too_large">Этот ролик слишком большой. Обрежьте его короче и попробуйте снова.</string>
 
     <!-- Каталог приложений -->
-    <string name="apps_title">Каталог приложений</string>
     <string name="apps_more">Ещё приложения</string>
     <string name="apps_recent">Недавние приложения</string>
     <string name="apps_empty">Приложений нет</string>
@@ -719,9 +701,7 @@
     <string name="profile_notify_muted_detail">Уведомлений от этого человека не будет.</string>
     <string name="profile_notify_ignored_detail">Его сообщения тоже будут скрыты.</string>
     <string name="profile_notify_saved">Сохранено</string>
-    <string name="auth_failed">Вход не завершился</string>
     <string name="auth_continue_with">Продолжить через %1$s</string>
-    <string name="auth_or_password">или войти по паролю</string>
 
     <!-- Обновления -->
     <string name="update_check">Проверить обновления</string>
@@ -762,22 +742,6 @@
     <!-- Прогресс уровня -->
     <string name="upgrade_title">Прогресс уровня</string>
     <string name="upgrade_load_failed">Не удалось загрузить прогресс уровня</string>
-    <string name="upgrade_next_level">Следующий уровень: %1$s</string>
-    <string name="upgrade_met_count">Выполнено %1$d из %2$d</string>
-    <string name="upgrade_all_met">Все требования для следующего уровня выполнены.</string>
-    <string name="upgrade_maintaining">Удержание</string>
-    <string name="upgrade_retention_title">Что нужно, чтобы удержать уровень</string>
-    <string name="upgrade_locked">Уровень доверия зафиксирован и сам не изменится.</string>
-    <string name="upgrade_group_standing">Состояние учётной записи</string>
-    <string name="upgrade_group_activity">Активность</string>
-    <string name="upgrade_group_recent">Последние %1$d дней</string>
-    <string name="upgrade_group_recent_plain">Недавняя активность</string>
-    <string name="upgrade_group_all_time">За всё время</string>
-    <string name="upgrade_target">Цель %1$d</string>
-    <string name="upgrade_limit">Предел %1$d</string>
-    <string name="upgrade_condition_met">Выполнено</string>
-    <string name="upgrade_condition_over">Превышен предел</string>
-    <string name="upgrade_condition_remaining">Осталось %1$d</string>
 
     <!-- Источник сообщения -->
     <string name="post_source_title">Источник сообщения</string>

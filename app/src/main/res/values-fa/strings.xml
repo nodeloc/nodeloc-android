@@ -31,7 +31,6 @@
     <string name="common_collapse">جمع کردن</string>
     <string name="common_loading">در حال بارگذاری</string>
     <string name="common_checking">در حال بررسی…</string>
-    <string name="common_add">افزودن</string>
     <string name="common_or">یا</string>
     <string name="common_empty">هنوز چیزی اینجا نیست</string>
     <string name="common_empty_hint">بعداً سر بزنید</string>
@@ -154,8 +153,6 @@
     <string name="reader_locked">ویرایش قفل شد</string>
     <string name="reader_unlocked">قفل ویرایش باز شد</string>
     <string name="reader_locked_badge">قفل‌شده</string>
-    <string name="reader_topic_close">بستن موضوع</string>
-    <string name="reader_topic_reopen">بازگشایی موضوع</string>
     <string name="reader_topic_closed">موضوع بسته شد</string>
     <string name="reader_topic_reopened">موضوع بازگشایی شد</string>
     <string name="reader_topic_delete">حذف موضوع</string>
@@ -302,12 +299,9 @@
 
     <!-- جست‌وجو -->
     <string name="search_hint">جست‌وجوی نوشته‌ها، گره‌ها و آدم‌ها</string>
-    <string name="search_scope_all">همه</string>
     <string name="search_scope_nodes">گره‌ها</string>
-    <string name="search_scope_posts">نوشته‌ها</string>
     <string name="search_scope_users">آدم‌ها</string>
     <string name="search_scope_apps">برنامه‌ها</string>
-    <string name="search_scope_media">رسانه</string>
     <string name="search_recent">جست‌وجوهای اخیر</string>
     <string name="search_hot">پرطرفدار</string>
     <string name="search_empty">چیزی پیدا نشد</string>
@@ -348,8 +342,6 @@
     <string name="profile_following">دنبال می‌کنید</string>
     <string name="profile_admin">مدیر</string>
     <string name="profile_moderator">ناظم</string>
-    <string name="profile_last_seen">آخرین بازدید %1$s</string>
-    <string name="profile_joined">پیوسته از %1$s</string>
     <string name="profile_energy">انرژی</string>
     <string name="profile_reputation">اعتبار</string>
     <string name="profile_topics">موضوع‌ها</string>
@@ -359,9 +351,6 @@
     <string name="profile_empty_points">تاریخچهٔ انرژی نیست</string>
 
     <!-- تنظیمات -->
-    <string name="settings_account">حساب</string>
-    <string name="settings_preferences">ترجیحات</string>
-    <string name="settings_account_section">این برنامه</string>
     <string name="settings_profile">نمایه</string>
     <string name="settings_associated">حساب‌های متصل</string>
     <string name="settings_security">امنیت</string>
@@ -488,7 +477,6 @@
 
     <!-- ورود و ثبت‌نام -->
     <string name="auth_terms">با ورود، شرایط و سیاست حریم خصوصی NODELOC را می‌پذیرید.</string>
-    <string name="auth_website">ادامه با وب‌سایت NodeLoc</string>
     <string name="auth_identifier">رایانامه یا نام کاربری</string>
     <string name="auth_identifier_hint">you@example.com</string>
     <string name="auth_password">گذرواژه</string>
@@ -529,17 +517,12 @@
     <string name="auth_gate_title">به NODELOC بپیوندید</string>
     <string name="auth_gate_detail">برای نوشتن، پاسخ دادن، پسندیدن و نشانک‌گذاری وارد شوید. خواندن حساب نمی‌خواهد.</string>
 
-    <string name="auth_error_key_generation">کلیدهای امنیتی ساخته نشد.</string>
     <string name="auth_error_missing_payload">پاسخ ورود ناقص بود.</string>
-    <string name="auth_error_lost_keypair">ورود نیمه‌کاره ماند. از نو شروع کنید.</string>
-    <string name="auth_error_decrypt">پاسخ ورود تأیید نشد.</string>
-    <string name="auth_error_nonce">راستی‌آزمایی ورود ناموفق بود. دوباره تلاش کنید.</string>
     <string name="auth_error_cancelled">ورود لغو شد.</string>
     <string name="auth_error_missing_fields">لطفاً همهٔ فیلدها را پر کنید.</string>
     <string name="auth_error_second_factor">این حساب ورود دومرحله‌ای دارد — رمزتان را وارد کنید.</string>
     <string name="auth_error_incomplete">ورود کامل نشد. دوباره تلاش کنید.</string>
     <string name="auth_error_no_session">ورود هیچ نشست وبی برنگرداند.</string>
-    <string name="auth_error_session_start">نشست ورود آغاز نشد.</string>
     <string name="auth_error_bad_code">این رمز درست نیست. دوباره تلاش کنید.</string>
     <string name="auth_error_login_failed">ورود ناموفق بود، دوباره تلاش کنید</string>
     <string name="auth_error_signup_failed">ثبت‌نام ناموفق بود، دوباره تلاش کنید</string>
@@ -593,7 +576,6 @@
     <string name="trim_too_large">این ویدیو خیلی بزرگ است. کوتاه‌ترش کنید و دوباره تلاش کنید.</string>
 
     <!-- فهرست برنامه‌ها -->
-    <string name="apps_title">فهرست برنامه‌ها</string>
     <string name="apps_more">برنامه‌های بیشتر</string>
     <string name="apps_recent">برنامه‌های اخیر</string>
     <string name="apps_empty">برنامه‌ای نیست</string>
@@ -689,9 +671,7 @@
     <string name="profile_notify_muted_detail">از این شخص اعلانی نمی‌گیرید.</string>
     <string name="profile_notify_ignored_detail">نوشته‌هایش هم پنهان می‌شود.</string>
     <string name="profile_notify_saved">ذخیره شد</string>
-    <string name="auth_failed">ورود کامل نشد</string>
     <string name="auth_continue_with">ادامه با %1$s</string>
-    <string name="auth_or_password">یا با گذرواژه وارد شوید</string>
 
     <!-- به‌روزرسانی -->
     <string name="update_check">بررسی به‌روزرسانی</string>
@@ -732,22 +712,6 @@
     <!-- پیشرفت ارتقا -->
     <string name="upgrade_title">پیشرفت ارتقا</string>
     <string name="upgrade_load_failed">پیشرفت ارتقا بارگذاری نشد</string>
-    <string name="upgrade_next_level">سطح بعدی: %1$s</string>
-    <string name="upgrade_met_count">%1$d از %2$d برآورده شد</string>
-    <string name="upgrade_all_met">همهٔ شرط‌های سطح بعدی برآورده شده است.</string>
-    <string name="upgrade_maintaining">در حال نگه‌داشتن</string>
-    <string name="upgrade_retention_title">شرط‌های نگه‌داشتن این سطح</string>
-    <string name="upgrade_locked">سطح اعتماد قفل است؛ خودبه‌خود تغییر نمی‌کند.</string>
-    <string name="upgrade_group_standing">وضعیت حساب</string>
-    <string name="upgrade_group_activity">فعالیت</string>
-    <string name="upgrade_group_recent">%1$d روز گذشته</string>
-    <string name="upgrade_group_recent_plain">فعالیت اخیر</string>
-    <string name="upgrade_group_all_time">از آغاز</string>
-    <string name="upgrade_target">هدف %1$d</string>
-    <string name="upgrade_limit">حد %1$d</string>
-    <string name="upgrade_condition_met">برآورده</string>
-    <string name="upgrade_condition_over">فراتر از حد</string>
-    <string name="upgrade_condition_remaining">%1$d مانده</string>
 
     <!-- منبع نوشته -->
     <string name="post_source_title">منبع نوشته</string>

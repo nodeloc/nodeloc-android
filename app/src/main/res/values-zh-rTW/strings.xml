@@ -31,7 +31,6 @@
     <string name="common_collapse">收合</string>
     <string name="common_loading">載入中</string>
     <string name="common_checking">檢查中…</string>
-    <string name="common_add">新增</string>
     <string name="common_or">或</string>
     <string name="common_empty">尚無內容</string>
     <string name="common_empty_hint">晚點再來看看</string>
@@ -154,8 +153,6 @@
     <string name="reader_locked">已鎖定編輯</string>
     <string name="reader_unlocked">已解除鎖定</string>
     <string name="reader_locked_badge">已鎖定</string>
-    <string name="reader_topic_close">關閉主題</string>
-    <string name="reader_topic_reopen">重新開放</string>
     <string name="reader_topic_closed">主題已關閉</string>
     <string name="reader_topic_reopened">主題已重新開放</string>
     <string name="reader_topic_delete">刪除主題</string>
@@ -302,12 +299,9 @@
 
     <!-- 搜尋 -->
     <string name="search_hint">搜尋貼文、節點、使用者</string>
-    <string name="search_scope_all">全部</string>
     <string name="search_scope_nodes">節點</string>
-    <string name="search_scope_posts">貼文</string>
     <string name="search_scope_users">使用者</string>
     <string name="search_scope_apps">應用</string>
-    <string name="search_scope_media">媒體</string>
     <string name="search_recent">最近搜尋</string>
     <string name="search_hot">熱門搜尋</string>
     <string name="search_empty">沒有找到相關內容</string>
@@ -348,8 +342,6 @@
     <string name="profile_following">已追蹤</string>
     <string name="profile_admin">管理員</string>
     <string name="profile_moderator">版主</string>
-    <string name="profile_last_seen">最近活躍 %1$s</string>
-    <string name="profile_joined">加入於 %1$s</string>
     <string name="profile_energy">能量</string>
     <string name="profile_reputation">聲望</string>
     <string name="profile_topics">主題</string>
@@ -359,9 +351,6 @@
     <string name="profile_empty_points">尚無能量紀錄</string>
 
     <!-- 設定 -->
-    <string name="settings_account">帳戶</string>
-    <string name="settings_preferences">偏好設定</string>
-    <string name="settings_account_section">這個應用</string>
     <string name="settings_profile">個人資料</string>
     <string name="settings_associated">已連結的帳號</string>
     <string name="settings_security">安全性</string>
@@ -488,7 +477,6 @@
 
     <!-- 登入註冊 -->
     <string name="auth_terms">登入即表示你接受 NODELOC 的服務條款與隱私權政策。</string>
-    <string name="auth_website">透過 NodeLoc 網站繼續</string>
     <string name="auth_identifier">電子郵件或使用者名稱</string>
     <string name="auth_identifier_hint">you@example.com</string>
     <string name="auth_password">密碼</string>
@@ -529,17 +517,12 @@
     <string name="auth_gate_title">加入 NODELOC</string>
     <string name="auth_gate_detail">登入後即可發文、回覆、按讚與收藏。瀏覽不用登入。</string>
 
-    <string name="auth_error_key_generation">無法產生安全金鑰。</string>
     <string name="auth_error_missing_payload">登入回應不完整。</string>
-    <string name="auth_error_lost_keypair">登入過程被中斷，請重新登入。</string>
-    <string name="auth_error_decrypt">無法驗證登入回應。</string>
-    <string name="auth_error_nonce">登入驗證失敗，請重試。</string>
     <string name="auth_error_cancelled">登入已取消。</string>
     <string name="auth_error_missing_fields">請填寫每一個欄位。</string>
     <string name="auth_error_second_factor">這個帳號開了兩步驟驗證，請輸入驗證碼。</string>
     <string name="auth_error_incomplete">登入沒有完成，請重試。</string>
     <string name="auth_error_no_session">登入沒有回傳網站工作階段。</string>
-    <string name="auth_error_session_start">無法開始登入工作階段。</string>
     <string name="auth_error_bad_code">驗證碼不正確，請重試。</string>
     <string name="auth_error_login_failed">登入失敗，請稍後重試</string>
     <string name="auth_error_signup_failed">註冊失敗，請稍後重試</string>
@@ -593,7 +576,6 @@
     <string name="trim_too_large">這段影片太大了，剪短一點再試。</string>
 
     <!-- 應用目錄 -->
-    <string name="apps_title">應用目錄</string>
     <string name="apps_more">更多應用</string>
     <string name="apps_recent">最近使用</string>
     <string name="apps_empty">尚無應用</string>
@@ -674,9 +656,7 @@
     <string name="profile_notify_muted_detail">不再接收這個人的通知。</string>
     <string name="profile_notify_ignored_detail">連他的貼文也一起隱藏。</string>
     <string name="profile_notify_saved">已儲存</string>
-    <string name="auth_failed">登入沒有完成</string>
     <string name="auth_continue_with">透過 %1$s 繼續</string>
-    <string name="auth_or_password">或用密碼登入</string>
 
     <!-- 更新 -->
     <string name="update_check">檢查更新</string>
@@ -717,22 +697,6 @@
     <!-- 升級進度 -->
     <string name="upgrade_title">升級進度</string>
     <string name="upgrade_load_failed">升級進度載入失敗</string>
-    <string name="upgrade_next_level">下一等級：%1$s</string>
-    <string name="upgrade_met_count">已滿足 %1$d / %2$d 項</string>
-    <string name="upgrade_all_met">晉升下一等級的條件全部滿足了。</string>
-    <string name="upgrade_maintaining">維持中</string>
-    <string name="upgrade_retention_title">保級要求</string>
-    <string name="upgrade_locked">信任等級已鎖定，不會自動升降。</string>
-    <string name="upgrade_group_standing">帳號狀態</string>
-    <string name="upgrade_group_activity">活躍度</string>
-    <string name="upgrade_group_recent">近 %1$d 天</string>
-    <string name="upgrade_group_recent_plain">近期活躍度</string>
-    <string name="upgrade_group_all_time">累計</string>
-    <string name="upgrade_target">目標 %1$d</string>
-    <string name="upgrade_limit">上限 %1$d</string>
-    <string name="upgrade_condition_met">已達標</string>
-    <string name="upgrade_condition_over">已超出</string>
-    <string name="upgrade_condition_remaining">還差 %1$d</string>
 
     <!-- 發文來源 -->
     <string name="post_source_title">發文來源</string>

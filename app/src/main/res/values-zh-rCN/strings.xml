@@ -31,7 +31,6 @@
     <string name="common_collapse">收起</string>
     <string name="common_loading">加载中</string>
     <string name="common_checking">检查中…</string>
-    <string name="common_add">添加</string>
     <string name="common_or">或</string>
     <string name="common_empty">暂无内容</string>
     <string name="common_empty_hint">稍后再来看看</string>
@@ -157,8 +156,6 @@
     <string name="reader_locked">已锁定编辑</string>
     <string name="reader_unlocked">已解除锁定</string>
     <string name="reader_locked_badge">已锁定</string>
-    <string name="reader_topic_close">关闭主题</string>
-    <string name="reader_topic_reopen">重新开放</string>
     <string name="reader_topic_closed">主题已关闭</string>
     <string name="reader_topic_reopened">主题已重新开放</string>
     <string name="reader_topic_delete">删除主题</string>
@@ -305,12 +302,9 @@
 
     <!-- 搜索 -->
     <string name="search_hint">搜索帖子、节点、用户</string>
-    <string name="search_scope_all">全部</string>
     <string name="search_scope_nodes">节点</string>
-    <string name="search_scope_posts">帖子</string>
     <string name="search_scope_users">用户</string>
     <string name="search_scope_apps">应用</string>
-    <string name="search_scope_media">媒体</string>
     <string name="search_recent">最近搜索</string>
     <string name="search_hot">热门搜索</string>
     <string name="search_empty">没有找到相关内容</string>
@@ -351,8 +345,6 @@
     <string name="profile_following">已关注</string>
     <string name="profile_admin">管理员</string>
     <string name="profile_moderator">版主</string>
-    <string name="profile_last_seen">最近活跃 %1$s</string>
-    <string name="profile_joined">加入于 %1$s</string>
     <string name="profile_energy">能量</string>
     <string name="profile_reputation">声望</string>
     <string name="profile_topics">主题</string>
@@ -362,9 +354,6 @@
     <string name="profile_empty_points">暂无能量记录</string>
 
     <!-- 设置 -->
-    <string name="settings_account">账户</string>
-    <string name="settings_preferences">偏好设置</string>
-    <string name="settings_account_section">账号</string>
     <string name="settings_profile">个人资料</string>
     <string name="settings_associated">关联账户</string>
     <string name="settings_security">安全性</string>
@@ -491,7 +480,6 @@
 
     <!-- 登录注册 -->
     <string name="auth_terms">登录即表示你同意 NODELOC 的服务条款与隐私政策。</string>
-    <string name="auth_website">通过 NodeLoc 网站继续</string>
     <string name="auth_identifier">邮箱或用户名</string>
     <string name="auth_identifier_hint">you@example.com</string>
     <string name="auth_password">密码</string>
@@ -532,17 +520,12 @@
     <string name="auth_gate_title">加入 NODELOC</string>
     <string name="auth_gate_detail">登录后即可发帖、回复、点赞与收藏。浏览无需登录。</string>
 
-    <string name="auth_error_key_generation">无法生成安全密钥。</string>
     <string name="auth_error_missing_payload">登录响应不完整。</string>
-    <string name="auth_error_lost_keypair">登录过程被中断，请重新登录。</string>
-    <string name="auth_error_decrypt">无法校验登录响应。</string>
-    <string name="auth_error_nonce">登录校验失败，请重试。</string>
     <string name="auth_error_cancelled">登录已取消。</string>
     <string name="auth_error_missing_fields">请填写所有必填项。</string>
     <string name="auth_error_second_factor">此账号已开启两步验证，请输入验证码。</string>
     <string name="auth_error_incomplete">登录未完成，请重试。</string>
     <string name="auth_error_no_session">登录没有返回网站会话。</string>
-    <string name="auth_error_session_start">无法开始登录会话。</string>
     <string name="auth_error_bad_code">验证码不正确，请重试。</string>
     <string name="auth_error_login_failed">登录失败，请稍后重试</string>
     <string name="auth_error_signup_failed">注册失败，请稍后重试</string>
@@ -596,7 +579,6 @@
     <string name="trim_too_large">这段视频太大了，剪短一点再试。</string>
 
     <!-- 应用目录 -->
-    <string name="apps_title">应用目录</string>
     <string name="apps_more">更多应用</string>
     <string name="apps_recent">最近应用</string>
     <string name="apps_empty">暂无应用</string>
@@ -677,9 +659,7 @@
     <string name="profile_notify_muted_detail">不再接收该用户的通知。</string>
     <string name="profile_notify_ignored_detail">同时隐藏该用户的帖子。</string>
     <string name="profile_notify_saved">已保存</string>
-    <string name="auth_failed">登录未完成</string>
     <string name="auth_continue_with">通过 %1$s 继续</string>
-    <string name="auth_or_password">或使用密码登录</string>
 
     <!-- Updates -->
     <string name="update_check">检查更新</string>
@@ -720,22 +700,6 @@
     <!-- 升级进度 -->
     <string name="upgrade_title">升级进度</string>
     <string name="upgrade_load_failed">升级进度加载失败</string>
-    <string name="upgrade_next_level">下一等级：%1$s</string>
-    <string name="upgrade_met_count">已满足 %1$d / %2$d 项</string>
-    <string name="upgrade_all_met">晋升下一等级的条件已全部满足。</string>
-    <string name="upgrade_maintaining">维持中</string>
-    <string name="upgrade_retention_title">保级要求</string>
-    <string name="upgrade_locked">信任等级已锁定，不会自动升降。</string>
-    <string name="upgrade_group_standing">账号状态</string>
-    <string name="upgrade_group_activity">活跃度</string>
-    <string name="upgrade_group_recent">近 %1$d 天</string>
-    <string name="upgrade_group_recent_plain">近期活跃度</string>
-    <string name="upgrade_group_all_time">累计</string>
-    <string name="upgrade_target">目标 %1$d</string>
-    <string name="upgrade_limit">上限 %1$d</string>
-    <string name="upgrade_condition_met">已达标</string>
-    <string name="upgrade_condition_over">已超出</string>
-    <string name="upgrade_condition_remaining">还差 %1$d</string>
 
     <!-- 发帖来源 -->
     <string name="post_source_title">发帖来源</string>

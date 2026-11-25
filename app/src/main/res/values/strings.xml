@@ -32,7 +32,6 @@
     <string name="common_collapse">Collapse</string>
     <string name="common_loading">Loading</string>
     <string name="common_checking">Checking…</string>
-    <string name="common_add">Add</string>
     <string name="common_or">or</string>
     <string name="common_empty">Nothing here yet</string>
     <string name="common_empty_hint">Check back later</string>
@@ -158,8 +157,6 @@
     <string name="reader_locked">Editing locked</string>
     <string name="reader_unlocked">Editing unlocked</string>
     <string name="reader_locked_badge">Locked</string>
-    <string name="reader_topic_close">Close topic</string>
-    <string name="reader_topic_reopen">Reopen topic</string>
     <string name="reader_topic_closed">Topic closed</string>
     <string name="reader_topic_reopened">Topic reopened</string>
     <string name="reader_topic_delete">Delete topic</string>
@@ -306,12 +303,9 @@
 
     <!-- Search -->
     <string name="search_hint">Search posts, nodes and people</string>
-    <string name="search_scope_all">All</string>
     <string name="search_scope_nodes">Nodes</string>
-    <string name="search_scope_posts">Posts</string>
     <string name="search_scope_users">People</string>
     <string name="search_scope_apps">Apps</string>
-    <string name="search_scope_media">Media</string>
     <string name="search_recent">Recent searches</string>
     <string name="search_hot">Trending</string>
     <string name="search_empty">Nothing matched</string>
@@ -352,8 +346,6 @@
     <string name="profile_following">Following</string>
     <string name="profile_admin">Admin</string>
     <string name="profile_moderator">Moderator</string>
-    <string name="profile_last_seen">Last seen %1$s</string>
-    <string name="profile_joined">Joined %1$s</string>
     <string name="profile_energy">Energy</string>
     <string name="profile_reputation">Reputation</string>
     <string name="profile_topics">Topics</string>
@@ -363,9 +355,6 @@
     <string name="profile_empty_points">No energy history</string>
 
     <!-- Settings -->
-    <string name="settings_account">Account</string>
-    <string name="settings_preferences">Preferences</string>
-    <string name="settings_account_section">This app</string>
     <string name="settings_profile">Profile</string>
     <string name="settings_associated">Connected accounts</string>
     <string name="settings_security">Security</string>
@@ -492,7 +481,6 @@
 
     <!-- Auth -->
     <string name="auth_terms">Signing in means you accept NODELOC\'s terms and privacy policy.</string>
-    <string name="auth_website">Continue with the NodeLoc website</string>
     <string name="auth_identifier">Email or username</string>
     <string name="auth_identifier_hint">you@example.com</string>
     <string name="auth_password">Password</string>
@@ -533,17 +521,12 @@
     <string name="auth_gate_title">Join NODELOC</string>
     <string name="auth_gate_detail">Sign in to post, reply, like and bookmark. Reading needs no account.</string>
 
-    <string name="auth_error_key_generation">Couldn\'t generate the security keys.</string>
     <string name="auth_error_missing_payload">The sign-in response was incomplete.</string>
-    <string name="auth_error_lost_keypair">Sign-in was interrupted. Please start again.</string>
-    <string name="auth_error_decrypt">Couldn\'t verify the sign-in response.</string>
-    <string name="auth_error_nonce">Sign-in verification failed. Please try again.</string>
     <string name="auth_error_cancelled">Sign-in was cancelled.</string>
     <string name="auth_error_missing_fields">Please fill in every field.</string>
     <string name="auth_error_second_factor">This account uses two-factor authentication — enter your code.</string>
     <string name="auth_error_incomplete">Sign-in didn\'t complete. Please try again.</string>
     <string name="auth_error_no_session">Sign-in returned no website session.</string>
-    <string name="auth_error_session_start">Couldn\'t start the sign-in session.</string>
     <string name="auth_error_bad_code">That code isn\'t right. Please try again.</string>
     <string name="auth_error_login_failed">Sign-in failed, please try again</string>
     <string name="auth_error_signup_failed">Sign-up failed, please try again</string>
@@ -597,7 +580,6 @@
     <string name="trim_too_large">That clip is too large to send. Trim it shorter and try again.</string>
 
     <!-- App directory -->
-    <string name="apps_title">App directory</string>
     <string name="apps_more">More apps</string>
     <string name="apps_recent">Recent apps</string>
     <string name="apps_empty">No apps</string>
@@ -693,9 +675,7 @@
     <string name="profile_notify_muted_detail">No notifications from this person.</string>
     <string name="profile_notify_ignored_detail">Their posts are hidden as well.</string>
     <string name="profile_notify_saved">Saved</string>
-    <string name="auth_failed">Sign-in didn\'t complete</string>
     <string name="auth_continue_with">Continue with %1$s</string>
-    <string name="auth_or_password">or sign in with a password</string>
 
     <!-- Updates -->
     <string name="update_check">Check for updates</string>
@@ -736,22 +716,6 @@
     <!-- Upgrade progress -->
     <string name="upgrade_title">Upgrade progress</string>
     <string name="upgrade_load_failed">Unable to load upgrade progress</string>
-    <string name="upgrade_next_level">Next level: %1$s</string>
-    <string name="upgrade_met_count">%1$d of %2$d met</string>
-    <string name="upgrade_all_met">Every requirement for the next level is met.</string>
-    <string name="upgrade_maintaining">Maintaining</string>
-    <string name="upgrade_retention_title">Requirements to keep this level</string>
-    <string name="upgrade_locked">Trust level locked; it will not change automatically.</string>
-    <string name="upgrade_group_standing">Account standing</string>
-    <string name="upgrade_group_activity">Activity</string>
-    <string name="upgrade_group_recent">Last %1$d days</string>
-    <string name="upgrade_group_recent_plain">Recent activity</string>
-    <string name="upgrade_group_all_time">All time</string>
-    <string name="upgrade_target">Goal %1$d</string>
-    <string name="upgrade_limit">Limit %1$d</string>
-    <string name="upgrade_condition_met">Met</string>
-    <string name="upgrade_condition_over">Over the limit</string>
-    <string name="upgrade_condition_remaining">%1$d to go</string>
 
     <!-- Post source -->
     <string name="post_source_title">Posting source</string>

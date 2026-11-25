@@ -32,7 +32,6 @@
     <string name="common_collapse">طي</string>
     <string name="common_loading">جارٍ التحميل</string>
     <string name="common_checking">جارٍ التحقق…</string>
-    <string name="common_add">إضافة</string>
     <string name="common_or">أو</string>
     <string name="common_empty">لا شيء هنا بعد</string>
     <string name="common_empty_hint">عُد لاحقًا</string>
@@ -155,8 +154,6 @@
     <string name="reader_locked">قُفل التعديل</string>
     <string name="reader_unlocked">فُتح التعديل</string>
     <string name="reader_locked_badge">مقفل</string>
-    <string name="reader_topic_close">إغلاق الموضوع</string>
-    <string name="reader_topic_reopen">إعادة فتح الموضوع</string>
     <string name="reader_topic_closed">أُغلق الموضوع</string>
     <string name="reader_topic_reopened">أُعيد فتح الموضوع</string>
     <string name="reader_topic_delete">حذف الموضوع</string>
@@ -303,12 +300,9 @@
 
     <!-- البحث -->
     <string name="search_hint">ابحث في المشاركات والعُقد والأعضاء</string>
-    <string name="search_scope_all">الكل</string>
     <string name="search_scope_nodes">العُقد</string>
-    <string name="search_scope_posts">المشاركات</string>
     <string name="search_scope_users">الأعضاء</string>
     <string name="search_scope_apps">التطبيقات</string>
-    <string name="search_scope_media">الوسائط</string>
     <string name="search_recent">عمليات بحث أخيرة</string>
     <string name="search_hot">الأكثر رواجًا</string>
     <string name="search_empty">لا نتائج مطابقة</string>
@@ -349,8 +343,6 @@
     <string name="profile_following">تتابعه</string>
     <string name="profile_admin">مدير</string>
     <string name="profile_moderator">مشرف</string>
-    <string name="profile_last_seen">آخر ظهور %1$s</string>
-    <string name="profile_joined">انضم %1$s</string>
     <string name="profile_energy">الطاقة</string>
     <string name="profile_reputation">السمعة</string>
     <string name="profile_topics">المواضيع</string>
@@ -360,9 +352,6 @@
     <string name="profile_empty_points">لا سجل للطاقة</string>
 
     <!-- الإعدادات -->
-    <string name="settings_account">الحساب</string>
-    <string name="settings_preferences">التفضيلات</string>
-    <string name="settings_account_section">هذا التطبيق</string>
     <string name="settings_profile">الملف الشخصي</string>
     <string name="settings_associated">الحسابات المرتبطة</string>
     <string name="settings_security">الأمان</string>
@@ -489,7 +478,6 @@
 
     <!-- الدخول والتسجيل -->
     <string name="auth_terms">بتسجيل الدخول فأنت تقبل شروط NODELOC وسياسة الخصوصية.</string>
-    <string name="auth_website">تابع عبر موقع NodeLoc</string>
     <string name="auth_identifier">البريد أو اسم المستخدم</string>
     <string name="auth_identifier_hint">you@example.com</string>
     <string name="auth_password">كلمة المرور</string>
@@ -530,17 +518,12 @@
     <string name="auth_gate_title">انضم إلى NODELOC</string>
     <string name="auth_gate_detail">سجّل الدخول لتنشر وترد وتُعجب وتحفظ. القراءة لا تحتاج حسابًا.</string>
 
-    <string name="auth_error_key_generation">تعذّر توليد مفاتيح الأمان.</string>
     <string name="auth_error_missing_payload">كان رد تسجيل الدخول ناقصًا.</string>
-    <string name="auth_error_lost_keypair">انقطع تسجيل الدخول. ابدأ من جديد.</string>
-    <string name="auth_error_decrypt">تعذّر التحقق من رد تسجيل الدخول.</string>
-    <string name="auth_error_nonce">فشل التحقق من تسجيل الدخول. حاول مرة أخرى.</string>
     <string name="auth_error_cancelled">أُلغي تسجيل الدخول.</string>
     <string name="auth_error_missing_fields">يرجى ملء كل الحقول.</string>
     <string name="auth_error_second_factor">هذا الحساب يستخدم المصادقة الثنائية — أدخل رمزك.</string>
     <string name="auth_error_incomplete">لم يكتمل تسجيل الدخول. حاول مرة أخرى.</string>
     <string name="auth_error_no_session">لم يُرجع تسجيل الدخول جلسة للموقع.</string>
-    <string name="auth_error_session_start">تعذّر بدء جلسة تسجيل الدخول.</string>
     <string name="auth_error_bad_code">هذا الرمز غير صحيح. حاول مرة أخرى.</string>
     <string name="auth_error_login_failed">فشل تسجيل الدخول، حاول مرة أخرى</string>
     <string name="auth_error_signup_failed">فشل إنشاء الحساب، حاول مرة أخرى</string>
@@ -594,7 +577,6 @@
     <string name="trim_too_large">هذا المقطع أكبر من أن يُرسل. اقتصّه أقصر ثم حاول مجددًا.</string>
 
     <!-- دليل التطبيقات -->
-    <string name="apps_title">دليل التطبيقات</string>
     <string name="apps_more">تطبيقات أخرى</string>
     <string name="apps_recent">تطبيقات حديثة</string>
     <string name="apps_empty">لا تطبيقات</string>
@@ -750,9 +732,7 @@
     <string name="profile_notify_muted_detail">لا إشعارات من هذا الشخص.</string>
     <string name="profile_notify_ignored_detail">وتُخفى مشاركاته أيضًا.</string>
     <string name="profile_notify_saved">حُفظ</string>
-    <string name="auth_failed">لم يكتمل تسجيل الدخول</string>
     <string name="auth_continue_with">تابع عبر %1$s</string>
-    <string name="auth_or_password">أو سجّل الدخول بكلمة مرور</string>
 
     <!-- التحديثات -->
     <string name="update_check">التحقق من التحديثات</string>
@@ -793,22 +773,6 @@
     <!-- تقدم الترقية -->
     <string name="upgrade_title">تقدم الترقية</string>
     <string name="upgrade_load_failed">تعذّر تحميل تقدم الترقية</string>
-    <string name="upgrade_next_level">المستوى التالي: %1$s</string>
-    <string name="upgrade_met_count">تحقق %1$d من %2$d</string>
-    <string name="upgrade_all_met">كل متطلبات المستوى التالي متحققة.</string>
-    <string name="upgrade_maintaining">محافظة</string>
-    <string name="upgrade_retention_title">متطلبات الحفاظ على هذا المستوى</string>
-    <string name="upgrade_locked">مستوى الثقة مقفل؛ لن يتغير تلقائيًا.</string>
-    <string name="upgrade_group_standing">وضع الحساب</string>
-    <string name="upgrade_group_activity">النشاط</string>
-    <string name="upgrade_group_recent">آخر %1$d يومًا</string>
-    <string name="upgrade_group_recent_plain">النشاط الأخير</string>
-    <string name="upgrade_group_all_time">منذ البداية</string>
-    <string name="upgrade_target">الهدف %1$d</string>
-    <string name="upgrade_limit">الحد %1$d</string>
-    <string name="upgrade_condition_met">متحقق</string>
-    <string name="upgrade_condition_over">تجاوز الحد</string>
-    <string name="upgrade_condition_remaining">بقي %1$d</string>
 
     <!-- مصدر النشر -->
     <string name="post_source_title">مصدر النشر</string>
