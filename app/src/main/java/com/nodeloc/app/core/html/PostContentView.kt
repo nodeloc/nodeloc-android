@@ -944,6 +944,10 @@ private fun collectEmojiUrls(inlines: List<PostInline>): Set<String> = buildSet 
 
 private const val EXTERNAL_ICON_ID = "chip:ext"
 
+// Compose throws on an empty alternate text, which took the whole reader down
+// on any post with an outside link. A zero-width space copies as nothing.
+private const val EXTERNAL_ICON_ALT = "​"
+
 private fun refChipId(link: PostInline.Link) = "chip:ref:${link.kind}:${link.href}:${link.children.plainText}"
 
 private fun countChipId(href: String) = "chip:count:$href"
@@ -1150,7 +1154,7 @@ private fun AnnotatedString.Builder.appendInline(
         } else if (inline.kind != LinkKind.Plain) {
             // A node or tag is a chip drawn as inline content; the label is
             // what a copy or a screen reader gets instead of the picture.
-            appendInlineContent(refChipId(inline), inline.children.plainText)
+            appendInlineContent(refChipId(inline), inline.children.plainText.ifEmpty { inline.href })
         } else {
             val external = isExternal(inline.href)
             withLink(
@@ -1168,7 +1172,7 @@ private fun AnnotatedString.Builder.appendInline(
                 ),
             ) {
                 inline.children.forEach(::child)
-                if (external) appendInlineContent(EXTERNAL_ICON_ID, "")
+                if (external) appendInlineContent(EXTERNAL_ICON_ID, EXTERNAL_ICON_ALT)
             }
             links.clicksOf(inline.href)?.let { appendInlineContent(countChipId(inline.href), " $it") }
         }
@@ -1186,7 +1190,7 @@ private fun AnnotatedString.Builder.appendInline(
         // The id is the URL, which is what the inlineContent map is keyed on;
         // the shortcode is the alternate text a screen reader or a copy gets.
         is PostInline.Emoji -> if (inline.url.isNotEmpty()) {
-            appendInlineContent(inline.url, inline.shortcode)
+            appendInlineContent(inline.url, inline.shortcode.ifEmpty { "\uFFFC" })
         } else {
             append(inline.shortcode)
         }
