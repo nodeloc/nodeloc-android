@@ -184,13 +184,6 @@
     <string name="reader_reply_one_media">هر پاسخ فقط یک پیوست می‌گیرد</string>
     <string name="reader_reply_guest">برای شرکت در گفت‌وگو وارد شوید</string>
     <string name="reader_send">فرستادن</string>
-    <string name="reader_reward">انعام</string>
-    <string name="reader_reward_energy">انعام انرژی</string>
-    <string name="reader_reward_amount">%1$d انرژی انعام بده</string>
-    <string name="reader_reward_done">%1$d انرژی انعام داده شد</string>
-    <string name="reader_reward_detail">انعام‌ها</string>
-    <string name="reader_reward_note_hint">یادداشت (اختیاری)</string>
-    <string name="reader_reward_empty">هنوز انعامی نیست</string>
     <string name="reader_claimed_points">%1$d انرژی گرفتید</string>
     <string name="reader_spoiler">لو رفتن داستان — برای دیدن بزنید</string>
 
@@ -209,13 +202,6 @@
 
     <string name="lottery_title">قرعه‌کشی</string>
     <string name="lottery_drawn">قرعه کشیده شد</string>
-    <string name="lottery_prize">جایزه</string>
-    <string name="lottery_quantity">×%1$d</string>
-    <string name="lottery_random">بلیت تصادفی</string>
-    <string name="lottery_join">شرکت</string>
-    <string name="lottery_add">بیشتر بخر</string>
-    <string name="lottery_winners">برندگان</string>
-    <string name="lottery_join_failed">شرکت در قرعه‌کشی انجام نشد.</string>
     <string name="lottery_create_failed">ساخت قرعه‌کشی انجام نشد، اما نوشتهٔ شما منتشر شد</string>
     <string name="lottery_default_level">جایزهٔ نخست</string>
 
@@ -583,27 +569,7 @@
         <item quantity="one">%1$d رأی‌دهنده</item>
         <item quantity="other">%1$d رأی‌دهنده</item>
     </plurals>
-    <plurals name="lottery_my_tickets">
-        <item quantity="one">%1$d بلیت دارید</item>
-        <item quantity="other">%1$d بلیت دارید</item>
-    </plurals>
     <string name="profile_tab_load_failed">این زبانه بارگذاری نشد</string>
-    <plurals name="lottery_entrants">
-        <item quantity="one">%1$d شرکت‌کننده</item>
-        <item quantity="other">%1$d شرکت‌کننده</item>
-    </plurals>
-    <plurals name="lottery_tickets">
-        <item quantity="one">%1$d بلیت</item>
-        <item quantity="other">%1$d بلیت</item>
-    </plurals>
-    <plurals name="lottery_min_participants">
-        <item quantity="one">قرعه‌کشی با %1$d شرکت‌کننده</item>
-        <item quantity="other">قرعه‌کشی با %1$d شرکت‌کننده</item>
-    </plurals>
-    <plurals name="lottery_max_participants">
-        <item quantity="one">بیشینه %1$d شرکت‌کننده</item>
-        <item quantity="other">بیشینه %1$d شرکت‌کننده</item>
-    </plurals>
     <plurals name="envelope_packets">
         <item quantity="one">%1$d پاکت</item>
         <item quantity="other">%1$d پاکت</item>
@@ -666,9 +632,6 @@
     <string name="lottery_error_max_below_min">بیشترین شرکت‌کننده باید از کمترین بیشتر باشد</string>
     <string name="lottery_error_min_tickets">کمترین بلیت نمی‌تواند از بیشترین بالاتر باشد</string>
     <string name="lottery_error_draw_days">قرعه‌کشی باید ۱ تا %1$d روز دیگر باشد</string>
-    <string name="lottery_condition_min_tickets">دست‌کم %1$d بلیت برای هر نفر</string>
-    <string name="lottery_condition_max_tickets">حداکثر %1$d بلیت برای هر نفر</string>
-    <string name="lottery_condition_trust_level">TL%1$d و بالاتر</string>
 
     <!-- حضور روزانه -->
     <string name="checkin_action">ثبت حضور</string>
@@ -1640,7 +1603,6 @@
     <string name="rank_how_title">چگونه انرژی بگیریم</string>
     <string name="rank_way_checkin_gain">+۱ تا +۳۰، بسته به رتبه</string>
     <string name="rank_way_node">موضوع / پاسخ تازه در گره شما</string>
-    <string name="rank_way_tip_gain">بر اساس مبلغ</string>
     <string name="rank_way_games">پاکت قرمز و برنده شدن در قرعه‌کشی</string>
     <string name="rank_way_games_gain">بستگی به شانس</string>
     <string name="rank_uses">از انرژی می‌توان برای انعام، پاکت قرمز و قرعه‌کشی استفاده کرد.</string>
@@ -1960,4 +1922,77 @@
     <string name="ach3_share_title">دستاوردهای %1$s</string>
     <string name="ach3_closed">دیگر اعطا نمی‌شود</string>
     <string name="ach3_manual">اعطا توسط مدیران</string>
+    <string name="compose_tags_add">برچسب‌ها</string>
+    <string name="compose_tags_subtitle">کمک می‌کند افراد بیشتری پست را پیدا کنند</string>
+    <string name="compose_tags_search_hint">جست‌وجو کنید یا برچسب تازه بنویسید</string>
+    <string name="compose_tags_common">برچسب‌های رایج</string>
+    <string name="compose_tags_matches">برچسب‌های منطبق</string>
+    <string name="compose_tags_create">ساختن «%1$s»</string>
+    <string name="compose_tags_staff_only">فقط مدیران</string>
+    <string name="compose_tags_full">حداکثر ۵ برچسب. برای افزودن، یکی را بردارید.</string>
+    <string name="compose_tags_none">برچسب منطبقی نیست. برای افزودن برچسب تازه «ساختن» را بزنید.</string>
+    <string name="compose_tags_restricted">این گره فقط برچسب‌های فهرست‌شده را می‌پذیرد.</string>
+    <string name="compose_tags_min">این گره دست‌کم %1$d برچسب می‌خواهد</string>
+    <string name="compose_tags_remove">برداشتن برچسب %1$s</string>
+    <string name="compose_tags_count">%1$d / 5</string>
+    <string name="lot2_status_open">در جریان</string>
+    <string name="lot2_status_failed">لغو شد</string>
+    <string name="lot2_status_cancelled">بسته شد</string>
+    <string name="lot2_draws_on">قرعه‌کشی %1$s</string>
+    <string name="lot2_drawn_on">قرعه‌کشی شد %1$s</string>
+    <string name="lot2_countdown">تا قرعه‌کشی</string>
+    <string name="lot2_unit_day">روز</string>
+    <string name="lot2_unit_hour">ساعت</string>
+    <string name="lot2_unit_min">دقیقه</string>
+    <string name="lot2_unit_sec">ثانیه</string>
+    <string name="lot2_joined">%1$,d نفر شرکت کرده‌اند</string>
+    <string name="lot2_min_to_draw">دست‌کم %1$,d نفر</string>
+    <string name="lot2_cap">حداکثر %1$,d نفر</string>
+    <string name="lot2_sold">%1$,d فروخته شد</string>
+    <string name="lot2_per_ticket">هر بلیت ۱ انرژی</string>
+    <string name="lot2_requires_tier">سطح %1$s و بالاتر</string>
+    <string name="lot2_participants">شرکت‌کنندگان</string>
+    <string name="lot2_all">همه</string>
+    <string name="lot2_all_a11y">دیدن همه %1$,d شرکت‌کننده و بلیت‌هایشان</string>
+    <string name="lot2_prizes">جوایز</string>
+    <string name="lot2_prize_count">×%1$,d</string>
+    <string name="lot2_winners_you">شما</string>
+    <string name="lot2_winners_you_and">شما و %1$,d نفر دیگر</string>
+    <string name="lot2_winners_many">%1$s و دیگران، %2$,d نفر</string>
+    <string name="lot2_winners_title">برندگان %1$s</string>
+    <string name="lot2_win_title">تبریک، %1$s را بردید</string>
+    <string name="lot2_win_body">جایزه %1$s است. نویسنده پست برای تأیید نشانی به شما پیام می‌دهد.</string>
+    <string name="lot2_lose_title">این بار نشد</string>
+    <string name="lot2_lose_body">هیچ‌یک از %1$,d بلیت شما برنده نشد. %2$,d نفر شرکت کردند و %3$,d بلیت فروخته شد.</string>
+    <string name="lot2_failed_title">شرکت‌کننده کافی نبود، قرعه‌کشی لغو شد</string>
+    <string name="lot2_failed_body">فقط %1$,d نفر شرکت کردند (%2$,d لازم بود).</string>
+    <string name="lot2_failed_refund">فقط %1$,d نفر شرکت کردند (%2$,d لازم بود). هزینه %3$,d بلیت شما برگشت داده شد.</string>
+    <string name="lot2_bar_new">هنوز شرکت نکرده‌اید · موجودی %1$s</string>
+    <string name="lot2_bar_new_plain">هنوز شرکت نکرده‌اید</string>
+    <string name="lot2_bar_holding">%1$,d بلیت دارید · %2$,d بلیت دیگر مجاز است</string>
+    <string name="lot2_buy">خرید</string>
+    <string name="lot2_buy_more">خرید بیشتر</string>
+    <string name="lot2_comment">نظر</string>
+    <string name="lot2_sheet_sub">%1$s · قرعه‌کشی %2$s</string>
+    <string name="lot2_tickets_unit">بلیت</string>
+    <string name="lot2_less">یکی کمتر</string>
+    <string name="lot2_more">یکی بیشتر</string>
+    <string name="lot2_pick">%1$,d</string>
+    <string name="lot2_pick_max">حداکثر %1$,d</string>
+    <string name="lot2_cost">هزینه</string>
+    <string name="lot2_energy">%1$s انرژی</string>
+    <string name="lot2_after">موجودی پس از خرید</string>
+    <string name="lot2_limit">سهم هر نفر</string>
+    <string name="lot2_limit_value">%1$,d–%2$,d · پس از این %3$,d بلیت دیگر</string>
+    <string name="lot2_lucky">شانسی</string>
+    <string name="lot2_confirm">خرید %1$,d · %2$s انرژی</string>
+    <string name="lot2_short">انرژی کافی نیست</string>
+    <string name="lot2_lucky_hint">شانسی: ۳ ثانیه نگه دارید تا %1$,d–%2$,d بلیت تصادفی بخرید؛ رها کنید تا لغو شود. بلیت‌ها پس داده نمی‌شوند مگر قرعه‌کشی لغو یا بسته شود.</string>
+    <string name="lot2_bought">انجام شد، اکنون %1$,d بلیت دارید</string>
+    <string name="lot2_bought_random">شانسی %1$,d بلیت خریدید، اکنون %2$,d بلیت دارید</string>
+    <string name="lot2_participants_title">شرکت‌کنندگان (%1$,d)</string>
+    <string name="lot2_holder_tickets">%1$,d بلیت</string>
+    <string name="lot2_participants_empty">هنوز کسی شرکت نکرده است</string>
+    <string name="lot2_participants_failed">بارگیری شرکت‌کنندگان ممکن نشد.</string>
+    <string name="reader_login_required">برای خواندن این موضوع وارد شوید</string>
 </resources>

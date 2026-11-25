@@ -20,9 +20,9 @@ object NodelocIcons {
     /**
      * `zap`, as lucide.dev draws it now: the same bolt as 1.1.0's, but with
      * 1.5-unit corners instead of 1-unit and blunter tips. Close enough to pass
-     * alone, different enough to notice beside the real one — and the reward
-     * plugin's web sprite carries this same path, so a tip is one mark on the
-     * phone and in the browser.
+     * alone, different enough to notice beside the real one — and the web's
+     * energy mark carries this same path, so energy is one mark on the phone
+     * and in the browser.
      */
     val Zap: ImageVector by lazy {
         ImageVector.Builder(

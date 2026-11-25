@@ -112,8 +112,6 @@ fun ReplyRow(
     lowScore: Boolean,
     onExpandLowScore: () -> Unit,
     onReply: () -> Unit,
-    onReward: () -> Unit,
-    onRewardDetail: () -> Unit,
     onReactionDetail: () -> Unit,
     onShare: () -> Unit,
     /** Already bookmarked: the menu offers to take it off instead. */
@@ -233,17 +231,12 @@ fun ReplyRow(
                         TagChip(stringResource(R.string.reader_claimed_points, points), style = TagStyle.Accent2)
                     }
 
-                    if (comment.rewardTotal > 0) {
-                        RewardSummary(comment.rewardTotal, onRewardDetail)
-                    }
-
                     ActionRow(
                         comment = comment,
                         onLike = onLike,
                         onVote = onVote,
                         onPickFace = onPickFace,
                         onReply = onReply,
-                        onReward = onReward,
                         onReactionDetail = onReactionDetail,
                         onShare = onShare,
                         bookmarked = bookmarked,
@@ -475,7 +468,6 @@ private fun ActionRow(
     onVote: (VoteDirection) -> Unit,
     onPickFace: ((VoteDirection, String) -> Unit)?,
     onReply: () -> Unit,
-    onReward: () -> Unit,
     onReactionDetail: () -> Unit,
     onShare: () -> Unit,
     /** Already bookmarked: the menu offers to take it off instead. */
@@ -580,10 +572,6 @@ private fun ActionRow(
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.common_share)) },
                     onClick = { menuOpen = false; onShare() },
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.reader_reward)) },
-                    onClick = { menuOpen = false; onReward() },
                 )
                 DropdownMenuItem(
                     text = {

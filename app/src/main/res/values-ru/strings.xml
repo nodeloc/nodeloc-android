@@ -184,13 +184,6 @@
     <string name="reader_reply_one_media">К ответу можно приложить только один файл</string>
     <string name="reader_reply_guest">Войдите, чтобы участвовать в обсуждении</string>
     <string name="reader_send">Отправить</string>
-    <string name="reader_reward">Награда</string>
-    <string name="reader_reward_energy">Наградить энергией</string>
-    <string name="reader_reward_amount">Наградить: %1$d энергии</string>
-    <string name="reader_reward_done">Награда отправлена: %1$d энергии</string>
-    <string name="reader_reward_detail">Награды</string>
-    <string name="reader_reward_note_hint">Записка (необязательно)</string>
-    <string name="reader_reward_empty">Наград пока нет</string>
     <string name="reader_claimed_points">Получено %1$d энергии</string>
     <string name="reader_spoiler">Спойлер — нажмите, чтобы открыть</string>
 
@@ -209,13 +202,6 @@
 
     <string name="lottery_title">Розыгрыш</string>
     <string name="lottery_drawn">Разыгран</string>
-    <string name="lottery_prize">Приз</string>
-    <string name="lottery_quantity">×%1$d</string>
-    <string name="lottery_random">Случайный билет</string>
-    <string name="lottery_join">Участвовать</string>
-    <string name="lottery_add">Взять ещё</string>
-    <string name="lottery_winners">Победители</string>
-    <string name="lottery_join_failed">Не удалось принять участие.</string>
     <string name="lottery_create_failed">Розыгрыш не создался, но сообщение опубликовано</string>
     <string name="lottery_default_level">Главный приз</string>
 
@@ -599,37 +585,7 @@
         <item quantity="many">%1$d голосов</item>
         <item quantity="other">%1$d голоса</item>
     </plurals>
-    <plurals name="lottery_my_tickets">
-        <item quantity="one">У вас %1$d билет</item>
-        <item quantity="few">У вас %1$d билета</item>
-        <item quantity="many">У вас %1$d билетов</item>
-        <item quantity="other">У вас %1$d билета</item>
-    </plurals>
     <string name="profile_tab_load_failed">Не удалось загрузить эту вкладку</string>
-    <plurals name="lottery_entrants">
-        <item quantity="one">%1$d участник</item>
-        <item quantity="few">%1$d участника</item>
-        <item quantity="many">%1$d участников</item>
-        <item quantity="other">%1$d участника</item>
-    </plurals>
-    <plurals name="lottery_tickets">
-        <item quantity="one">%1$d билет</item>
-        <item quantity="few">%1$d билета</item>
-        <item quantity="many">%1$d билетов</item>
-        <item quantity="other">%1$d билета</item>
-    </plurals>
-    <plurals name="lottery_min_participants">
-        <item quantity="one">розыгрыш при %1$d участнике</item>
-        <item quantity="few">розыгрыш при %1$d участниках</item>
-        <item quantity="many">розыгрыш при %1$d участниках</item>
-        <item quantity="other">розыгрыш при %1$d участниках</item>
-    </plurals>
-    <plurals name="lottery_max_participants">
-        <item quantity="one">не больше %1$d участника</item>
-        <item quantity="few">не больше %1$d участников</item>
-        <item quantity="many">не больше %1$d участников</item>
-        <item quantity="other">не больше %1$d участников</item>
-    </plurals>
     <plurals name="envelope_packets">
         <item quantity="one">%1$d конверт</item>
         <item quantity="few">%1$d конверта</item>
@@ -696,9 +652,6 @@
     <string name="lottery_error_max_below_min">Максимум участников должен быть больше минимума</string>
     <string name="lottery_error_min_tickets">Минимум билетов не может превышать максимум</string>
     <string name="lottery_error_draw_days">Розыгрыш должен быть через 1–%1$d дней</string>
-    <string name="lottery_condition_min_tickets">не меньше %1$d билетов на человека</string>
-    <string name="lottery_condition_max_tickets">не больше %1$d билетов на человека</string>
-    <string name="lottery_condition_trust_level">TL%1$d и выше</string>
 
     <!-- Ежедневная отметка -->
     <string name="checkin_action">Отметиться</string>
@@ -1670,7 +1623,6 @@
     <string name="rank_how_title">Как получить энергию</string>
     <string name="rank_way_checkin_gain">от +1 до +30, по рангу</string>
     <string name="rank_way_node">Новые темы / ответы в вашем узле</string>
-    <string name="rank_way_tip_gain">По сумме</string>
     <string name="rank_way_games">Красные конверты и выигрыши в лотереях</string>
     <string name="rank_way_games_gain">Как повезёт</string>
     <string name="rank_uses">Энергию можно тратить на чаевые, красные конверты и лотереи.</string>
@@ -1990,4 +1942,77 @@
     <string name="ach3_share_title">Достижения %1$s</string>
     <string name="ach3_closed">Больше не выдаётся</string>
     <string name="ach3_manual">Выдаётся администрацией</string>
+    <string name="compose_tags_add">Теги</string>
+    <string name="compose_tags_subtitle">Помогают найти публикацию</string>
+    <string name="compose_tags_search_hint">Найдите или введите новый тег</string>
+    <string name="compose_tags_common">Популярные теги</string>
+    <string name="compose_tags_matches">Подходящие теги</string>
+    <string name="compose_tags_create">Создать «%1$s»</string>
+    <string name="compose_tags_staff_only">Только для модераторов</string>
+    <string name="compose_tags_full">Не больше 5 тегов. Уберите один, чтобы добавить другой.</string>
+    <string name="compose_tags_none">Подходящих тегов нет. Нажмите «Создать», чтобы добавить новый.</string>
+    <string name="compose_tags_restricted">В этом узле можно использовать только перечисленные теги.</string>
+    <string name="compose_tags_min">В этом узле нужно не меньше %1$d тегов</string>
+    <string name="compose_tags_remove">Убрать тег %1$s</string>
+    <string name="compose_tags_count">%1$d / 5</string>
+    <string name="lot2_status_open">Идёт</string>
+    <string name="lot2_status_failed">Не состоялся</string>
+    <string name="lot2_status_cancelled">Закрыт</string>
+    <string name="lot2_draws_on">Розыгрыш %1$s</string>
+    <string name="lot2_drawn_on">Разыгран %1$s</string>
+    <string name="lot2_countdown">До розыгрыша</string>
+    <string name="lot2_unit_day">дн</string>
+    <string name="lot2_unit_hour">ч</string>
+    <string name="lot2_unit_min">мин</string>
+    <string name="lot2_unit_sec">с</string>
+    <string name="lot2_joined">Участников: %1$,d</string>
+    <string name="lot2_min_to_draw">Нужно от %1$,d</string>
+    <string name="lot2_cap">не более %1$,d чел.</string>
+    <string name="lot2_sold">Продано: %1$,d</string>
+    <string name="lot2_per_ticket">1 энергия за билет</string>
+    <string name="lot2_requires_tier">от уровня «%1$s»</string>
+    <string name="lot2_participants">Участники</string>
+    <string name="lot2_all">Все</string>
+    <string name="lot2_all_a11y">Все %1$,d участников и их билеты</string>
+    <string name="lot2_prizes">Призы</string>
+    <string name="lot2_prize_count">×%1$,d</string>
+    <string name="lot2_winners_you">Вы</string>
+    <string name="lot2_winners_you_and">Вы и ещё %1$,d</string>
+    <string name="lot2_winners_many">%1$s и др., всего %2$,d</string>
+    <string name="lot2_winners_title">Победители: %1$s</string>
+    <string name="lot2_win_title">Поздравляем, ваш приз: %1$s</string>
+    <string name="lot2_win_body">Приз: %1$s. Автор напишет вам, чтобы уточнить адрес.</string>
+    <string name="lot2_lose_title">В этот раз не повезло</string>
+    <string name="lot2_lose_body">Ни один из ваших билетов (%1$,d) не выиграл. Участников: %2$,d, продано билетов: %3$,d.</string>
+    <string name="lot2_failed_title">Недостаточно участников — розыгрыш отменён</string>
+    <string name="lot2_failed_body">Участников всего %1$,d (нужно %2$,d).</string>
+    <string name="lot2_failed_refund">Участников всего %1$,d (нужно %2$,d). Стоимость ваших билетов (%3$,d) возвращена.</string>
+    <string name="lot2_bar_new">Вы не участвуете · баланс %1$s</string>
+    <string name="lot2_bar_new_plain">Вы не участвуете</string>
+    <string name="lot2_bar_holding">У вас %1$,d · можно ещё %2$,d</string>
+    <string name="lot2_buy">Купить</string>
+    <string name="lot2_buy_more">Докупить</string>
+    <string name="lot2_comment">Комментировать</string>
+    <string name="lot2_sheet_sub">%1$s · розыгрыш %2$s</string>
+    <string name="lot2_tickets_unit">бил.</string>
+    <string name="lot2_less">На один меньше</string>
+    <string name="lot2_more">На один больше</string>
+    <string name="lot2_pick">%1$,d</string>
+    <string name="lot2_pick_max">Макс. %1$,d</string>
+    <string name="lot2_cost">Стоимость</string>
+    <string name="lot2_energy">%1$s энергии</string>
+    <string name="lot2_after">Останется</string>
+    <string name="lot2_limit">На человека</string>
+    <string name="lot2_limit_value">%1$,d–%2$,d · после покупки ещё %3$,d</string>
+    <string name="lot2_lucky">Наудачу</string>
+    <string name="lot2_confirm">Купить %1$,d · %2$s энергии</string>
+    <string name="lot2_short">Недостаточно энергии</string>
+    <string name="lot2_lucky_hint">Наудачу: удерживайте 3 секунды, чтобы купить случайно от %1$,d до %2$,d билетов; отпустите для отмены. Билеты не возвращаются, если розыгрыш не отменён и не закрыт.</string>
+    <string name="lot2_bought">Готово, у вас %1$,d билетов</string>
+    <string name="lot2_bought_random">Наудачу куплено %1$,d, у вас %2$,d билетов</string>
+    <string name="lot2_participants_title">Участники (%1$,d)</string>
+    <string name="lot2_holder_tickets">билетов: %1$,d</string>
+    <string name="lot2_participants_empty">Пока никто не участвует</string>
+    <string name="lot2_participants_failed">Не удалось загрузить участников.</string>
+    <string name="reader_login_required">Войдите, чтобы прочитать эту тему</string>
 </resources>

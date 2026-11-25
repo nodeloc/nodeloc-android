@@ -184,13 +184,6 @@
     <string name="reader_reply_one_media">До відповіді можна додати лише один файл</string>
     <string name="reader_reply_guest">Увійдіть, щоб долучитися до обговорення</string>
     <string name="reader_send">Надіслати</string>
-    <string name="reader_reward">Винагорода</string>
-    <string name="reader_reward_energy">Нагородити енергією</string>
-    <string name="reader_reward_amount">Нагородити: %1$d енергії</string>
-    <string name="reader_reward_done">Винагороду надіслано: %1$d енергії</string>
-    <string name="reader_reward_detail">Винагороди</string>
-    <string name="reader_reward_note_hint">Записка (необовʼязково)</string>
-    <string name="reader_reward_empty">Винагород поки немає</string>
     <string name="reader_claimed_points">Отримано %1$d енергії</string>
     <string name="reader_spoiler">Спойлер — торкніться, щоб відкрити</string>
 
@@ -209,13 +202,6 @@
 
     <string name="lottery_title">Розіграш</string>
     <string name="lottery_drawn">Розіграно</string>
-    <string name="lottery_prize">Приз</string>
-    <string name="lottery_quantity">×%1$d</string>
-    <string name="lottery_random">Випадковий квиток</string>
-    <string name="lottery_join">Узяти участь</string>
-    <string name="lottery_add">Узяти ще</string>
-    <string name="lottery_winners">Переможці</string>
-    <string name="lottery_join_failed">Не вдалося взяти участь.</string>
     <string name="lottery_create_failed">Розіграш не створився, але допис опубліковано</string>
     <string name="lottery_default_level">Головний приз</string>
 
@@ -599,37 +585,7 @@
         <item quantity="many">%1$d голосів</item>
         <item quantity="other">%1$d голоса</item>
     </plurals>
-    <plurals name="lottery_my_tickets">
-        <item quantity="one">У вас %1$d квиток</item>
-        <item quantity="few">У вас %1$d квитки</item>
-        <item quantity="many">У вас %1$d квитків</item>
-        <item quantity="other">У вас %1$d квитка</item>
-    </plurals>
     <string name="profile_tab_load_failed">Не вдалося завантажити цю вкладку</string>
-    <plurals name="lottery_entrants">
-        <item quantity="one">%1$d учасник</item>
-        <item quantity="few">%1$d учасники</item>
-        <item quantity="many">%1$d учасників</item>
-        <item quantity="other">%1$d учасника</item>
-    </plurals>
-    <plurals name="lottery_tickets">
-        <item quantity="one">%1$d квиток</item>
-        <item quantity="few">%1$d квитки</item>
-        <item quantity="many">%1$d квитків</item>
-        <item quantity="other">%1$d квитка</item>
-    </plurals>
-    <plurals name="lottery_min_participants">
-        <item quantity="one">розіграш за %1$d учасника</item>
-        <item quantity="few">розіграш за %1$d учасників</item>
-        <item quantity="many">розіграш за %1$d учасників</item>
-        <item quantity="other">розіграш за %1$d учасників</item>
-    </plurals>
-    <plurals name="lottery_max_participants">
-        <item quantity="one">не більше %1$d учасника</item>
-        <item quantity="few">не більше %1$d учасників</item>
-        <item quantity="many">не більше %1$d учасників</item>
-        <item quantity="other">не більше %1$d учасників</item>
-    </plurals>
     <plurals name="envelope_packets">
         <item quantity="one">%1$d конверт</item>
         <item quantity="few">%1$d конверти</item>
@@ -696,9 +652,6 @@
     <string name="lottery_error_max_below_min">Максимум учасників має бути більшим за мінімум</string>
     <string name="lottery_error_min_tickets">Мінімум квитків не може перевищувати максимум</string>
     <string name="lottery_error_draw_days">Розіграш має бути через 1–%1$d днів</string>
-    <string name="lottery_condition_min_tickets">не менше %1$d квитків на людину</string>
-    <string name="lottery_condition_max_tickets">не більше %1$d квитків на людину</string>
-    <string name="lottery_condition_trust_level">TL%1$d і вище</string>
 
     <!-- Щоденна відмітка -->
     <string name="checkin_action">Відмітитися</string>
@@ -1670,7 +1623,6 @@
     <string name="rank_how_title">Як отримати енергію</string>
     <string name="rank_way_checkin_gain">від +1 до +30, за рангом</string>
     <string name="rank_way_node">Нові теми / відповіді у вашому вузлі</string>
-    <string name="rank_way_tip_gain">За сумою</string>
     <string name="rank_way_games">Червоні конверти й виграші в лотереях</string>
     <string name="rank_way_games_gain">Як пощастить</string>
     <string name="rank_uses">Енергію можна витрачати на чайові, червоні конверти та лотереї.</string>
@@ -1990,4 +1942,77 @@
     <string name="ach3_share_title">Досягнення %1$s</string>
     <string name="ach3_closed">Більше не видається</string>
     <string name="ach3_manual">Видається адміністрацією</string>
+    <string name="compose_tags_add">Теги</string>
+    <string name="compose_tags_subtitle">Допомагають знайти допис</string>
+    <string name="compose_tags_search_hint">Знайдіть або введіть новий тег</string>
+    <string name="compose_tags_common">Популярні теги</string>
+    <string name="compose_tags_matches">Відповідні теги</string>
+    <string name="compose_tags_create">Створити «%1$s»</string>
+    <string name="compose_tags_staff_only">Лише для модераторів</string>
+    <string name="compose_tags_full">Не більше 5 тегів. Приберіть один, щоб додати інший.</string>
+    <string name="compose_tags_none">Відповідних тегів немає. Натисніть «Створити», щоб додати новий.</string>
+    <string name="compose_tags_restricted">У цьому вузлі можна використовувати лише перелічені теги.</string>
+    <string name="compose_tags_min">У цьому вузлі потрібно щонайменше %1$d тегів</string>
+    <string name="compose_tags_remove">Прибрати тег %1$s</string>
+    <string name="compose_tags_count">%1$d / 5</string>
+    <string name="lot2_status_open">Триває</string>
+    <string name="lot2_status_failed">Не відбувся</string>
+    <string name="lot2_status_cancelled">Закрито</string>
+    <string name="lot2_draws_on">Розіграш %1$s</string>
+    <string name="lot2_drawn_on">Розіграно %1$s</string>
+    <string name="lot2_countdown">До розіграшу</string>
+    <string name="lot2_unit_day">дн</string>
+    <string name="lot2_unit_hour">год</string>
+    <string name="lot2_unit_min">хв</string>
+    <string name="lot2_unit_sec">с</string>
+    <string name="lot2_joined">Учасників: %1$,d</string>
+    <string name="lot2_min_to_draw">Потрібно від %1$,d</string>
+    <string name="lot2_cap">не більше %1$,d осіб</string>
+    <string name="lot2_sold">Продано: %1$,d</string>
+    <string name="lot2_per_ticket">1 енергія за квиток</string>
+    <string name="lot2_requires_tier">від рівня «%1$s»</string>
+    <string name="lot2_participants">Учасники</string>
+    <string name="lot2_all">Усі</string>
+    <string name="lot2_all_a11y">Усі %1$,d учасників і їхні квитки</string>
+    <string name="lot2_prizes">Призи</string>
+    <string name="lot2_prize_count">×%1$,d</string>
+    <string name="lot2_winners_you">Ви</string>
+    <string name="lot2_winners_you_and">Ви та ще %1$,d</string>
+    <string name="lot2_winners_many">%1$s та ін., усього %2$,d</string>
+    <string name="lot2_winners_title">Переможці: %1$s</string>
+    <string name="lot2_win_title">Вітаємо, ваш приз: %1$s</string>
+    <string name="lot2_win_body">Приз: %1$s. Автор напише вам, щоб уточнити адресу.</string>
+    <string name="lot2_lose_title">Цього разу не пощастило</string>
+    <string name="lot2_lose_body">Жоден із ваших квитків (%1$,d) не виграв. Учасників: %2$,d, продано квитків: %3$,d.</string>
+    <string name="lot2_failed_title">Замало учасників — розіграш скасовано</string>
+    <string name="lot2_failed_body">Учасників лише %1$,d (потрібно %2$,d).</string>
+    <string name="lot2_failed_refund">Учасників лише %1$,d (потрібно %2$,d). Вартість ваших квитків (%3$,d) повернуто.</string>
+    <string name="lot2_bar_new">Ви не берете участі · баланс %1$s</string>
+    <string name="lot2_bar_new_plain">Ви не берете участі</string>
+    <string name="lot2_bar_holding">У вас %1$,d · можна ще %2$,d</string>
+    <string name="lot2_buy">Купити</string>
+    <string name="lot2_buy_more">Докупити</string>
+    <string name="lot2_comment">Коментувати</string>
+    <string name="lot2_sheet_sub">%1$s · розіграш %2$s</string>
+    <string name="lot2_tickets_unit">квит.</string>
+    <string name="lot2_less">На один менше</string>
+    <string name="lot2_more">На один більше</string>
+    <string name="lot2_pick">%1$,d</string>
+    <string name="lot2_pick_max">Макс. %1$,d</string>
+    <string name="lot2_cost">Вартість</string>
+    <string name="lot2_energy">%1$s енергії</string>
+    <string name="lot2_after">Залишиться</string>
+    <string name="lot2_limit">На особу</string>
+    <string name="lot2_limit_value">%1$,d–%2$,d · після покупки ще %3$,d</string>
+    <string name="lot2_lucky">Навмання</string>
+    <string name="lot2_confirm">Купити %1$,d · %2$s енергії</string>
+    <string name="lot2_short">Недостатньо енергії</string>
+    <string name="lot2_lucky_hint">Навмання: утримуйте 3 секунди, щоб купити випадково від %1$,d до %2$,d квитків; відпустіть для скасування. Квитки не повертаються, якщо розіграш не скасовано й не закрито.</string>
+    <string name="lot2_bought">Готово, у вас %1$,d квитків</string>
+    <string name="lot2_bought_random">Навмання куплено %1$,d, у вас %2$,d квитків</string>
+    <string name="lot2_participants_title">Учасники (%1$,d)</string>
+    <string name="lot2_holder_tickets">квитків: %1$,d</string>
+    <string name="lot2_participants_empty">Поки ніхто не бере участі</string>
+    <string name="lot2_participants_failed">Не вдалося завантажити учасників.</string>
+    <string name="reader_login_required">Увійдіть, щоб прочитати цю тему</string>
 </resources>

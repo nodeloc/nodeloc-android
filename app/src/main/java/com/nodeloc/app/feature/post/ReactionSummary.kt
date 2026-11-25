@@ -109,60 +109,32 @@ fun ReactionSummary(
 }
 
 /**
- * What has already happened to a post: the faces it drew, and what it was
- * tipped.
+ * What has already happened to a post: the faces it drew.
  *
  * A line of its own above the buttons, because none of it is a button. Sat
  * among the actions, a tally reads as a fourth thing to press and the row stops
  * being a row of verbs; on its own line the two questions separate — what
  * people did, then what you can do.
  *
- * Draws nothing when there is neither, which is most posts. A reply uses only
- * half of this — its faces sit in the action row, where there is room for them
- * beside four icons but not above them.
+ * Draws nothing when there are none, which is most posts. A reply does not use
+ * this: its faces sit in the action row, where there is room for them.
  */
 @Composable
 fun PostRecordLine(
     reactions: List<PostReaction>,
     reactionCount: Int,
-    rewardTotal: Int,
     onReactionDetail: () -> Unit,
-    onRewardDetail: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val hasReactions = reactions.isNotEmpty() && reactionCount > 0
-    if (!hasReactions && rewardTotal <= 0) return
+    if (!hasReactions) return
 
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        if (hasReactions) {
-            ReactionSummary(
-                reactions = reactions,
-                total = reactionCount,
-                onClick = onReactionDetail,
-            )
-        }
-        RewardSummary(total = rewardTotal, onClick = onRewardDetail)
-    }
-}
-
-/** What a post has been tipped, and the way in to who tipped it. */
-@Composable
-fun RewardSummary(
-    total: Int,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    if (total <= 0) return
-    Row(
-        modifier
-            .clip(RoundedCornerShape(Radius.md))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 6.dp, vertical = 3.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Icon(NodelocIcons.Zap, null, tint = Nocturne.accent2, modifier = Modifier.size(15.dp))
-        Text("$total", style = Type.body(13, FontWeight.Medium), color = Nocturne.accent2)
+        ReactionSummary(
+            reactions = reactions,
+            total = reactionCount,
+            onClick = onReactionDetail,
+        )
     }
 }
 

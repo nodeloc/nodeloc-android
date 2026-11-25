@@ -19,7 +19,6 @@ import com.nodeloc.app.core.model.PostComment
 import com.nodeloc.app.core.model.PostLottery
 import com.nodeloc.app.core.model.PostPoll
 import com.nodeloc.app.core.model.PostReaction
-import com.nodeloc.app.core.model.PostReward
 import com.nodeloc.app.core.model.ReplySort
 import com.nodeloc.app.core.model.TopicPost
 import com.nodeloc.app.core.model.TopicResponse
@@ -112,7 +111,6 @@ data class ReaderState(
      * Folding states a score, not a preference, so it is not persisted.
      */
     val expandedLowScore: Set<Int> = emptySet(),
-    val firstPostRewards: List<PostReward> = emptyList(),
     val polls: List<PostPoll> = emptyList(),
     val myPollVotes: Map<String, List<String>> = emptyMap(),
     val lottery: PostLottery? = null,
@@ -137,6 +135,12 @@ data class ReaderState(
     val acceptedPostNumber: Int? = null,
     /** Accepted by the topic's author rather than by a moderator on their behalf. */
     val acceptedByOp: Boolean = true,
+    /**
+     * Whether this reader may accept or withdraw an answer here. Only a topic
+     * with the site's 求助 tag takes an answer at all; the server says so in
+     * `can_accept`, and until it does the tag itself is checked.
+     */
+    val canAccept: Boolean = false,
     val bestAnswer: BestAnswer? = null,
     /** Keyed by floor; only deleted replies the log has an entry for. */
     val deletions: Map<Int, ReplyDeletion> = emptyMap(),
@@ -338,11 +342,11 @@ class ReaderViewModel : ViewModel() {
                     firstPostReactions = first?.reactions.orEmpty(),
                     firstPostReactionCount = first?.reactionUsersCount ?: 0,
                     voteCollapseThreshold = site.voteCollapseThreshold,
-                    firstPostRewards = first?.rewards.orEmpty(),
                     polls = first?.polls.orEmpty(),
                     myPollVotes = first?.pollsVotes.orEmpty(),
                     lottery = first?.lottery,
                     redEnvelope = topic.redEnvelope,
+                    canAccept = topic.canAccept ?: topic.tagNames.any { it.equals(HELP_TAG, ignoreCase = true) },
                     totalReplyCount = ((topic.postsCount ?: 1) - 1).coerceAtLeast(0),
                 )
                 loadedId = topicId
@@ -973,7 +977,6 @@ class ReaderViewModel : ViewModel() {
                     pollVoteOverrides.filterKeys { it.first == post.id }.mapKeys { it.key.second },
                 isLiked = likeOverrides[post.id] ?: post.likedByMe,
                 isBookmarked = bookmarkOverrides[post.id] ?: (post.bookmarked == true),
-                rewards = post.rewards.orEmpty(),
                 voteScore = post.voteScore?.let { voteOverrides[post.id]?.score ?: it },
                 voteDirection = voteOverrides[post.id]?.direction
                     ?: VoteDirection.from(post.voteDirection),
@@ -1651,17 +1654,6 @@ class ReaderViewModel : ViewModel() {
         }
     }
 
-    fun giveReward(postId: Int, amount: Int, note: String?) {
-        viewModelScope.launch {
-            runCatchingCancellable { client.giveReward(postId, amount, note) }
-                .onSuccess {
-                    ToastCenter.show(R.string.reader_reward_done, amount)
-                    reload()
-                }
-                .onFailure { ToastCenter.showError(it) }
-        }
-    }
-
     fun repost(categoryId: Int, title: String) {
         viewModelScope.launch {
             runCatchingCancellable { client.repost(_state.value.topicId, categoryId, title) }
@@ -1736,33 +1728,76 @@ class ReaderViewModel : ViewModel() {
         )
     }
 
-    private var lotteryBusy = false
+    private val _lotteryBuying = MutableStateFlow(false)
+    val lotteryBuying: StateFlow<Boolean> = _lotteryBuying.asStateFlow()
 
-    fun participateInLottery(quantity: Int, isRandom: Boolean) {
+    /** The terms of the last purchase that did not come back, and the key it went out with. */
+    private var pendingLotteryBuy: Pair<String, String>? = null
+
+    /**
+     * Buys lottery tickets the reader has confirmed. Trying the very same terms
+     * again after a failure reuses the Idempotency-Key, so a timeout that did
+     * go through is answered rather than charged twice.
+     */
+    fun participateInLottery(quantity: Int, isRandom: Boolean, onBought: () -> Unit = {}) {
         val lottery = _state.value.lottery ?: return
-        if (lotteryBusy) return
-        lotteryBusy = true
+        if (_lotteryBuying.value) return
+        val terms = "${lottery.id}|$quantity|$isRandom|${lottery.userTickets ?: 0}"
+        val key = pendingLotteryBuy?.takeIf { it.first == terms }?.second ?: java.util.UUID.randomUUID().toString()
+        pendingLotteryBuy = terms to key
+        _lotteryBuying.value = true
         viewModelScope.launch {
-            runCatchingCancellable { client.participateInLottery(lottery.id, quantity, isRandom) }
-                .onSuccess { response ->
-                    if (response.success?.value == false) {
-                        response.error?.let(ToastCenter::show) ?: ToastCenter.show(R.string.lottery_join_failed)
-                    } else if (response.lottery != null) {
-                        _state.value = _state.value.copy(lottery = response.lottery)
-                    } else {
-                        // The endpoint doesn't always echo the lottery back;
-                        // refetch so ticket counts stay truthful.
-                        runCatchingCancellable { client.topic(_state.value.topicId) }.getOrNull()?.let { topic ->
-                            _state.value = _state.value.copy(
-                                lottery = topic.postStream.posts.firstOrNull()?.lottery,
-                            )
-                        }
-                    }
+            try {
+                val before = lottery.userTickets ?: 0
+                val total = client.participateInLottery(lottery.id, quantity, isRandom, key)
+                pendingLotteryBuy = null
+                onBought()
+                if (total != null) {
+                    if (isRandom) ToastCenter.show(R.string.lot2_bought_random, total - before, total)
+                    else ToastCenter.show(R.string.lot2_bought, total)
                 }
-                .onFailure { ToastCenter.showError(it) }
-            lotteryBusy = false
+                reloadLottery()
+                // The balance under the buy button is the session's; the
+                // purchase just spent from it.
+                runCatchingCancellable { services.session.refresh(force = true) }
+            } catch (error: Throwable) {
+                error.rethrowIfCancellation()
+                ToastCenter.showError(error)
+            } finally {
+                _lotteryBuying.value = false
+            }
         }
     }
+
+    private suspend fun reloadLottery() {
+        val current = _state.value.lottery ?: return
+        val postId = current.postId ?: _state.value.firstPostId ?: return
+        runCatchingCancellable { client.lottery(postId) }.getOrNull()?.let {
+            _state.value = _state.value.copy(lottery = it)
+        }
+    }
+
+    private var lotteryDrawWatch: Job? = null
+
+    /**
+     * The countdown reached zero. The draw is a server job that runs at or a
+     * little after `draw_at`, so one fetch at zero usually still finds the
+     * lottery open; a few spaced retries pick the result up without the
+     * reader having to leave and come back.
+     */
+    fun lotteryDeadlinePassed() {
+        if (lotteryDrawWatch?.isActive == true) return
+        lotteryDrawWatch = viewModelScope.launch {
+            repeat(LOTTERY_DRAW_POLLS) { attempt ->
+                if (attempt > 0) delay(LOTTERY_DRAW_POLL_MS)
+                reloadLottery()
+                if (_state.value.lottery?.isOpen != true) return@launch
+            }
+        }
+    }
+
+    suspend fun lotteryParticipants(lotteryId: Int): List<com.nodeloc.app.core.model.LotteryParticipant> =
+        client.lotteryParticipants(lotteryId)
 
     // ------------------------------------------------------ read progress
 
@@ -1884,3 +1919,9 @@ const val RELATED_BATCH = 5
 
 /** One over the two batches, so leaving out the topic being read still fills them. */
 private const val RELATED_FETCH = RELATED_BATCH * 2 + 1
+
+/**
+ * The site setting content.help_tag's default. Only the fallback for a server
+ * without `can_accept` reads it; the setting itself is not served to the app.
+ */
+private const val HELP_TAG = "求助"

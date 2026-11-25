@@ -102,15 +102,6 @@ class DiscourseDecodingTest {
     }
 
     @Test
-    fun `reward totals exclude negative system deducts`() {
-        val post = json.decodeFromString<TopicPost>(
-            """{"id":5,"username":"ada","rewards":[
-                 {"id":1,"amount":10},{"id":2,"amount":5},{"id":3,"amount":-20,"is_system_reward":true}]}""",
-        )
-        assertEquals(15, post.rewardTotal)
-    }
-
-    @Test
     fun `poll keeps its reserved public field and derives its name`() {
         val poll = json.decodeFromString<PostPoll>(
             """{"id":1,"type":"multiple","status":"open","public":true,

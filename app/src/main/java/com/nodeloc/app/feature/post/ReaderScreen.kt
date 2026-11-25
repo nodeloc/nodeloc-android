@@ -101,6 +101,7 @@ import com.composables.icons.lucide.MessageSquareOff
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.X
 import com.composables.icons.lucide.WifiOff
+import com.composables.icons.lucide.Lock
 import com.composables.icons.lucide.Share2
 import com.composables.icons.lucide.Smile
 import com.composables.icons.lucide.Send
@@ -323,8 +324,6 @@ fun ReaderScreen(
     var reportingPost by remember { mutableStateOf<Int?>(null) }
     var reportingAuthor by remember { mutableStateOf<String?>(null) }
     var blockingUser by remember { mutableStateOf<String?>(null) }
-    var rewardTarget by remember { mutableStateOf<Int?>(null) }
-    var rewardDetail by remember { mutableStateOf<List<com.nodeloc.app.core.model.PostReward>?>(null) }
     // The post whose reactions are being read, if any.
     var reactionDetail by remember { mutableStateOf<Int?>(null) }
     var videoUrl by remember { mutableStateOf<String?>(null) }
@@ -390,12 +389,15 @@ fun ReaderScreen(
                     // them does not. One container each rather than one around
                     // both, so a drag cannot run from the title through the
                     // banner between them and come out holding all three.
-                    SelectionContainer {
-                        Text(
-                            state.title,
-                            style = Type.heading(18, FontWeight.SemiBold),
-                            color = Nocturne.text,
-                        )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (state.lottery != null) LotteryTitleBadge()
+                        SelectionContainer(Modifier.weight(1f)) {
+                            Text(
+                                state.title,
+                                style = Type.heading(18, FontWeight.SemiBold),
+                                color = Nocturne.text,
+                            )
+                        }
                     }
                     state.redEnvelope?.let { RedEnvelopeBanner(it) }
                     val body = @Composable {
@@ -447,9 +449,12 @@ fun ReaderScreen(
                         body()
                     }
                     state.lottery?.let { lottery ->
-                        LotteryCard(lottery, canParticipate = isSignedIn) { quantity, random ->
-                            viewModel.participateInLottery(quantity, random)
-                        }
+                        LotteryCard(
+                            lottery = lottery,
+                            me = myName.takeIf { isSignedIn },
+                            onDeadline = viewModel::lotteryDeadlinePassed,
+                            loadParticipants = viewModel::lotteryParticipants,
+                        )
                     }
                     TopicActionBar(
                         state = state,
@@ -473,10 +478,6 @@ fun ReaderScreen(
                             }
                         },
                         onReactionDetail = { reactionDetail = state.firstPostId },
-                        onRewardDetail = { rewardDetail = state.firstPostRewards },
-                        onReward = {
-                            if (isSignedIn) rewardTarget = state.firstPostId else app.showLoginGate()
-                        },
                     )
                 }
                 // The band is a divider, and a divider that touches the row
@@ -507,7 +508,7 @@ fun ReaderScreen(
                         },
                         // The same rule as the reply menu's accept item: the topic's
                         // author or a moderator.
-                        onWithdraw = viewModel::withdrawAccepted.takeIf { isSignedIn && (isTopicOwner || isStaff) },
+                        onWithdraw = viewModel::withdrawAccepted.takeIf { isSignedIn && state.canAccept && (isTopicOwner || isStaff) },
                     )
                 }
             }
@@ -570,11 +571,7 @@ fun ReaderScreen(
                             app.showLoginGate()
                         }
                     },
-                    onRewardDetail = { rewardDetail = comment.rewards },
                     onReactionDetail = { reactionDetail = comment.id },
-                    onReward = {
-                        if (isSignedIn) rewardTarget = comment.id else app.showLoginGate()
-                    },
                     // A reply has its own permalink; sharing the topic from a
                     // reply would drop whoever opens it at the wrong post.
                     onShare = {
@@ -624,7 +621,7 @@ fun ReaderScreen(
                         .takeIf {
                             val mine = myName != null && comment.author.equals(myName, ignoreCase = true)
                             val byOp = opName != null && comment.author.equals(opName, ignoreCase = true)
-                            isSignedIn && !state.isPrivateMessage && comment.postNumber > 1 && !comment.deleted &&
+                            isSignedIn && state.canAccept && !state.isPrivateMessage && comment.postNumber > 1 && !comment.deleted &&
                                 (isTopicOwner || isStaff) &&
                                 (comment.postNumber == state.acceptedPostNumber || (!mine && !byOp))
                         },
@@ -704,21 +701,30 @@ fun ReaderScreen(
         // than "this didn't load", so it gets covered rather than decorated.
         if (state.failedToLoad) {
             val offline = state.error?.isOfflineError() == true
+            // Some nodes are members-only: a signed-out reader gets 403
+            // login_required, which is a door to sign in at, not a fault.
+            val needsLogin = !isSignedIn &&
+                ((state.error as? DiscourseError.BadResponse)?.fault?.type == "login_required")
             Box(
                 Modifier.fillMaxSize().background(Nocturne.bg),
                 contentAlignment = Alignment.Center,
             ) {
                 EmptyStateView(
-                    icon = if (offline) Lucide.WifiOff else Lucide.CircleAlert,
+                    icon = when {
+                        offline -> Lucide.WifiOff
+                        needsLogin -> Lucide.Lock
+                        else -> Lucide.CircleAlert
+                    },
                     title = stringResource(
                         when {
                             offline -> R.string.error_offline
+                            needsLogin -> R.string.reader_login_required
                             (state.error as? DiscourseError)?.isNotFound == true -> R.string.error_not_found
                             else -> R.string.error_decoding
                         },
                     ),
-                    retryLabel = stringResource(R.string.common_retry),
-                    onRetry = { viewModel.load(topicId) },
+                    retryLabel = stringResource(if (needsLogin) R.string.common_login else R.string.common_retry),
+                    onRetry = { if (needsLogin) app.showLoginGate() else viewModel.load(topicId) },
                 )
             }
         }
@@ -763,7 +769,26 @@ fun ReaderScreen(
             onDeleteTopic = { confirmDeleteTopic = true },
         )
 
-        if (!state.failedToLoad) {
+        // While the reader can still buy, the lottery's bar takes the reply
+        // bar's place; its round button still opens the same composer.
+        val lotteryOpen = rememberLotteryOpen(state.lottery)
+        val sellingLottery = state.lottery?.takeIf {
+            lotteryOpen && isSignedIn && it.sellsTo(myName, opName)
+        }
+        val lotteryBuying by viewModel.lotteryBuying.collectAsState()
+        if (!state.failedToLoad && sellingLottery != null) {
+            LotteryBuyBar(
+                lottery = sellingLottery,
+                balance = currentUser?.gamificationScore?.toLong(),
+                buying = lotteryBuying,
+                onComment = {
+                    setReplyTarget(null)
+                    replySheetOpen = true
+                },
+                onBuy = viewModel::participateInLottery,
+                modifier = Modifier.align(Alignment.BottomCenter),
+            )
+        } else if (!state.failedToLoad) {
             ReplyBar(
                 isSignedIn = isSignedIn,
                 replyTarget = replyTarget,
@@ -813,14 +838,6 @@ fun ReaderScreen(
                 } else if (!leaveFor(it)) {
                     closeViewers()
                     navigator.openCompose(repostTopicId = topicId, prefillTitle = state.title)
-                }
-            },
-            onReward = {
-                if (!isSignedIn) {
-                    app.showLoginGate()
-                } else if (!leaveFor(it)) {
-                    closeViewers()
-                    rewardTarget = state.firstPostId
                 }
             },
         )
@@ -1042,19 +1059,6 @@ fun ReaderScreen(
             )
         }
 
-        rewardDetail?.let { rewards ->
-            RewardDetailSheet(rewards) { rewardDetail = null }
-        }
-
-        rewardTarget?.let { postId ->
-            RewardSheet(
-                onDismiss = { rewardTarget = null },
-                onConfirm = { amount, note ->
-                    viewModel.giveReward(postId, amount, note)
-                    rewardTarget = null
-                },
-            )
-        }
     }
 }
 
@@ -1139,12 +1143,8 @@ private fun TopicActionBar(
     onCastVote: (VoteDirection, String?) -> Unit,
     onComment: () -> Unit,
     onRepost: () -> Unit,
-    onReward: () -> Unit,
-    onRewardDetail: () -> Unit,
     onReactionDetail: () -> Unit,
 ) {
-    val rewardTotal = state.firstPostRewards.filter { it.amount > 0 }.sumOf { it.amount }
-
     Column(
         Modifier.fillMaxWidth().padding(top = Space.s3),
         verticalArrangement = Arrangement.spacedBy(Space.s2),
@@ -1152,9 +1152,7 @@ private fun TopicActionBar(
         PostRecordLine(
             reactions = state.firstPostReactions,
             reactionCount = state.firstPostReactionCount,
-            rewardTotal = rewardTotal,
             onReactionDetail = onReactionDetail,
-            onRewardDetail = onRewardDetail,
         )
 
         PostActionRow(
@@ -1163,7 +1161,6 @@ private fun TopicActionBar(
             onCastVote = onCastVote,
             onComment = onComment,
             onRepost = onRepost,
-            onReward = onReward,
         )
     }
 }
@@ -1183,7 +1180,6 @@ private fun ReaderState.postActions(): PostActionState = PostActionState(
     liked = firstPostLiked,
     likeCount = firstPostLikeCount,
     commentCount = totalReplyCount,
-    rewarded = firstPostRewards.any { it.amount > 0 },
 )
 
 @Composable

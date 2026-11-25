@@ -184,13 +184,6 @@
     <string name="reader_reply_one_media">Mỗi trả lời chỉ kèm được một tệp</string>
     <string name="reader_reply_guest">Đăng nhập để tham gia thảo luận</string>
     <string name="reader_send">Gửi</string>
-    <string name="reader_reward">Thưởng</string>
-    <string name="reader_reward_energy">Thưởng năng lượng</string>
-    <string name="reader_reward_amount">Thưởng %1$d năng lượng</string>
-    <string name="reader_reward_done">Đã thưởng %1$d năng lượng</string>
-    <string name="reader_reward_detail">Lượt thưởng</string>
-    <string name="reader_reward_note_hint">Lời nhắn (không bắt buộc)</string>
-    <string name="reader_reward_empty">Chưa có lượt thưởng nào</string>
     <string name="reader_claimed_points">Đã nhận %1$d năng lượng</string>
     <string name="reader_spoiler">Tiết lộ nội dung — chạm để xem</string>
 
@@ -209,13 +202,6 @@
 
     <string name="lottery_title">Quay số</string>
     <string name="lottery_drawn">Đã quay</string>
-    <string name="lottery_prize">Giải thưởng</string>
-    <string name="lottery_quantity">×%1$d</string>
-    <string name="lottery_random">Vé ngẫu nhiên</string>
-    <string name="lottery_join">Tham gia</string>
-    <string name="lottery_add">Mua thêm</string>
-    <string name="lottery_winners">Người trúng</string>
-    <string name="lottery_join_failed">Không tham gia được.</string>
     <string name="lottery_create_failed">Tạo lượt quay số thất bại, nhưng bài viết đã được đăng</string>
     <string name="lottery_default_level">Giải nhất</string>
 
@@ -575,22 +561,7 @@
     <plurals name="poll_voters">
         <item quantity="other">%1$d người bình chọn</item>
     </plurals>
-    <plurals name="lottery_my_tickets">
-        <item quantity="other">Bạn đang giữ %1$d vé</item>
-    </plurals>
     <string name="profile_tab_load_failed">Không tải được tab này</string>
-    <plurals name="lottery_entrants">
-        <item quantity="other">%1$d người tham gia</item>
-    </plurals>
-    <plurals name="lottery_tickets">
-        <item quantity="other">%1$d vé</item>
-    </plurals>
-    <plurals name="lottery_min_participants">
-        <item quantity="other">quay khi đủ %1$d người</item>
-    </plurals>
-    <plurals name="lottery_max_participants">
-        <item quantity="other">tối đa %1$d người</item>
-    </plurals>
     <plurals name="envelope_packets">
         <item quantity="other">%1$d bao</item>
     </plurals>
@@ -651,9 +622,6 @@
     <string name="lottery_error_max_below_min">Số người tối đa phải lớn hơn số tối thiểu</string>
     <string name="lottery_error_min_tickets">Số vé tối thiểu không được vượt số tối đa</string>
     <string name="lottery_error_draw_days">Ngày quay phải trong khoảng 1–%1$d ngày</string>
-    <string name="lottery_condition_min_tickets">Tối thiểu %1$d vé mỗi người</string>
-    <string name="lottery_condition_max_tickets">Tối đa %1$d vé mỗi người</string>
-    <string name="lottery_condition_trust_level">TL%1$d trở lên</string>
 
     <!-- Điểm danh hằng ngày -->
     <string name="checkin_action">Điểm danh</string>
@@ -1625,7 +1593,6 @@
     <string name="rank_how_title">Cách nhận năng lượng</string>
     <string name="rank_way_checkin_gain">+1 đến +30, theo hạng</string>
     <string name="rank_way_node">Chủ đề / trả lời mới trong node của bạn</string>
-    <string name="rank_way_tip_gain">Theo số tiền</string>
     <string name="rank_way_games">Giành lì xì, trúng rút thăm</string>
     <string name="rank_way_games_gain">Tùy may mắn</string>
     <string name="rank_uses">Năng lượng dùng để thưởng, phát lì xì và tham gia rút thăm.</string>
@@ -1945,4 +1912,77 @@
     <string name="ach3_share_title">Thành tựu của %1$s</string>
     <string name="ach3_closed">Đã ngừng trao</string>
     <string name="ach3_manual">Do quản trị viên trao</string>
+    <string name="compose_tags_add">Thẻ</string>
+    <string name="compose_tags_subtitle">Giúp nhiều người tìm thấy bài viết hơn</string>
+    <string name="compose_tags_search_hint">Tìm hoặc nhập thẻ mới</string>
+    <string name="compose_tags_common">Thẻ thường dùng</string>
+    <string name="compose_tags_matches">Thẻ phù hợp</string>
+    <string name="compose_tags_create">Tạo “%1$s”</string>
+    <string name="compose_tags_staff_only">Chỉ quản trị viên</string>
+    <string name="compose_tags_full">Tối đa 5 thẻ. Hãy bỏ một thẻ trước khi thêm.</string>
+    <string name="compose_tags_none">Không có thẻ phù hợp. Nhấn Tạo để thêm thẻ mới.</string>
+    <string name="compose_tags_restricted">Nút này chỉ dùng các thẻ được liệt kê ở đây.</string>
+    <string name="compose_tags_min">Nút này cần ít nhất %1$d thẻ</string>
+    <string name="compose_tags_remove">Bỏ thẻ %1$s</string>
+    <string name="compose_tags_count">%1$d / 5</string>
+    <string name="lot2_status_open">Đang mở</string>
+    <string name="lot2_status_failed">Không thành</string>
+    <string name="lot2_status_cancelled">Đã đóng</string>
+    <string name="lot2_draws_on">Quay thưởng %1$s</string>
+    <string name="lot2_drawn_on">Đã quay %1$s</string>
+    <string name="lot2_countdown">Còn lại</string>
+    <string name="lot2_unit_day">ngày</string>
+    <string name="lot2_unit_hour">giờ</string>
+    <string name="lot2_unit_min">phút</string>
+    <string name="lot2_unit_sec">giây</string>
+    <string name="lot2_joined">%1$,d người tham gia</string>
+    <string name="lot2_min_to_draw">Cần ít nhất %1$,d người</string>
+    <string name="lot2_cap">tối đa %1$,d người</string>
+    <string name="lot2_sold">Đã bán %1$,d vé</string>
+    <string name="lot2_per_ticket">1 năng lượng mỗi vé</string>
+    <string name="lot2_requires_tier">từ hạng %1$s trở lên</string>
+    <string name="lot2_participants">Người tham gia</string>
+    <string name="lot2_all">Tất cả</string>
+    <string name="lot2_all_a11y">Xem cả %1$,d người tham gia và số vé</string>
+    <string name="lot2_prizes">Giải thưởng</string>
+    <string name="lot2_prize_count">%1$,d giải</string>
+    <string name="lot2_winners_you">Bạn</string>
+    <string name="lot2_winners_you_and">Bạn và %1$,d người khác</string>
+    <string name="lot2_winners_many">%1$s và những người khác (%2$,d)</string>
+    <string name="lot2_winners_title">Người trúng %1$s</string>
+    <string name="lot2_win_title">Chúc mừng, bạn trúng %1$s</string>
+    <string name="lot2_win_body">Phần thưởng là %1$s. Người đăng sẽ nhắn tin để xác nhận địa chỉ nhận hàng.</string>
+    <string name="lot2_lose_title">Lần này chưa trúng</string>
+    <string name="lot2_lose_body">Cả %1$,d vé của bạn đều không trúng. Có %2$,d người tham gia, đã bán %3$,d vé.</string>
+    <string name="lot2_failed_title">Không đủ người tham gia, đợt quay thưởng bị hủy</string>
+    <string name="lot2_failed_body">Chỉ có %1$,d người tham gia (cần %2$,d).</string>
+    <string name="lot2_failed_refund">Chỉ có %1$,d người tham gia (cần %2$,d). Tiền %3$,d vé của bạn đã được hoàn lại.</string>
+    <string name="lot2_bar_new">Chưa tham gia · số dư %1$s</string>
+    <string name="lot2_bar_new_plain">Chưa tham gia</string>
+    <string name="lot2_bar_holding">Bạn có %1$,d vé · mua thêm được %2$,d</string>
+    <string name="lot2_buy">Mua vé</string>
+    <string name="lot2_buy_more">Mua thêm</string>
+    <string name="lot2_comment">Bình luận</string>
+    <string name="lot2_sheet_sub">%1$s · quay %2$s</string>
+    <string name="lot2_tickets_unit">vé</string>
+    <string name="lot2_less">Bớt một vé</string>
+    <string name="lot2_more">Thêm một vé</string>
+    <string name="lot2_pick">%1$,d vé</string>
+    <string name="lot2_pick_max">Tối đa %1$,d</string>
+    <string name="lot2_cost">Chi phí</string>
+    <string name="lot2_energy">%1$s năng lượng</string>
+    <string name="lot2_after">Số dư sau khi mua</string>
+    <string name="lot2_limit">Giới hạn mỗi người</string>
+    <string name="lot2_limit_value">%1$,d–%2$,d vé · mua xong còn %3$,d</string>
+    <string name="lot2_lucky">Tùy duyên</string>
+    <string name="lot2_confirm">Mua %1$,d vé · %2$s năng lượng</string>
+    <string name="lot2_short">Không đủ năng lượng</string>
+    <string name="lot2_lucky_hint">Tùy duyên: giữ 3 giây để mua ngẫu nhiên %1$,d–%2$,d vé, thả tay để hủy. Vé đã mua không được hoàn trừ khi đợt quay bị hủy hoặc đóng.</string>
+    <string name="lot2_bought">Đã mua, bạn có %1$,d vé</string>
+    <string name="lot2_bought_random">Tùy duyên mua được %1$,d vé, bạn có %2$,d vé</string>
+    <string name="lot2_participants_title">Người tham gia (%1$,d)</string>
+    <string name="lot2_holder_tickets">%1$,d vé</string>
+    <string name="lot2_participants_empty">Chưa có ai tham gia</string>
+    <string name="lot2_participants_failed">Không tải được danh sách người tham gia.</string>
+    <string name="reader_login_required">Đăng nhập để đọc chủ đề này</string>
 </resources>

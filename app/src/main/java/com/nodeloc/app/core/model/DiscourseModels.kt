@@ -410,19 +410,6 @@ data class DiscourseUpload(
 @Serializable
 data class ActionSummary(val id: Int, val count: Int? = null, val acted: Boolean? = null)
 
-/** discourse-reward: one reward given to a post. */
-@Serializable
-data class PostReward(
-    val id: Int,
-    val userId: Int? = null,
-    val username: String? = null,
-    val avatarTemplate: String? = null,
-    val amount: Int = 0,
-    val note: String? = null,
-    val createdAt: String? = null,
-    val isSystemReward: Boolean? = null,
-)
-
 /**
  * One person's take from a red envelope.
  *
@@ -476,7 +463,6 @@ data class TopicPost(
     val flairUrl: String? = null,
     val flairBgColor: String? = null,
     val flairColor: String? = null,
-    val rewards: List<PostReward>? = null,
     /**
      * What this reader may do to this post, as the server's own Guardian
      * decided it.
@@ -521,9 +507,6 @@ data class TopicPost(
 ) {
     val likeCount: Int get() = actionsSummary?.firstOrNull { it.id == 2 }?.count ?: 0
     val likedByMe: Boolean get() = actionsSummary?.firstOrNull { it.id == 2 }?.acted ?: false
-
-    /** Excludes system deducts, which are negative and are not "被打赏". */
-    val rewardTotal: Int get() = rewards.orEmpty().filter { it.amount > 0 }.sumOf { it.amount }
 }
 
 @Serializable
@@ -589,6 +572,14 @@ data class TopicResponse(
      * 403. Absent where the plugin is off, hence the default.
      */
     val canReadTopic: Boolean = true,
+    /** The topic's tag names; the 采纳 fallback below reads them. */
+    val tagNames: List<String> = emptyList(),
+    /**
+     * The server's `can_accept`: the topic carries the site's 求助 tag and the
+     * reader is its author or can moderate it. Null from a server that does
+     * not send it yet.
+     */
+    val canAccept: Boolean? = null,
 )
 
 /** Only the parts of `details` a private message needs to name itself. */
@@ -716,6 +707,8 @@ data class LotteryPrizeLevel(
     val name: String? = null,
     val prize: String? = null,
     val quantity: Int? = null,
+    /** Who drew this tier; empty until the draw. */
+    val winners: List<LotteryParticipant>? = null,
 )
 
 @Serializable
@@ -746,6 +739,7 @@ data class PostLottery(
     val minTicketsPerUser: Int? = null,
     val minTrustLevel: Int? = null,
     val drawAt: String? = null,
+    val drawnAt: String? = null,
     val status: String? = null,
     val levels: List<LotteryPrizeLevel>? = null,
     val ticketsCount: Int? = null,

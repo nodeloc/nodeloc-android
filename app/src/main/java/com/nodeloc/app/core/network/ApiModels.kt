@@ -138,6 +138,7 @@ data class ApiTopicDetail(
     val voteScore: Int? = null,
     val createdAt: String? = null,
     val viewerFollowing: Boolean? = null,
+    val canAccept: Boolean? = null,
 )
 
 @Serializable
@@ -187,6 +188,18 @@ data class ApiNodeDetail(
     val node: ApiNode? = null,
     val bannerUrl: String? = null,
     val permissions: JsonObject? = null,
+    val posting: ApiNodePosting? = null,
+)
+
+/**
+ * A node's rules for a new topic's tags: at least [minTags], and when
+ * [tagsRestricted] only the [tagOptions].
+ */
+@Serializable
+data class ApiNodePosting(
+    val minTags: Int = 0,
+    val tagsRestricted: Boolean = false,
+    val tagOptions: List<String> = emptyList(),
 )
 
 @Serializable
@@ -329,7 +342,12 @@ data class ApiPollList(val polls: List<ApiPoll> = emptyList())
 data class ApiPollEnvelope(val poll: ApiPoll? = null)
 
 @Serializable
-data class ApiLotteryHolder(val username: String? = null, val avatarUrl: String? = null, val tickets: Int? = null)
+data class ApiLotteryHolder(
+    val username: String? = null,
+    val avatarUrl: String? = null,
+    val tickets: Int? = null,
+    val joinedAt: String? = null,
+)
 
 @Serializable
 data class ApiLotteryPrize(
@@ -346,6 +364,7 @@ data class ApiLottery(
     val title: String? = null,
     val status: String? = null,
     val drawAt: String? = null,
+    val drawnAt: String? = null,
     val minTickets: Int? = null,
     val maxTickets: Int? = null,
     val minParticipants: Int? = null,
@@ -360,6 +379,18 @@ data class ApiLottery(
 
 @Serializable
 data class ApiLotteryEnvelope(val lottery: ApiLottery? = null)
+
+/** `GET /lotteries/{id}/participants`: everyone, most tickets first. */
+@Serializable
+data class ApiLotteryParticipants(
+    val participants: List<ApiLotteryHolder> = emptyList(),
+    val participantCount: Int? = null,
+    val ticketCount: Int? = null,
+)
+
+/** `POST /lotteries/{id}/tickets` answers with the buyer's total after the purchase. */
+@Serializable
+data class ApiLotteryPurchase(val tickets: Int? = null)
 
 @Serializable
 data class ApiRedEnvelopeClaim(val username: String? = null, val postId: Int? = null, val points: Int? = null)
@@ -508,7 +539,15 @@ data class ApiMentionUser(val username: String = "", val name: String? = null, v
 data class ApiMentionCandidates(val users: List<ApiMentionUser> = emptyList())
 
 @Serializable
-data class ApiTag(val id: Int? = null, val name: String = "", val topicCount: Int? = null)
+data class ApiTag(
+    val id: Int? = null,
+    val name: String = "",
+    val topicCount: Int? = null,
+    /** The reader's-language display name; [name] is what is saved. */
+    val label: String? = null,
+    /** Only staff (site or the node's) may add it. */
+    val staffOnly: Boolean = false,
+)
 
 @Serializable
 data class ApiTagList(val tags: List<ApiTag> = emptyList())

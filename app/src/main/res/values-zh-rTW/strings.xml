@@ -184,13 +184,6 @@
     <string name="reader_reply_one_media">一則回覆只能帶一個附件</string>
     <string name="reader_reply_guest">登入後參與討論</string>
     <string name="reader_send">傳送</string>
-    <string name="reader_reward">打賞</string>
-    <string name="reader_reward_energy">打賞能量</string>
-    <string name="reader_reward_amount">打賞 %1$d 能量</string>
-    <string name="reader_reward_done">已打賞 %1$d 能量</string>
-    <string name="reader_reward_detail">打賞明細</string>
-    <string name="reader_reward_note_hint">留言（可略）</string>
-    <string name="reader_reward_empty">還沒有人打賞</string>
     <string name="reader_claimed_points">領取了 %1$d 能量</string>
     <string name="reader_spoiler">劇透內容，點一下顯示</string>
 
@@ -209,13 +202,6 @@
 
     <string name="lottery_title">抽獎</string>
     <string name="lottery_drawn">已開獎</string>
-    <string name="lottery_prize">獎項</string>
-    <string name="lottery_quantity">×%1$d</string>
-    <string name="lottery_random">隨機票號</string>
-    <string name="lottery_join">參加</string>
-    <string name="lottery_add">追加</string>
-    <string name="lottery_winners">中獎名單</string>
-    <string name="lottery_join_failed">參加失敗。</string>
     <string name="lottery_create_failed">抽獎建立失敗，貼文已發布</string>
     <string name="lottery_default_level">頭獎</string>
 
@@ -575,22 +561,7 @@
     <plurals name="poll_voters">
         <item quantity="other">%1$d 人投票</item>
     </plurals>
-    <plurals name="lottery_my_tickets">
-        <item quantity="other">你持有 %1$d 張票</item>
-    </plurals>
     <string name="profile_tab_load_failed">無法載入這個分頁</string>
-    <plurals name="lottery_entrants">
-        <item quantity="other">%1$d 人參加</item>
-    </plurals>
-    <plurals name="lottery_tickets">
-        <item quantity="other">%1$d 張票</item>
-    </plurals>
-    <plurals name="lottery_min_participants">
-        <item quantity="other">滿 %1$d 人開獎</item>
-    </plurals>
-    <plurals name="lottery_max_participants">
-        <item quantity="other">上限 %1$d 人</item>
-    </plurals>
     <plurals name="envelope_packets">
         <item quantity="other">%1$d 個</item>
     </plurals>
@@ -651,9 +622,6 @@
     <string name="lottery_error_max_below_min">最多參加人數要大於最少參加人數</string>
     <string name="lottery_error_min_tickets">每人最少張數不能大於最多張數</string>
     <string name="lottery_error_draw_days">開獎天數需在 1–%1$d 天之間</string>
-    <string name="lottery_condition_min_tickets">每人至少 %1$d 張</string>
-    <string name="lottery_condition_max_tickets">每人最多 %1$d 張</string>
-    <string name="lottery_condition_trust_level">需 TL%1$d 以上</string>
 
     <!-- 每日簽到 -->
     <string name="checkin_action">簽到</string>
@@ -1625,7 +1593,6 @@
     <string name="rank_how_title">如何獲得能量</string>
     <string name="rank_way_checkin_gain">+1 至 +30，看段位</string>
     <string name="rank_way_node">你的節點裡有新主題 / 新回帖</string>
-    <string name="rank_way_tip_gain">按金額</string>
     <string name="rank_way_games">搶紅包、抽獎中獎</string>
     <string name="rank_way_games_gain">看運氣</string>
     <string name="rank_uses">能量可以用來打賞、發紅包和參加抽獎。</string>
@@ -1945,4 +1912,77 @@
     <string name="ach3_share_title">%1$s 的成就</string>
     <string name="ach3_closed">已停止發放</string>
     <string name="ach3_manual">管理員發放</string>
+    <string name="compose_tags_add">標籤</string>
+    <string name="compose_tags_subtitle">幫貼文被更多人找到</string>
+    <string name="compose_tags_search_hint">搜尋，或輸入新標籤</string>
+    <string name="compose_tags_common">常用標籤</string>
+    <string name="compose_tags_matches">符合的標籤</string>
+    <string name="compose_tags_create">建立「%1$s」</string>
+    <string name="compose_tags_staff_only">僅管理員</string>
+    <string name="compose_tags_full">最多 5 個標籤，先移除一個再加。</string>
+    <string name="compose_tags_none">沒有符合的標籤，點「建立」新增一個。</string>
+    <string name="compose_tags_restricted">這個節點只能用這裡列出的標籤。</string>
+    <string name="compose_tags_min">這個節點至少要 %1$d 個標籤</string>
+    <string name="compose_tags_remove">移除標籤 %1$s</string>
+    <string name="compose_tags_count">%1$d / 5</string>
+    <string name="lot2_status_open">進行中</string>
+    <string name="lot2_status_failed">已流拍</string>
+    <string name="lot2_status_cancelled">已關閉</string>
+    <string name="lot2_draws_on">%1$s 開獎</string>
+    <string name="lot2_drawn_on">已於 %1$s 開獎</string>
+    <string name="lot2_countdown">距離開獎</string>
+    <string name="lot2_unit_day">天</string>
+    <string name="lot2_unit_hour">時</string>
+    <string name="lot2_unit_min">分</string>
+    <string name="lot2_unit_sec">秒</string>
+    <string name="lot2_joined">已有 %1$,d 人參與</string>
+    <string name="lot2_min_to_draw">至少 %1$,d 人開獎</string>
+    <string name="lot2_cap">最多 %1$,d 人</string>
+    <string name="lot2_sold">已售 %1$,d 張</string>
+    <string name="lot2_per_ticket">每張 1 能量</string>
+    <string name="lot2_requires_tier">參與者需%1$s及以上</string>
+    <string name="lot2_participants">參與者</string>
+    <string name="lot2_all">全部</string>
+    <string name="lot2_all_a11y">查看全部 %1$,d 位參與者及購票數</string>
+    <string name="lot2_prizes">獎項</string>
+    <string name="lot2_prize_count">%1$,d 名</string>
+    <string name="lot2_winners_you">你</string>
+    <string name="lot2_winners_you_and">你和另外 %1$,d 人</string>
+    <string name="lot2_winners_many">%1$s 等 %2$,d 人</string>
+    <string name="lot2_winners_title">%1$s中獎名單</string>
+    <string name="lot2_win_title">恭喜，你抽中了%1$s</string>
+    <string name="lot2_win_body">獎品是 %1$s，發帖人會私訊你確認收貨地址。</string>
+    <string name="lot2_lose_title">這次沒中</string>
+    <string name="lot2_lose_body">你的 %1$,d 張票都沒中獎。共 %2$,d 人參與，售出 %3$,d 張。</string>
+    <string name="lot2_failed_title">參與人數不足，本次抽獎流拍</string>
+    <string name="lot2_failed_body">只有 %1$,d 人參與（至少需要 %2$,d 人）。</string>
+    <string name="lot2_failed_refund">只有 %1$,d 人參與（至少需要 %2$,d 人），你的 %3$,d 張票款已原路退回。</string>
+    <string name="lot2_bar_new">還沒參與 · 餘額 %1$s 能量</string>
+    <string name="lot2_bar_new_plain">還沒參與</string>
+    <string name="lot2_bar_holding">你持有 %1$,d 張 · 還能買 %2$,d 張</string>
+    <string name="lot2_buy">買票</string>
+    <string name="lot2_buy_more">再買</string>
+    <string name="lot2_comment">評論</string>
+    <string name="lot2_sheet_sub">%1$s · %2$s 開獎</string>
+    <string name="lot2_tickets_unit">張</string>
+    <string name="lot2_less">少買一張</string>
+    <string name="lot2_more">多買一張</string>
+    <string name="lot2_pick">%1$,d 張</string>
+    <string name="lot2_pick_max">最多 %1$,d</string>
+    <string name="lot2_cost">花費</string>
+    <string name="lot2_energy">%1$s 能量</string>
+    <string name="lot2_after">買完後餘額</string>
+    <string name="lot2_limit">每人限購</string>
+    <string name="lot2_limit_value">%1$,d–%2$,d 張 · 買完還能再買 %3$,d 張</string>
+    <string name="lot2_lucky">隨緣</string>
+    <string name="lot2_confirm">買 %1$,d 張 · %2$s 能量</string>
+    <string name="lot2_short">能量不足</string>
+    <string name="lot2_lucky_hint">隨緣：按住 3 秒，隨機買 %1$,d–%2$,d 張，鬆手取消。票買了不能退，除非抽獎流拍或被關閉。</string>
+    <string name="lot2_bought">買好了，你現在有 %1$,d 張票</string>
+    <string name="lot2_bought_random">隨緣買到 %1$,d 張，你現在有 %2$,d 張票</string>
+    <string name="lot2_participants_title">參與者（%1$,d）</string>
+    <string name="lot2_holder_tickets">%1$,d 張</string>
+    <string name="lot2_participants_empty">還沒有人參與</string>
+    <string name="lot2_participants_failed">參與者載入失敗。</string>
+    <string name="reader_login_required">登入後才能閱讀這個主題</string>
 </resources>

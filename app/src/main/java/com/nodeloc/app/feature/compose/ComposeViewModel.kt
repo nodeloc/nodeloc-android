@@ -28,6 +28,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -98,6 +101,10 @@ const val LOTTERY_MAX_TICKETS = 10
 const val LOTTERY_MIN_TRUST_LEVEL = 1
 const val LOTTERY_MAX_DRAW_DAYS = 30
 
+/** The server's per-topic limit (content.MaxTagsPerTopic). */
+private const val MAX_TAGS = 5
+private const val TAG_SEARCH_DEBOUNCE_MS = 250L
+
 /** A sentence or two of the topic being carried, which is what a card shows. */
 private const val REPOST_EXCERPT_LENGTH = 140
 
@@ -125,7 +132,22 @@ data class ComposeState(
     val error: String? = null,
     /** Addressed to a person rather than a node; see [Route.Compose]. */
     val pmRecipient: String? = null,
+    /** The topic's tags, in the order they were added; saved by name. */
+    val tags: List<String> = emptyList(),
+    /** The picked node's tag rules; null until fetched, or with no node. */
+    val posting: com.nodeloc.app.core.network.ApiNodePosting? = null,
+    val tagQuery: String = "",
+    /** The picker's list: common tags while [tagQuery] is empty, matches after. */
+    val tagSuggestions: List<com.nodeloc.app.core.network.ApiTag> = emptyList(),
+    val tagSuggestionsLoading: Boolean = false,
+    /** Set when a sixth tag was tried; cleared by the next edit to the list or the query. */
+    val tagLimitHit: Boolean = false,
+    /** Site staff, or a moderator of the picked node: the ones who may add a staff-only tag. */
+    val canUseStaffTags: Boolean = false,
 ) {
+    /** How many more tags the node asks for before the topic can go out. */
+    val tagsMissing: Int get() = ((posting?.minTags ?: 0) - tags.size).coerceAtLeast(0)
+
     /** What actually goes over the wire; the blocks are only how it is edited. */
     val body: String get() = blocks.toMarkdown()
 
@@ -156,6 +178,7 @@ data class ComposeState(
         get() = title.trim().length >= 5 &&
             body.isNotEmpty() &&
             (node != null || pmRecipient != null) &&
+            (pmRecipient != null || tagsMissing == 0) &&
             // Publishing now would drop the picture: a pending block has no
             // markdown yet, so it would simply not be in the post.
             !hasPendingMedia &&
@@ -380,6 +403,11 @@ class ComposeViewModel : ViewModel() {
                     ?: categoryId?.let { id -> nodes.firstOrNull { it.id == id } },
                 title = _state.value.title.ifEmpty { title },
                 blocks = blocks ?: _state.value.blocks,
+                tags = _state.value.tags.ifEmpty {
+                    (fields?.get("tags") as? kotlinx.serialization.json.JsonArray)
+                        ?.mapNotNull { (it as? kotlinx.serialization.json.JsonPrimitive)?.contentOrNull }
+                        .orEmpty()
+                },
             )
             serverDraft = entry
             serverDraftBaseline = ComposerDraft.of(_state.value.title, _state.value.node?.id, _state.value.blocks)
@@ -400,6 +428,7 @@ class ComposeViewModel : ViewModel() {
         base["title"] = kotlinx.serialization.json.JsonPrimitive(state.title)
         base["raw"] = kotlinx.serialization.json.JsonPrimitive(state.body)
         state.node?.let { base["node"] = kotlinx.serialization.json.JsonPrimitive(it.slug) }
+        base["tags"] = kotlinx.serialization.json.JsonArray(state.tags.map { kotlinx.serialization.json.JsonPrimitive(it) })
         return kotlinx.serialization.json.JsonObject(base)
     }
 
@@ -664,6 +693,79 @@ class ComposeViewModel : ViewModel() {
         _state.value = _state.value.copy(nodeQuery = value)
     }
 
+    init {
+        // A node's tag rules (how many, which) follow the node, whichever way
+        // it was set: picked, routed in, or restored from a draft.
+        viewModelScope.launch {
+            _state.map { it.node?.slug }.distinctUntilChanged().collectLatest { slug ->
+                val staff = services.session.currentUser.value?.let { it.admin == true || it.moderator == true } == true ||
+                    services.moderation.privileges.value.moderates(slug)
+                _state.value = _state.value.copy(posting = null, canUseStaffTags = staff)
+                if (slug == null) return@collectLatest
+                // Unknown rules publish as before and let the server say no;
+                // a failed fetch must not lock the button.
+                val posting = runCatchingCancellable { client.nodePosting(slug) }.getOrNull()
+                _state.value = _state.value.copy(posting = posting)
+            }
+        }
+    }
+
+    private var tagSearch: Job? = null
+
+    /** Called when the picker opens, so it starts on the common tags for this node. */
+    fun openTagPicker() {
+        _state.value = _state.value.copy(tagQuery = "", tagLimitHit = false)
+        searchTags(immediately = true)
+    }
+
+    fun updateTagQuery(value: String) {
+        _state.value = _state.value.copy(tagQuery = value, tagLimitHit = false)
+        searchTags(immediately = false)
+    }
+
+    private fun searchTags(immediately: Boolean) {
+        tagSearch?.cancel()
+        tagSearch = viewModelScope.launch {
+            if (!immediately) delay(TAG_SEARCH_DEBOUNCE_MS)
+            val current = _state.value
+            _state.value = current.copy(tagSuggestionsLoading = true)
+            val found = runCatchingCancellable {
+                client.composerTags(current.tagQuery.trim().removePrefix("#"), current.node?.slug)
+            }.getOrNull()
+            // A node that allows only its own list gets only that list, even if
+            // the server's search returns more.
+            val allowed = current.posting?.takeIf { it.tagsRestricted }?.tagOptions
+            _state.value = _state.value.copy(
+                tagSuggestions = found.orEmpty().filter { tag ->
+                    allowed == null || allowed.any { it.equals(tag.name, ignoreCase = true) }
+                },
+                tagSuggestionsLoading = false,
+            )
+        }
+    }
+
+    /**
+     * Adds a tag by name, picked or typed. Rejected silently when already
+     * there; past the fifth it raises [ComposeState.tagLimitHit] instead, the
+     * server's limit, so the picker can say why nothing happened.
+     */
+    fun addTag(raw: String) {
+        val name = raw.trim().removePrefix("#").trim()
+        if (name.isEmpty()) return
+        val current = _state.value
+        if (current.tags.any { it.equals(name, ignoreCase = true) }) return
+        if (current.tags.size >= MAX_TAGS) {
+            _state.value = current.copy(tagLimitHit = true)
+            return
+        }
+        _state.value = current.copy(tags = current.tags + name, tagQuery = "", tagLimitHit = false)
+        searchTags(immediately = true)
+    }
+
+    fun removeTag(name: String) {
+        _state.value = _state.value.copy(tags = _state.value.tags - name, tagLimitHit = false)
+    }
+
     /**
      * The slug counts as much as the name, and nothing is cut off the end.
      *
@@ -917,7 +1019,7 @@ class ComposeViewModel : ViewModel() {
                 if (recipient != null) {
                     client.createPrivateMessage(current.title.trim(), current.body.trim(), recipient)
                 } else {
-                    client.createTopic(current.title.trim(), current.body.trim(), node!!.id)
+                    client.createTopic(current.title.trim(), current.body.trim(), node!!.id, current.tags)
                 }
             }
                 .onSuccess { created ->

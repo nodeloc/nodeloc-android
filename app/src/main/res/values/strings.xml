@@ -188,13 +188,6 @@
     <string name="reader_reply_one_media">A reply carries one attachment</string>
     <string name="reader_reply_guest">Sign in to join the discussion</string>
     <string name="reader_send">Send</string>
-    <string name="reader_reward">Tip</string>
-    <string name="reader_reward_energy">Tip energy</string>
-    <string name="reader_reward_amount">Tip %1$d energy</string>
-    <string name="reader_reward_done">Tipped %1$d energy</string>
-    <string name="reader_reward_detail">Tips</string>
-    <string name="reader_reward_note_hint">Note (optional)</string>
-    <string name="reader_reward_empty">No tips yet</string>
     <string name="reader_claimed_points">Claimed %1$d energy</string>
     <string name="reader_spoiler">Spoiler — tap to reveal</string>
 
@@ -213,13 +206,6 @@
 
     <string name="lottery_title">Lottery</string>
     <string name="lottery_drawn">Drawn</string>
-    <string name="lottery_prize">Prize</string>
-    <string name="lottery_quantity">×%1$d</string>
-    <string name="lottery_random">Random ticket</string>
-    <string name="lottery_join">Enter</string>
-    <string name="lottery_add">Buy more</string>
-    <string name="lottery_winners">Winners</string>
-    <string name="lottery_join_failed">Could not enter the lottery.</string>
     <string name="lottery_create_failed">The lottery failed, but your post was published</string>
     <string name="lottery_default_level">First prize</string>
 
@@ -587,27 +573,7 @@
         <item quantity="one">%1$d voter</item>
         <item quantity="other">%1$d voters</item>
     </plurals>
-    <plurals name="lottery_my_tickets">
-        <item quantity="one">You hold %1$d ticket</item>
-        <item quantity="other">You hold %1$d tickets</item>
-    </plurals>
     <string name="profile_tab_load_failed">Couldn\'t load this tab</string>
-    <plurals name="lottery_entrants">
-        <item quantity="one">%1$d entrant</item>
-        <item quantity="other">%1$d entrants</item>
-    </plurals>
-    <plurals name="lottery_tickets">
-        <item quantity="one">%1$d ticket</item>
-        <item quantity="other">%1$d tickets</item>
-    </plurals>
-    <plurals name="lottery_min_participants">
-        <item quantity="one">draws at %1$d entrant</item>
-        <item quantity="other">draws at %1$d entrants</item>
-    </plurals>
-    <plurals name="lottery_max_participants">
-        <item quantity="one">max %1$d entrant</item>
-        <item quantity="other">max %1$d entrants</item>
-    </plurals>
     <plurals name="envelope_packets">
         <item quantity="one">%1$d packet</item>
         <item quantity="other">%1$d packets</item>
@@ -670,9 +636,6 @@
     <string name="lottery_error_max_below_min">Max participants must exceed the minimum</string>
     <string name="lottery_error_min_tickets">Minimum tickets cannot exceed the maximum</string>
     <string name="lottery_error_draw_days">Draw must be 1–%1$d days away</string>
-    <string name="lottery_condition_min_tickets">%1$d ticket minimum each</string>
-    <string name="lottery_condition_max_tickets">%1$d tickets max each</string>
-    <string name="lottery_condition_trust_level">TL%1$d and above</string>
 
     <!-- Daily check-in -->
     <string name="checkin_action">Check in</string>
@@ -1641,7 +1604,6 @@
     <string name="rank_how_title">How to earn energy</string>
     <string name="rank_way_checkin_gain">+1 to +30, by tier</string>
     <string name="rank_way_node">New topics / replies in your node</string>
-    <string name="rank_way_tip_gain">By amount</string>
     <string name="rank_way_games">Red envelopes and lottery wins</string>
     <string name="rank_way_games_gain">Luck</string>
     <string name="rank_uses">Energy can be used for tips, red envelopes and lotteries.</string>
@@ -1961,4 +1923,77 @@
     <string name="ach3_share_title">%1$s\'s achievements</string>
     <string name="ach3_closed">No longer awarded</string>
     <string name="ach3_manual">Awarded by admins</string>
+    <string name="compose_tags_add">Tags</string>
+    <string name="compose_tags_subtitle">Help more people find the post</string>
+    <string name="compose_tags_search_hint">Search, or type a new tag</string>
+    <string name="compose_tags_common">Common tags</string>
+    <string name="compose_tags_matches">Matching tags</string>
+    <string name="compose_tags_create">Create “%1$s”</string>
+    <string name="compose_tags_staff_only">Staff only</string>
+    <string name="compose_tags_full">Up to 5 tags. Remove one before adding another.</string>
+    <string name="compose_tags_none">No matching tags. Tap Create to add a new one.</string>
+    <string name="compose_tags_restricted">This node only takes the tags listed here.</string>
+    <string name="compose_tags_min">This node needs at least %1$d tags</string>
+    <string name="compose_tags_remove">Remove tag %1$s</string>
+    <string name="compose_tags_count">%1$d / 5</string>
+    <string name="lot2_status_open">Open</string>
+    <string name="lot2_status_failed">Called off</string>
+    <string name="lot2_status_cancelled">Closed</string>
+    <string name="lot2_draws_on">Draws %1$s</string>
+    <string name="lot2_drawn_on">Drawn %1$s</string>
+    <string name="lot2_countdown">Draw in</string>
+    <string name="lot2_unit_day">days</string>
+    <string name="lot2_unit_hour">hrs</string>
+    <string name="lot2_unit_min">min</string>
+    <string name="lot2_unit_sec">sec</string>
+    <string name="lot2_joined">%1$,d joined</string>
+    <string name="lot2_min_to_draw">Draws with %1$,d+</string>
+    <string name="lot2_cap">up to %1$,d people</string>
+    <string name="lot2_sold">%1$,d sold</string>
+    <string name="lot2_per_ticket">1 energy a ticket</string>
+    <string name="lot2_requires_tier">%1$s and above</string>
+    <string name="lot2_participants">Entrants</string>
+    <string name="lot2_all">All</string>
+    <string name="lot2_all_a11y">See all %1$,d entrants and their tickets</string>
+    <string name="lot2_prizes">Prizes</string>
+    <string name="lot2_prize_count">×%1$,d</string>
+    <string name="lot2_winners_you">You</string>
+    <string name="lot2_winners_you_and">You and %1$,d others</string>
+    <string name="lot2_winners_many">%1$s and %2$,d in all</string>
+    <string name="lot2_winners_title">%1$s winners</string>
+    <string name="lot2_win_title">Congratulations, you won %1$s</string>
+    <string name="lot2_win_body">The prize is %1$s. The poster will message you to confirm your address.</string>
+    <string name="lot2_lose_title">Not this time</string>
+    <string name="lot2_lose_body">None of your %1$,d tickets won. %2$,d people took part and %3$,d tickets were sold.</string>
+    <string name="lot2_failed_title">Not enough entrants — the lottery is called off</string>
+    <string name="lot2_failed_body">Only %1$,d took part (%2$,d needed).</string>
+    <string name="lot2_failed_refund">Only %1$,d took part (%2$,d needed). Your %3$,d tickets have been refunded.</string>
+    <string name="lot2_bar_new">Not in yet · balance %1$s</string>
+    <string name="lot2_bar_new_plain">Not in yet</string>
+    <string name="lot2_bar_holding">You hold %1$,d · %2$,d more allowed</string>
+    <string name="lot2_buy">Buy</string>
+    <string name="lot2_buy_more">Buy more</string>
+    <string name="lot2_comment">Comment</string>
+    <string name="lot2_sheet_sub">%1$s · draws %2$s</string>
+    <string name="lot2_tickets_unit">tickets</string>
+    <string name="lot2_less">One fewer</string>
+    <string name="lot2_more">One more</string>
+    <string name="lot2_pick">%1$,d</string>
+    <string name="lot2_pick_max">Max %1$,d</string>
+    <string name="lot2_cost">Cost</string>
+    <string name="lot2_energy">%1$s energy</string>
+    <string name="lot2_after">Balance after</string>
+    <string name="lot2_limit">Per person</string>
+    <string name="lot2_limit_value">%1$,d–%2$,d · %3$,d more after this</string>
+    <string name="lot2_lucky">Lucky</string>
+    <string name="lot2_confirm">Buy %1$,d · %2$s energy</string>
+    <string name="lot2_short">Not enough energy</string>
+    <string name="lot2_lucky_hint">Lucky: hold for 3 seconds to buy a random %1$,d–%2$,d tickets; let go to cancel. Tickets can\'t be refunded unless the lottery is called off or closed.</string>
+    <string name="lot2_bought">Done — you now hold %1$,d tickets</string>
+    <string name="lot2_bought_random">Luck bought you %1$,d — you now hold %2$,d tickets</string>
+    <string name="lot2_participants_title">Entrants (%1$,d)</string>
+    <string name="lot2_holder_tickets">%1$,d tickets</string>
+    <string name="lot2_participants_empty">No one has entered yet</string>
+    <string name="lot2_participants_failed">Couldn\'t load the entrants.</string>
+    <string name="reader_login_required">Sign in to read this topic</string>
 </resources>

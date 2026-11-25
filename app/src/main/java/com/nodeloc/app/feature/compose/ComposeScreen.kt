@@ -148,6 +148,7 @@ fun ComposeScreen(route: Route.Compose, navigator: Navigator) {
     }
 
     var nodePickerOpen by remember { mutableStateOf(false) }
+    var tagPickerOpen by remember { mutableStateOf(false) }
 
     // Closing with something written still asks, but the question changed once
     // there was a draft store: leaving keeps the words, and only "discard"
@@ -400,7 +401,25 @@ fun ComposeScreen(route: Route.Compose, navigator: Navigator) {
                             selected = state.node != null,
                             onClick = { nodePickerOpen = true },
                         )
+                        // A message has no tags; a topic's go beside its node.
+                        ComposerTagChips(
+                            tags = state.tags,
+                            onOpen = {
+                                viewModel.openTagPicker()
+                                tagPickerOpen = true
+                            },
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
                     }
+                }
+                // Otherwise 发布 just stays grey with nothing saying why.
+                val minTags = state.posting?.minTags ?: 0
+                if (recipient == null && state.tagsMissing > 0) {
+                    Text(
+                        stringResource(R.string.compose_tags_min, minTags),
+                        style = Type.body(13),
+                        color = Nocturne.textSecondary,
+                    )
                 }
             }
 
@@ -696,6 +715,16 @@ fun ComposeScreen(route: Route.Compose, navigator: Navigator) {
         // A hundred and seventy nodes are not browsed; the caret belongs in the
         // search box the moment the sheet is up.
         LaunchedEffect(Unit) { runCatching { searchFocus.requestFocus() } }
+    }
+
+    if (tagPickerOpen) {
+        TagPickerSheet(
+            state = state,
+            onQuery = viewModel::updateTagQuery,
+            onAdd = viewModel::addTag,
+            onRemove = viewModel::removeTag,
+            onDismiss = { tagPickerOpen = false },
+        )
     }
 
     if (emojiPickerOpen) {

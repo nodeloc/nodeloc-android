@@ -187,13 +187,6 @@
     <string name="reader_reply_one_media">一条回复只能带一个附件</string>
     <string name="reader_reply_guest">登录后参与讨论</string>
     <string name="reader_send">发送</string>
-    <string name="reader_reward">打赏</string>
-    <string name="reader_reward_energy">打赏能量</string>
-    <string name="reader_reward_amount">打赏 %1$d 能量</string>
-    <string name="reader_reward_done">已打赏 %1$d 能量</string>
-    <string name="reader_reward_detail">打赏明细</string>
-    <string name="reader_reward_note_hint">留言（可选）</string>
-    <string name="reader_reward_empty">还没有人打赏</string>
     <string name="reader_claimed_points">领取了 %1$d 能量</string>
     <string name="reader_spoiler">剧透内容，点击显示</string>
 
@@ -212,13 +205,6 @@
 
     <string name="lottery_title">抽奖</string>
     <string name="lottery_drawn">已开奖</string>
-    <string name="lottery_prize">奖项</string>
-    <string name="lottery_quantity">×%1$d</string>
-    <string name="lottery_random">随机票号</string>
-    <string name="lottery_join">参与</string>
-    <string name="lottery_add">追加</string>
-    <string name="lottery_winners">中奖名单</string>
-    <string name="lottery_join_failed">参与失败。</string>
     <string name="lottery_create_failed">抽奖创建失败，帖子已发布</string>
     <string name="lottery_default_level">一等奖</string>
 
@@ -578,22 +564,7 @@
     <plurals name="poll_voters">
         <item quantity="other">%1$d 人参与</item>
     </plurals>
-    <plurals name="lottery_my_tickets">
-        <item quantity="other">你已持有 %1$d 张票</item>
-    </plurals>
     <string name="profile_tab_load_failed">无法加载此标签页</string>
-    <plurals name="lottery_entrants">
-        <item quantity="other">%1$d 人参与</item>
-    </plurals>
-    <plurals name="lottery_tickets">
-        <item quantity="other">%1$d 张票</item>
-    </plurals>
-    <plurals name="lottery_min_participants">
-        <item quantity="other">满 %1$d 人开奖</item>
-    </plurals>
-    <plurals name="lottery_max_participants">
-        <item quantity="other">上限 %1$d 人</item>
-    </plurals>
     <plurals name="envelope_packets">
         <item quantity="other">%1$d 个</item>
     </plurals>
@@ -654,9 +625,6 @@
     <string name="lottery_error_max_below_min">最多参与人数要大于最少参与人数</string>
     <string name="lottery_error_min_tickets">每人最少张数不能大于最多张数</string>
     <string name="lottery_error_draw_days">开奖天数需在 1–%1$d 天之间</string>
-    <string name="lottery_condition_min_tickets">每人至少 %1$d 张</string>
-    <string name="lottery_condition_max_tickets">每人最多 %1$d 张</string>
-    <string name="lottery_condition_trust_level">需 TL%1$d 及以上</string>
 
     <!-- 每日签到 -->
     <string name="checkin_action">签到</string>
@@ -1625,7 +1593,6 @@
     <string name="rank_how_title">如何获得能量</string>
     <string name="rank_way_checkin_gain">+1 至 +30，看段位</string>
     <string name="rank_way_node">你的节点里有新主题 / 新回帖</string>
-    <string name="rank_way_tip_gain">按金额</string>
     <string name="rank_way_games">抢红包、抽奖中奖</string>
     <string name="rank_way_games_gain">看运气</string>
     <string name="rank_uses">能量可以用来打赏、发红包和参加抽奖。</string>
@@ -1945,4 +1912,77 @@
     <string name="ach3_share_title">%1$s 的成就</string>
     <string name="ach3_closed">已停止发放</string>
     <string name="ach3_manual">管理员发放</string>
+    <string name="compose_tags_add">标签</string>
+    <string name="compose_tags_subtitle">帮帖子被更多人找到</string>
+    <string name="compose_tags_search_hint">搜索，或输入新标签</string>
+    <string name="compose_tags_common">常用标签</string>
+    <string name="compose_tags_matches">匹配的标签</string>
+    <string name="compose_tags_create">创建「%1$s」</string>
+    <string name="compose_tags_staff_only">仅管理员</string>
+    <string name="compose_tags_full">最多 5 个标签，先去掉一个再加。</string>
+    <string name="compose_tags_none">没有匹配的标签，点「创建」新建一个。</string>
+    <string name="compose_tags_restricted">这个节点只能用这里列出的标签。</string>
+    <string name="compose_tags_min">这个节点至少要 %1$d 个标签</string>
+    <string name="compose_tags_remove">去掉标签 %1$s</string>
+    <string name="compose_tags_count">%1$d / 5</string>
+    <string name="lot2_status_open">进行中</string>
+    <string name="lot2_status_failed">已流拍</string>
+    <string name="lot2_status_cancelled">已关闭</string>
+    <string name="lot2_draws_on">%1$s 开奖</string>
+    <string name="lot2_drawn_on">已于 %1$s 开奖</string>
+    <string name="lot2_countdown">距离开奖</string>
+    <string name="lot2_unit_day">天</string>
+    <string name="lot2_unit_hour">时</string>
+    <string name="lot2_unit_min">分</string>
+    <string name="lot2_unit_sec">秒</string>
+    <string name="lot2_joined">已有 %1$,d 人参与</string>
+    <string name="lot2_min_to_draw">至少 %1$,d 人开奖</string>
+    <string name="lot2_cap">最多 %1$,d 人</string>
+    <string name="lot2_sold">已售 %1$,d 张</string>
+    <string name="lot2_per_ticket">每张 1 能量</string>
+    <string name="lot2_requires_tier">参与者需%1$s及以上</string>
+    <string name="lot2_participants">参与者</string>
+    <string name="lot2_all">全部</string>
+    <string name="lot2_all_a11y">查看全部 %1$,d 位参与者及购票数</string>
+    <string name="lot2_prizes">奖项</string>
+    <string name="lot2_prize_count">%1$,d 名</string>
+    <string name="lot2_winners_you">你</string>
+    <string name="lot2_winners_you_and">你和另外 %1$,d 人</string>
+    <string name="lot2_winners_many">%1$s 等 %2$,d 人</string>
+    <string name="lot2_winners_title">%1$s中奖名单</string>
+    <string name="lot2_win_title">恭喜，你抽中了%1$s</string>
+    <string name="lot2_win_body">奖品是 %1$s，发帖人会私信你确认收货地址。</string>
+    <string name="lot2_lose_title">这次没中</string>
+    <string name="lot2_lose_body">你的 %1$,d 张票都没中奖。共 %2$,d 人参与，售出 %3$,d 张。</string>
+    <string name="lot2_failed_title">参与人数不足，本次抽奖流拍</string>
+    <string name="lot2_failed_body">只有 %1$,d 人参与（至少需要 %2$,d 人）。</string>
+    <string name="lot2_failed_refund">只有 %1$,d 人参与（至少需要 %2$,d 人），你的 %3$,d 张票款已原路退回。</string>
+    <string name="lot2_bar_new">还没参与 · 余额 %1$s 能量</string>
+    <string name="lot2_bar_new_plain">还没参与</string>
+    <string name="lot2_bar_holding">你持有 %1$,d 张 · 还能买 %2$,d 张</string>
+    <string name="lot2_buy">买票</string>
+    <string name="lot2_buy_more">再买</string>
+    <string name="lot2_comment">评论</string>
+    <string name="lot2_sheet_sub">%1$s · %2$s 开奖</string>
+    <string name="lot2_tickets_unit">张</string>
+    <string name="lot2_less">少买一张</string>
+    <string name="lot2_more">多买一张</string>
+    <string name="lot2_pick">%1$,d 张</string>
+    <string name="lot2_pick_max">最多 %1$,d</string>
+    <string name="lot2_cost">花费</string>
+    <string name="lot2_energy">%1$s 能量</string>
+    <string name="lot2_after">买完后余额</string>
+    <string name="lot2_limit">每人限购</string>
+    <string name="lot2_limit_value">%1$,d–%2$,d 张 · 买完还能再买 %3$,d 张</string>
+    <string name="lot2_lucky">随缘</string>
+    <string name="lot2_confirm">买 %1$,d 张 · %2$s 能量</string>
+    <string name="lot2_short">能量不足</string>
+    <string name="lot2_lucky_hint">随缘：按住 3 秒，随机买 %1$,d–%2$,d 张，松手取消。票买了不能退，除非抽奖流拍或被关闭。</string>
+    <string name="lot2_bought">买好了，你现在有 %1$,d 张票</string>
+    <string name="lot2_bought_random">随缘买到 %1$,d 张，你现在有 %2$,d 张票</string>
+    <string name="lot2_participants_title">参与者（%1$,d）</string>
+    <string name="lot2_holder_tickets">%1$,d 张</string>
+    <string name="lot2_participants_empty">还没有人参与</string>
+    <string name="lot2_participants_failed">参与者加载失败。</string>
+    <string name="reader_login_required">登录后才能阅读这个主题</string>
 </resources>

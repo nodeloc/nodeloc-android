@@ -185,13 +185,6 @@
     <string name="reader_reply_one_media">الرد الواحد يحمل مرفقًا واحدًا</string>
     <string name="reader_reply_guest">سجّل الدخول للمشاركة في النقاش</string>
     <string name="reader_send">إرسال</string>
-    <string name="reader_reward">مكافأة</string>
-    <string name="reader_reward_energy">أهدِ طاقة</string>
-    <string name="reader_reward_amount">أهدِ %1$d طاقة</string>
-    <string name="reader_reward_done">أهديت %1$d طاقة</string>
-    <string name="reader_reward_detail">المكافآت</string>
-    <string name="reader_reward_note_hint">ملاحظة (اختياري)</string>
-    <string name="reader_reward_empty">لا مكافآت بعد</string>
     <string name="reader_claimed_points">استلمت %1$d طاقة</string>
     <string name="reader_spoiler">حرق أحداث — اضغط للكشف</string>
 
@@ -210,13 +203,6 @@
 
     <string name="lottery_title">سحب</string>
     <string name="lottery_drawn">تم السحب</string>
-    <string name="lottery_prize">الجائزة</string>
-    <string name="lottery_quantity">×%1$d</string>
-    <string name="lottery_random">تذكرة عشوائية</string>
-    <string name="lottery_join">شارك</string>
-    <string name="lottery_add">اشترِ المزيد</string>
-    <string name="lottery_winners">الفائزون</string>
-    <string name="lottery_join_failed">تعذّرت المشاركة في السحب.</string>
     <string name="lottery_create_failed">فشل إنشاء السحب، لكن مشاركتك نُشرت</string>
     <string name="lottery_default_level">الجائزة الأولى</string>
 
@@ -616,47 +602,7 @@
         <item quantity="many">%1$d مصوّتًا</item>
         <item quantity="other">%1$d مصوّت</item>
     </plurals>
-    <plurals name="lottery_my_tickets">
-        <item quantity="zero">لديك %1$d تذكرة</item>
-        <item quantity="one">لديك تذكرة واحدة</item>
-        <item quantity="two">لديك تذكرتان</item>
-        <item quantity="few">لديك %1$d تذاكر</item>
-        <item quantity="many">لديك %1$d تذكرة</item>
-        <item quantity="other">لديك %1$d تذكرة</item>
-    </plurals>
     <string name="profile_tab_load_failed">تعذّر تحميل هذا التبويب</string>
-    <plurals name="lottery_entrants">
-        <item quantity="zero">%1$d مشارك</item>
-        <item quantity="one">مشارك واحد</item>
-        <item quantity="two">مشاركان</item>
-        <item quantity="few">%1$d مشاركين</item>
-        <item quantity="many">%1$d مشاركًا</item>
-        <item quantity="other">%1$d مشارك</item>
-    </plurals>
-    <plurals name="lottery_tickets">
-        <item quantity="zero">%1$d تذكرة</item>
-        <item quantity="one">تذكرة واحدة</item>
-        <item quantity="two">تذكرتان</item>
-        <item quantity="few">%1$d تذاكر</item>
-        <item quantity="many">%1$d تذكرة</item>
-        <item quantity="other">%1$d تذكرة</item>
-    </plurals>
-    <plurals name="lottery_min_participants">
-        <item quantity="zero">يُسحب عند %1$d مشارك</item>
-        <item quantity="one">يُسحب عند مشارك واحد</item>
-        <item quantity="two">يُسحب عند مشاركين</item>
-        <item quantity="few">يُسحب عند %1$d مشاركين</item>
-        <item quantity="many">يُسحب عند %1$d مشاركًا</item>
-        <item quantity="other">يُسحب عند %1$d مشارك</item>
-    </plurals>
-    <plurals name="lottery_max_participants">
-        <item quantity="zero">%1$d مشارك كحد أقصى</item>
-        <item quantity="one">مشارك واحد كحد أقصى</item>
-        <item quantity="two">مشاركان كحد أقصى</item>
-        <item quantity="few">%1$d مشاركين كحد أقصى</item>
-        <item quantity="many">%1$d مشاركًا كحد أقصى</item>
-        <item quantity="other">%1$d مشارك كحد أقصى</item>
-    </plurals>
     <plurals name="envelope_packets">
         <item quantity="zero">%1$d مظروف</item>
         <item quantity="one">مظروف واحد</item>
@@ -727,9 +673,6 @@
     <string name="lottery_error_max_below_min">الحد الأقصى للمشاركين يجب أن يتجاوز الحد الأدنى</string>
     <string name="lottery_error_min_tickets">أقل عدد تذاكر لا يمكن أن يتجاوز الأقصى</string>
     <string name="lottery_error_draw_days">يجب أن يكون السحب بعد 1–%1$d يومًا</string>
-    <string name="lottery_condition_min_tickets">%1$d تذكرة كحد أدنى للفرد</string>
-    <string name="lottery_condition_max_tickets">%1$d تذكرة كحد أقصى للفرد</string>
-    <string name="lottery_condition_trust_level">TL%1$d فما فوق</string>
 
     <!-- تسجيل الحضور اليومي -->
     <string name="checkin_action">تسجيل حضور</string>
@@ -1701,7 +1644,6 @@
     <string name="rank_how_title">كيف تحصل على الطاقة</string>
     <string name="rank_way_checkin_gain">من +1 إلى +30 حسب المستوى</string>
     <string name="rank_way_node">مواضيع / ردود جديدة في عقدتك</string>
-    <string name="rank_way_tip_gain">حسب المبلغ</string>
     <string name="rank_way_games">المغلفات الحمراء والفوز بالسحب</string>
     <string name="rank_way_games_gain">حسب الحظ</string>
     <string name="rank_uses">يمكن استخدام الطاقة في الإكراميات والمغلفات الحمراء والسحوبات.</string>
@@ -2021,4 +1963,77 @@
     <string name="ach3_share_title">إنجازات %1$s</string>
     <string name="ach3_closed">لم يعد يُمنح</string>
     <string name="ach3_manual">يمنحها المشرفون</string>
+    <string name="compose_tags_add">الوسوم</string>
+    <string name="compose_tags_subtitle">تساعد المزيد من الناس على العثور على المنشور</string>
+    <string name="compose_tags_search_hint">ابحث أو اكتب وسمًا جديدًا</string>
+    <string name="compose_tags_common">وسوم شائعة</string>
+    <string name="compose_tags_matches">وسوم مطابقة</string>
+    <string name="compose_tags_create">إنشاء «%1$s»</string>
+    <string name="compose_tags_staff_only">للمشرفين فقط</string>
+    <string name="compose_tags_full">خمسة وسوم كحد أقصى. أزل واحدًا قبل إضافة آخر.</string>
+    <string name="compose_tags_none">لا توجد وسوم مطابقة. اضغط «إنشاء» لإضافة وسم جديد.</string>
+    <string name="compose_tags_restricted">هذه العقدة تقبل الوسوم المدرجة هنا فقط.</string>
+    <string name="compose_tags_min">تحتاج هذه العقدة إلى %1$d وسوم على الأقل</string>
+    <string name="compose_tags_remove">إزالة الوسم %1$s</string>
+    <string name="compose_tags_count">%1$d / 5</string>
+    <string name="lot2_status_open">جارٍ</string>
+    <string name="lot2_status_failed">لم يكتمل</string>
+    <string name="lot2_status_cancelled">مغلق</string>
+    <string name="lot2_draws_on">السحب %1$s</string>
+    <string name="lot2_drawn_on">تم السحب %1$s</string>
+    <string name="lot2_countdown">الوقت حتى السحب</string>
+    <string name="lot2_unit_day">يوم</string>
+    <string name="lot2_unit_hour">ساعة</string>
+    <string name="lot2_unit_min">دقيقة</string>
+    <string name="lot2_unit_sec">ثانية</string>
+    <string name="lot2_joined">انضم %1$,d</string>
+    <string name="lot2_min_to_draw">يلزم %1$,d على الأقل</string>
+    <string name="lot2_cap">بحد أقصى %1$,d</string>
+    <string name="lot2_sold">بيع %1$,d</string>
+    <string name="lot2_per_ticket">تذكرة مقابل 1 طاقة</string>
+    <string name="lot2_requires_tier">من مستوى %1$s فأعلى</string>
+    <string name="lot2_participants">المشاركون</string>
+    <string name="lot2_all">الكل</string>
+    <string name="lot2_all_a11y">عرض جميع المشاركين (%1$,d) وتذاكرهم</string>
+    <string name="lot2_prizes">الجوائز</string>
+    <string name="lot2_prize_count">×%1$,d</string>
+    <string name="lot2_winners_you">أنت</string>
+    <string name="lot2_winners_you_and">أنت و%1$,d آخرون</string>
+    <string name="lot2_winners_many">%1$s وآخرون، %2$,d إجمالًا</string>
+    <string name="lot2_winners_title">الفائزون: %1$s</string>
+    <string name="lot2_win_title">تهانينا، فزت بـ%1$s</string>
+    <string name="lot2_win_body">الجائزة: %1$s. سيراسلك صاحب المنشور لتأكيد عنوانك.</string>
+    <string name="lot2_lose_title">لم يحالفك الحظ هذه المرة</string>
+    <string name="lot2_lose_body">لم تفز أي من تذاكرك (%1$,d). شارك %2$,d وبيعت %3$,d تذكرة.</string>
+    <string name="lot2_failed_title">عدد المشاركين غير كافٍ، أُلغي السحب</string>
+    <string name="lot2_failed_body">شارك %1$,d فقط (المطلوب %2$,d).</string>
+    <string name="lot2_failed_refund">شارك %1$,d فقط (المطلوب %2$,d). أُعيد إليك ثمن تذاكرك (%3$,d).</string>
+    <string name="lot2_bar_new">لم تشارك بعد · الرصيد %1$s</string>
+    <string name="lot2_bar_new_plain">لم تشارك بعد</string>
+    <string name="lot2_bar_holding">لديك %1$,d · يمكنك شراء %2$,d أخرى</string>
+    <string name="lot2_buy">شراء</string>
+    <string name="lot2_buy_more">شراء المزيد</string>
+    <string name="lot2_comment">تعليق</string>
+    <string name="lot2_sheet_sub">%1$s · السحب %2$s</string>
+    <string name="lot2_tickets_unit">تذكرة</string>
+    <string name="lot2_less">تذكرة أقل</string>
+    <string name="lot2_more">تذكرة أخرى</string>
+    <string name="lot2_pick">%1$,d</string>
+    <string name="lot2_pick_max">الحد %1$,d</string>
+    <string name="lot2_cost">التكلفة</string>
+    <string name="lot2_energy">%1$s طاقة</string>
+    <string name="lot2_after">الرصيد بعد الشراء</string>
+    <string name="lot2_limit">لكل شخص</string>
+    <string name="lot2_limit_value">%1$,d–%2$,d · يتبقى %3$,d بعد الشراء</string>
+    <string name="lot2_lucky">عشوائي</string>
+    <string name="lot2_confirm">شراء %1$,d · %2$s طاقة</string>
+    <string name="lot2_short">الطاقة غير كافية</string>
+    <string name="lot2_lucky_hint">عشوائي: اضغط مطولًا 3 ثوانٍ لشراء %1$,d–%2$,d تذكرة عشوائيًا، وارفع إصبعك للإلغاء. لا تُسترد التذاكر إلا إذا أُلغي السحب أو أُغلق.</string>
+    <string name="lot2_bought">تم، لديك الآن %1$,d تذكرة</string>
+    <string name="lot2_bought_random">اشتريت عشوائيًا %1$,d، لديك الآن %2$,d تذكرة</string>
+    <string name="lot2_participants_title">المشاركون (%1$,d)</string>
+    <string name="lot2_holder_tickets">%1$,d تذكرة</string>
+    <string name="lot2_participants_empty">لم يشارك أحد بعد</string>
+    <string name="lot2_participants_failed">تعذر تحميل المشاركين.</string>
+    <string name="reader_login_required">سجّل الدخول لقراءة هذا الموضوع</string>
 </resources>

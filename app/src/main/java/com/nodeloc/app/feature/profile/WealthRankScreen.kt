@@ -444,7 +444,6 @@ private fun MyEnergy(state: WealthRankState, onLedger: () -> Unit, onCheckin: ()
             stringResource(R.string.energy_k_checkin) to checkinGain,
             stringResource(R.string.energy_k_featured_reward) to "+$FEATURED_REWARD",
             stringResource(R.string.rank_way_node) to "+$OWNER_REWARD_TOPIC / +$OWNER_REWARD_REPLY",
-            stringResource(R.string.energy_k_tip_in) to stringResource(R.string.rank_way_tip_gain),
             stringResource(R.string.rank_way_games) to stringResource(R.string.rank_way_games_gain),
         ).forEach { (label, gain) ->
             Row(Modifier.fillMaxWidth().heightIn(min = 40.dp), verticalAlignment = Alignment.CenterVertically) {

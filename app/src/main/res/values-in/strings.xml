@@ -185,13 +185,6 @@
     <string name="reader_reply_one_media">Satu balasan hanya membawa satu lampiran</string>
     <string name="reader_reply_guest">Masuk untuk ikut berdiskusi</string>
     <string name="reader_send">Kirim</string>
-    <string name="reader_reward">Beri tip</string>
-    <string name="reader_reward_energy">Beri tip energi</string>
-    <string name="reader_reward_amount">Beri tip %1$d energi</string>
-    <string name="reader_reward_done">Diberi tip %1$d energi</string>
-    <string name="reader_reward_detail">Tip</string>
-    <string name="reader_reward_note_hint">Catatan (opsional)</string>
-    <string name="reader_reward_empty">Belum ada tip</string>
     <string name="reader_claimed_points">Mengambil %1$d energi</string>
     <string name="reader_spoiler">Spoiler — ketuk untuk melihat</string>
 
@@ -210,13 +203,6 @@
 
     <string name="lottery_title">Undian</string>
     <string name="lottery_drawn">Sudah diundi</string>
-    <string name="lottery_prize">Hadiah</string>
-    <string name="lottery_quantity">×%1$d</string>
-    <string name="lottery_random">Tiket acak</string>
-    <string name="lottery_join">Ikut</string>
-    <string name="lottery_add">Beli lagi</string>
-    <string name="lottery_winners">Pemenang</string>
-    <string name="lottery_join_failed">Tidak bisa ikut undian.</string>
     <string name="lottery_create_failed">Undian gagal dibuat, tetapi kiriman Anda sudah terbit</string>
     <string name="lottery_default_level">Hadiah utama</string>
 
@@ -576,22 +562,7 @@
     <plurals name="poll_voters">
         <item quantity="other">%1$d pemilih</item>
     </plurals>
-    <plurals name="lottery_my_tickets">
-        <item quantity="other">Anda memegang %1$d tiket</item>
-    </plurals>
     <string name="profile_tab_load_failed">Tidak bisa memuat tab ini</string>
-    <plurals name="lottery_entrants">
-        <item quantity="other">%1$d peserta</item>
-    </plurals>
-    <plurals name="lottery_tickets">
-        <item quantity="other">%1$d tiket</item>
-    </plurals>
-    <plurals name="lottery_min_participants">
-        <item quantity="other">diundi pada %1$d peserta</item>
-    </plurals>
-    <plurals name="lottery_max_participants">
-        <item quantity="other">maksimal %1$d peserta</item>
-    </plurals>
     <plurals name="envelope_packets">
         <item quantity="other">%1$d paket</item>
     </plurals>
@@ -652,9 +623,6 @@
     <string name="lottery_error_max_below_min">Peserta maksimal harus lebih besar dari minimal</string>
     <string name="lottery_error_min_tickets">Tiket minimal tidak boleh melebihi maksimal</string>
     <string name="lottery_error_draw_days">Undian harus 1–%1$d hari dari sekarang</string>
-    <string name="lottery_condition_min_tickets">Minimal %1$d tiket per orang</string>
-    <string name="lottery_condition_max_tickets">Maksimal %1$d tiket per orang</string>
-    <string name="lottery_condition_trust_level">TL%1$d ke atas</string>
 
     <!-- Absen harian -->
     <string name="checkin_action">Absen</string>
@@ -1626,7 +1594,6 @@
     <string name="rank_how_title">Cara mendapat energi</string>
     <string name="rank_way_checkin_gain">+1 hingga +30, sesuai peringkat</string>
     <string name="rank_way_node">Topik / balasan baru di node Anda</string>
-    <string name="rank_way_tip_gain">Sesuai jumlah</string>
     <string name="rank_way_games">Angpau dan menang undian</string>
     <string name="rank_way_games_gain">Untung-untungan</string>
     <string name="rank_uses">Energi bisa dipakai untuk tip, angpau, dan undian.</string>
@@ -1946,4 +1913,77 @@
     <string name="ach3_share_title">Pencapaian %1$s</string>
     <string name="ach3_closed">Tidak lagi diberikan</string>
     <string name="ach3_manual">Diberikan oleh admin</string>
+    <string name="compose_tags_add">Tag</string>
+    <string name="compose_tags_subtitle">Membantu lebih banyak orang menemukan postingan</string>
+    <string name="compose_tags_search_hint">Cari, atau ketik tag baru</string>
+    <string name="compose_tags_common">Tag umum</string>
+    <string name="compose_tags_matches">Tag yang cocok</string>
+    <string name="compose_tags_create">Buat “%1$s”</string>
+    <string name="compose_tags_staff_only">Khusus pengelola</string>
+    <string name="compose_tags_full">Maksimal 5 tag. Hapus satu sebelum menambah.</string>
+    <string name="compose_tags_none">Tidak ada tag yang cocok. Ketuk Buat untuk menambah yang baru.</string>
+    <string name="compose_tags_restricted">Node ini hanya menerima tag yang tercantum di sini.</string>
+    <string name="compose_tags_min">Node ini memerlukan setidaknya %1$d tag</string>
+    <string name="compose_tags_remove">Hapus tag %1$s</string>
+    <string name="compose_tags_count">%1$d / 5</string>
+    <string name="lot2_status_open">Berlangsung</string>
+    <string name="lot2_status_failed">Batal</string>
+    <string name="lot2_status_cancelled">Ditutup</string>
+    <string name="lot2_draws_on">Diundi %1$s</string>
+    <string name="lot2_drawn_on">Diundi pada %1$s</string>
+    <string name="lot2_countdown">Menuju undian</string>
+    <string name="lot2_unit_day">hari</string>
+    <string name="lot2_unit_hour">jam</string>
+    <string name="lot2_unit_min">mnt</string>
+    <string name="lot2_unit_sec">dtk</string>
+    <string name="lot2_joined">%1$,d peserta</string>
+    <string name="lot2_min_to_draw">Minimal %1$,d peserta</string>
+    <string name="lot2_cap">maks. %1$,d orang</string>
+    <string name="lot2_sold">%1$,d terjual</string>
+    <string name="lot2_per_ticket">1 energi per tiket</string>
+    <string name="lot2_requires_tier">minimal %1$s</string>
+    <string name="lot2_participants">Peserta</string>
+    <string name="lot2_all">Semua</string>
+    <string name="lot2_all_a11y">Lihat semua %1$,d peserta dan tiketnya</string>
+    <string name="lot2_prizes">Hadiah</string>
+    <string name="lot2_prize_count">×%1$,d</string>
+    <string name="lot2_winners_you">Anda</string>
+    <string name="lot2_winners_you_and">Anda dan %1$,d lainnya</string>
+    <string name="lot2_winners_many">%1$s dkk., total %2$,d</string>
+    <string name="lot2_winners_title">Pemenang %1$s</string>
+    <string name="lot2_win_title">Selamat, Anda memenangkan %1$s</string>
+    <string name="lot2_win_body">Hadiahnya %1$s. Pembuat postingan akan mengirim pesan untuk memastikan alamat Anda.</string>
+    <string name="lot2_lose_title">Belum beruntung</string>
+    <string name="lot2_lose_body">Tidak ada dari %1$,d tiket Anda yang menang. %2$,d peserta, %3$,d tiket terjual.</string>
+    <string name="lot2_failed_title">Peserta kurang, undian dibatalkan</string>
+    <string name="lot2_failed_body">Hanya %1$,d peserta (perlu %2$,d).</string>
+    <string name="lot2_failed_refund">Hanya %1$,d peserta (perlu %2$,d). %3$,d tiket Anda sudah dikembalikan.</string>
+    <string name="lot2_bar_new">Belum ikut · saldo %1$s</string>
+    <string name="lot2_bar_new_plain">Belum ikut</string>
+    <string name="lot2_bar_holding">Anda punya %1$,d · bisa beli %2$,d lagi</string>
+    <string name="lot2_buy">Beli</string>
+    <string name="lot2_buy_more">Beli lagi</string>
+    <string name="lot2_comment">Komentar</string>
+    <string name="lot2_sheet_sub">%1$s · diundi %2$s</string>
+    <string name="lot2_tickets_unit">tiket</string>
+    <string name="lot2_less">Kurangi satu</string>
+    <string name="lot2_more">Tambah satu</string>
+    <string name="lot2_pick">%1$,d</string>
+    <string name="lot2_pick_max">Maks %1$,d</string>
+    <string name="lot2_cost">Biaya</string>
+    <string name="lot2_energy">%1$s energi</string>
+    <string name="lot2_after">Saldo setelahnya</string>
+    <string name="lot2_limit">Per orang</string>
+    <string name="lot2_limit_value">%1$,d–%2$,d · sisa %3$,d lagi setelah ini</string>
+    <string name="lot2_lucky">Acak</string>
+    <string name="lot2_confirm">Beli %1$,d · %2$s energi</string>
+    <string name="lot2_short">Energi tidak cukup</string>
+    <string name="lot2_lucky_hint">Acak: tahan 3 detik untuk membeli %1$,d–%2$,d tiket secara acak; lepas untuk batal. Tiket tidak bisa dikembalikan kecuali undian batal atau ditutup.</string>
+    <string name="lot2_bought">Berhasil, Anda punya %1$,d tiket</string>
+    <string name="lot2_bought_random">Acak membeli %1$,d, Anda punya %2$,d tiket</string>
+    <string name="lot2_participants_title">Peserta (%1$,d)</string>
+    <string name="lot2_holder_tickets">%1$,d tiket</string>
+    <string name="lot2_participants_empty">Belum ada peserta</string>
+    <string name="lot2_participants_failed">Gagal memuat peserta.</string>
+    <string name="reader_login_required">Masuk untuk membaca topik ini</string>
 </resources>

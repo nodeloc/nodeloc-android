@@ -145,7 +145,6 @@ data class ViewerActions(
     val onCastVote: (PostActionState, VoteDirection, String?) -> Unit,
     val onComment: (PostActionState) -> Unit,
     val onRepost: (PostActionState) -> Unit,
-    val onReward: (PostActionState) -> Unit,
 )
 
 /** A row's pictures, the one that was tapped, and who to credit them to. */
@@ -474,7 +473,6 @@ internal fun ViewerBottomBar(source: ImageViewerSource, actions: ViewerActions? 
                     onCastVote = { direction, face -> actions.onCastVote(post, direction, face) },
                     onComment = { actions.onComment(post) },
                     onRepost = { actions.onRepost(post) },
-                    onReward = { actions.onReward(post) },
                 )
             }
         } else {

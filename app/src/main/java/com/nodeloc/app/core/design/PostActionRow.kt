@@ -36,8 +36,6 @@ data class PostActionState(
     val liked: Boolean = false,
     val likeCount: Int = 0,
     val commentCount: Int = 0,
-    /** Only the tint: the running total belongs to the record line above. */
-    val rewarded: Boolean = false,
 )
 
 /**
@@ -56,7 +54,6 @@ fun PostActionRow(
     onCastVote: (VoteDirection, String?) -> Unit,
     onComment: () -> Unit,
     onRepost: () -> Unit,
-    onReward: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // Over a clip the pills go translucent and their glyphs go white; on a page
@@ -115,16 +112,6 @@ fun PostActionRow(
                 Lucide.Repeat,
                 stringResource(R.string.reader_repost),
                 tint = glyph,
-                modifier = Modifier.size(18.dp),
-            )
-        }
-        // The running total moved up to the record line; this is only the
-        // verb, so it stays a disc whether or not anybody has tipped.
-        ActionPill(onClick = onReward, circular = true) {
-            Icon(
-                NodelocIcons.Zap,
-                stringResource(R.string.reader_reward),
-                tint = if (state.rewarded) Nocturne.accent2 else glyph,
                 modifier = Modifier.size(18.dp),
             )
         }

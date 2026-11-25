@@ -100,7 +100,6 @@ class VideoFeedQueue(private val excludeTopicId: Int?) {
                     liked = first.likedByMe,
                     likeCount = first.likeCount,
                     commentCount = replies,
-                    rewarded = first.rewardTotal > 0,
                 ),
             ),
         )

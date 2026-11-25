@@ -162,6 +162,8 @@ object Legacy {
             pinned = topic.pinned,
             featured = topic.featured,
             postStream = PostStream(posts = posts, stream = posts.map { it.id }),
+            tagNames = topic.tags,
+            canAccept = topic.canAccept,
         )
     }
 
@@ -199,23 +201,31 @@ object Legacy {
         minTicketsPerUser = lottery.minTickets,
         minTrustLevel = lottery.minTrustLevel,
         drawAt = lottery.drawAt,
+        drawnAt = lottery.drawnAt,
         status = lottery.status,
         levels = lottery.prizes.mapIndexed { index, prize ->
-            LotteryPrizeLevel(id = index + 1, name = prize.name, prize = prize.prize, quantity = prize.quantity)
+            LotteryPrizeLevel(
+                id = index + 1,
+                name = prize.name,
+                prize = prize.prize,
+                quantity = prize.quantity,
+                winners = prize.winners.map(::lotteryHolder),
+            )
         },
         ticketsCount = lottery.ticketCount,
         participantsCount = lottery.participantCount,
         userTickets = lottery.myTickets,
         isParticipating = (lottery.myTickets ?: 0) > 0,
-        participants = lottery.participants.map {
-            LotteryParticipant(username = it.username, avatarTemplate = it.avatarUrl, tickets = it.tickets)
-        },
+        participants = lottery.participants.map(::lotteryHolder),
         winners = lottery.prizes.flatMap { prize ->
             prize.winners.map {
                 LotteryWinner(username = it.username, avatarTemplate = it.avatarUrl, levelName = prize.name, prize = prize.prize)
             }
         },
     )
+
+    fun lotteryHolder(holder: ApiLotteryHolder): LotteryParticipant =
+        LotteryParticipant(username = holder.username, avatarTemplate = holder.avatarUrl, tickets = holder.tickets)
 
     fun redEnvelope(envelope: ApiRedEnvelope, topicId: Int): TopicRedEnvelope {
         val total = envelope.totalCount ?: 0

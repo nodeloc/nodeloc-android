@@ -574,6 +574,21 @@ class DiscourseClient(
         return UserSearchResponse(users.take(limit).map { Legacy.user(it.username, it.avatar, it.name) })
     }
 
+    /**
+     * Tags for the composer's picker. An empty [term] is the site's common
+     * tags; [nodeSlug] lets the server leave out tags that belong to other
+     * nodes, as the web's composer does.
+     */
+    suspend fun composerTags(term: String, nodeSlug: String?, limit: Int = 12): List<ApiTag> =
+        get<ApiTagList>(
+            "api/v1/tags",
+            listOfNotNull("q" to term, nodeSlug?.let { "node" to it }, "limit" to limit.coerceIn(1, 30).toString()),
+        ).tags
+
+    /** A node's tag rules for a new topic; see [ApiNodePosting]. */
+    suspend fun nodePosting(slug: String): ApiNodePosting? =
+        get<ApiNodeDetail>("api/v1/nodes/$slug").posting
+
     suspend fun searchTags(term: String, limit: Int = 5): TagSearchResponse {
         val tags = get<ApiTagList>("api/v1/tags", listOf("q" to term, "limit" to limit.coerceIn(1, 30).toString())).tags
         return TagSearchResponse(tags.map { DiscourseTag(id = it.id, name = it.name, slug = it.name, count = it.topicCount) })
@@ -1055,7 +1070,7 @@ class DiscourseClient(
         return CreatePostResponse(id = created.post?.id, topicId = topicId, postNumber = created.post?.postNumber)
     }
 
-    suspend fun createTopic(title: String, raw: String, categoryId: Int): CreatePostResponse {
+    suspend fun createTopic(title: String, raw: String, categoryId: Int, tags: List<String> = emptyList()): CreatePostResponse {
         val created = send<ApiCreatedTopic>(
             "POST",
             "api/v1/topics",
@@ -1063,6 +1078,7 @@ class DiscourseClient(
                 put("node", nodeSlug(categoryId))
                 put("title", title)
                 put("raw", toNativeMarkdown(raw))
+                if (tags.isNotEmpty()) put("tags", JsonArray(tags.map(::JsonPrimitive)))
             },
         )
         return CreatePostResponse(id = created.post?.id, topicId = created.topic?.id, postNumber = 1)
@@ -1155,18 +1171,6 @@ class DiscourseClient(
         )
     }
 
-    /** 打赏: a tip from the reader's energy to the post's author. */
-    suspend fun giveReward(postId: Int, amount: Int, note: String? = null) {
-        call(
-            "POST",
-            "api/v1/posts/$postId/tips",
-            buildJsonObject {
-                put("amount", amount)
-                note?.takeIf { it.isNotEmpty() }?.let { put("note", it) }
-            },
-        )
-    }
-
     suspend fun follow(username: String) {
         call("PUT", "api/v1/users/$username/follow")
     }
@@ -1219,17 +1223,31 @@ class DiscourseClient(
         return PollVoteResponse(poll = result.poll?.let(Legacy::poll), vote = emptyList())
     }
 
-    suspend fun participateInLottery(lotteryId: Int, quantity: Int, isRandom: Boolean): LotteryActionResponse {
-        call(
-            "POST",
-            "api/v1/lotteries/$lotteryId/tickets",
-            buildJsonObject {
-                put("tickets", quantity)
-                put("random", isRandom)
-            },
-        )
-        return LotteryActionResponse(success = FlexibleBool(true))
-    }
+    /**
+     * Buys tickets and answers the buyer's total afterwards. [key] is the
+     * Idempotency-Key the server requires: a retry of the same purchase after a
+     * timeout must reuse it, or tickets that were in fact bought are paid twice.
+     * With [isRandom] the server picks the count and ignores [quantity].
+     */
+    suspend fun participateInLottery(lotteryId: Int, quantity: Int, isRandom: Boolean, key: String): Int? =
+        api.decode<ApiLotteryPurchase>(
+            api.sendRaw(
+                "POST",
+                "api/v1/lotteries/$lotteryId/tickets",
+                buildJsonObject {
+                    put("tickets", if (isRandom) 0 else quantity)
+                    put("random", isRandom)
+                },
+                headers = mapOf("Idempotency-Key" to key),
+            ),
+        ).tickets
+
+    /** The first post's lottery on its own, for a refresh that should not reload the thread. */
+    suspend fun lottery(postId: Int): PostLottery? =
+        optional { get<ApiLotteryEnvelope>("api/v1/posts/$postId/lottery") }?.lottery?.let(Legacy::lottery)
+
+    suspend fun lotteryParticipants(lotteryId: Int): List<LotteryParticipant> =
+        get<ApiLotteryParticipants>("api/v1/lotteries/$lotteryId/participants").participants.map(Legacy::lotteryHolder)
 
     /**
      * The composer still builds the old plugin's payload; the field names are

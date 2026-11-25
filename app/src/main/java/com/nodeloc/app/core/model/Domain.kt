@@ -150,7 +150,6 @@ data class PostComment(
      * find out was to tap it and be told you cannot do it twice.
      */
     val isBookmarked: Boolean = false,
-    val rewards: List<PostReward> = emptyList(),
     /**
      * discourse-vote. Null where voting is off, which is also how the reply row
      * decides between the heart and the arrows — see
@@ -162,9 +161,7 @@ data class PostComment(
     /** The faces this reply carries, ordered by count, and how many chose one. */
     val reactions: List<PostReaction> = emptyList(),
     val reactionCount: Int = 0,
-) {
-    val rewardTotal: Int get() = rewards.filter { it.amount > 0 }.sumOf { it.amount }
-}
+)
 
 /** One face an arrow offers: what to send, and what to draw. */
 data class VoteFace(val name: String, val url: String)

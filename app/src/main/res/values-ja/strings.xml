@@ -183,13 +183,6 @@
     <string name="reader_reply_one_media">返信に添付できるのは 1 つまでです</string>
     <string name="reader_reply_guest">ログインして議論に参加</string>
     <string name="reader_send">送信</string>
-    <string name="reader_reward">投げ銭</string>
-    <string name="reader_reward_energy">エナジーを贈る</string>
-    <string name="reader_reward_amount">%1$d エナジーを贈る</string>
-    <string name="reader_reward_done">%1$d エナジーを贈りました</string>
-    <string name="reader_reward_detail">投げ銭の記録</string>
-    <string name="reader_reward_note_hint">メッセージ（任意）</string>
-    <string name="reader_reward_empty">まだ投げ銭はありません</string>
     <string name="reader_claimed_points">%1$d エナジーを受け取りました</string>
     <string name="reader_spoiler">ネタバレ — タップで表示</string>
 
@@ -208,13 +201,6 @@
 
     <string name="lottery_title">抽選</string>
     <string name="lottery_drawn">抽選済み</string>
-    <string name="lottery_prize">賞品</string>
-    <string name="lottery_quantity">×%1$d</string>
-    <string name="lottery_random">ランダムな券</string>
-    <string name="lottery_join">応募する</string>
-    <string name="lottery_add">追加で買う</string>
-    <string name="lottery_winners">当選者</string>
-    <string name="lottery_join_failed">応募できませんでした。</string>
     <string name="lottery_create_failed">抽選の作成に失敗しましたが、投稿は公開されました</string>
     <string name="lottery_default_level">1 等</string>
 
@@ -574,22 +560,7 @@
     <plurals name="poll_voters">
         <item quantity="other">%1$d 人が投票</item>
     </plurals>
-    <plurals name="lottery_my_tickets">
-        <item quantity="other">%1$d 枚の券を持っています</item>
-    </plurals>
     <string name="profile_tab_load_failed">このタブを読み込めませんでした</string>
-    <plurals name="lottery_entrants">
-        <item quantity="other">%1$d 人が応募</item>
-    </plurals>
-    <plurals name="lottery_tickets">
-        <item quantity="other">%1$d 枚</item>
-    </plurals>
-    <plurals name="lottery_min_participants">
-        <item quantity="other">%1$d 人で抽選</item>
-    </plurals>
-    <plurals name="lottery_max_participants">
-        <item quantity="other">最大 %1$d 人</item>
-    </plurals>
     <plurals name="envelope_packets">
         <item quantity="other">%1$d 個</item>
     </plurals>
@@ -650,9 +621,6 @@
     <string name="lottery_error_max_below_min">参加人数の上限は下限より大きくしてください</string>
     <string name="lottery_error_min_tickets">最小枚数は最大枚数を超えられません</string>
     <string name="lottery_error_draw_days">抽選は 1〜%1$d 日後にしてください</string>
-    <string name="lottery_condition_min_tickets">1 人あたり %1$d 枚以上</string>
-    <string name="lottery_condition_max_tickets">1 人あたり %1$d 枚まで</string>
-    <string name="lottery_condition_trust_level">TL%1$d 以上</string>
 
     <!-- デイリーチェックイン -->
     <string name="checkin_action">チェックイン</string>
@@ -1624,7 +1592,6 @@
     <string name="rank_how_title">エネルギーの獲得方法</string>
     <string name="rank_way_checkin_gain">+1〜+30（ランク次第）</string>
     <string name="rank_way_node">あなたのノードの新しいトピック / 返信</string>
-    <string name="rank_way_tip_gain">金額次第</string>
     <string name="rank_way_games">お年玉・抽選の当選</string>
     <string name="rank_way_games_gain">運次第</string>
     <string name="rank_uses">エネルギーは投げ銭、お年玉、抽選に使えます。</string>
@@ -1944,4 +1911,77 @@
     <string name="ach3_share_title">%1$s の実績</string>
     <string name="ach3_closed">授与終了</string>
     <string name="ach3_manual">管理者が授与</string>
+    <string name="compose_tags_add">タグ</string>
+    <string name="compose_tags_subtitle">投稿を見つけてもらいやすくします</string>
+    <string name="compose_tags_search_hint">検索、または新しいタグを入力</string>
+    <string name="compose_tags_common">よく使われるタグ</string>
+    <string name="compose_tags_matches">一致するタグ</string>
+    <string name="compose_tags_create">「%1$s」を作成</string>
+    <string name="compose_tags_staff_only">管理者のみ</string>
+    <string name="compose_tags_full">タグは 5 個までです。追加するには 1 つ外してください。</string>
+    <string name="compose_tags_none">一致するタグがありません。「作成」で新しく追加できます。</string>
+    <string name="compose_tags_restricted">このノードではここにあるタグだけ使えます。</string>
+    <string name="compose_tags_min">このノードではタグが %1$d 個以上必要です</string>
+    <string name="compose_tags_remove">タグ %1$s を外す</string>
+    <string name="compose_tags_count">%1$d / 5</string>
+    <string name="lot2_status_open">受付中</string>
+    <string name="lot2_status_failed">不成立</string>
+    <string name="lot2_status_cancelled">終了</string>
+    <string name="lot2_draws_on">%1$s 抽選</string>
+    <string name="lot2_drawn_on">%1$s に抽選済み</string>
+    <string name="lot2_countdown">抽選まで</string>
+    <string name="lot2_unit_day">日</string>
+    <string name="lot2_unit_hour">時間</string>
+    <string name="lot2_unit_min">分</string>
+    <string name="lot2_unit_sec">秒</string>
+    <string name="lot2_joined">%1$,d 人が参加</string>
+    <string name="lot2_min_to_draw">%1$,d 人以上で抽選</string>
+    <string name="lot2_cap">最大 %1$,d 人</string>
+    <string name="lot2_sold">%1$,d 枚販売済み</string>
+    <string name="lot2_per_ticket">1 枚 1 エネルギー</string>
+    <string name="lot2_requires_tier">%1$s 以上が参加可</string>
+    <string name="lot2_participants">参加者</string>
+    <string name="lot2_all">すべて</string>
+    <string name="lot2_all_a11y">参加者 %1$,d 人と購入枚数を見る</string>
+    <string name="lot2_prizes">賞品</string>
+    <string name="lot2_prize_count">%1$,d 名</string>
+    <string name="lot2_winners_you">あなた</string>
+    <string name="lot2_winners_you_and">あなたと他 %1$,d 人</string>
+    <string name="lot2_winners_many">%1$s ほか計 %2$,d 人</string>
+    <string name="lot2_winners_title">%1$s 当選者</string>
+    <string name="lot2_win_title">おめでとう、%1$s に当選しました</string>
+    <string name="lot2_win_body">賞品は %1$s です。投稿者から配送先の確認メッセージが届きます。</string>
+    <string name="lot2_lose_title">今回は外れ</string>
+    <string name="lot2_lose_body">%1$,d 枚とも外れでした。参加 %2$,d 人、販売 %3$,d 枚。</string>
+    <string name="lot2_failed_title">参加者不足のため抽選は不成立です</string>
+    <string name="lot2_failed_body">参加は %1$,d 人でした（%2$,d 人必要）。</string>
+    <string name="lot2_failed_refund">参加は %1$,d 人でした（%2$,d 人必要）。%3$,d 枚分は返金されました。</string>
+    <string name="lot2_bar_new">未参加 · 残高 %1$s</string>
+    <string name="lot2_bar_new_plain">未参加</string>
+    <string name="lot2_bar_holding">%1$,d 枚保有 · あと %2$,d 枚</string>
+    <string name="lot2_buy">購入</string>
+    <string name="lot2_buy_more">追加購入</string>
+    <string name="lot2_comment">コメント</string>
+    <string name="lot2_sheet_sub">%1$s · %2$s 抽選</string>
+    <string name="lot2_tickets_unit">枚</string>
+    <string name="lot2_less">1 枚減らす</string>
+    <string name="lot2_more">1 枚増やす</string>
+    <string name="lot2_pick">%1$,d 枚</string>
+    <string name="lot2_pick_max">最大 %1$,d</string>
+    <string name="lot2_cost">費用</string>
+    <string name="lot2_energy">%1$s エネルギー</string>
+    <string name="lot2_after">購入後の残高</string>
+    <string name="lot2_limit">1 人あたり</string>
+    <string name="lot2_limit_value">%1$,d–%2$,d 枚 · 購入後あと %3$,d 枚</string>
+    <string name="lot2_lucky">おまかせ</string>
+    <string name="lot2_confirm">%1$,d 枚購入 · %2$s エネルギー</string>
+    <string name="lot2_short">エネルギー不足</string>
+    <string name="lot2_lucky_hint">おまかせ：3 秒長押しで %1$,d–%2$,d 枚をランダム購入、指を離すとキャンセル。抽選が不成立か終了しない限り返金できません。</string>
+    <string name="lot2_bought">購入しました。現在 %1$,d 枚</string>
+    <string name="lot2_bought_random">おまかせで %1$,d 枚購入、現在 %2$,d 枚</string>
+    <string name="lot2_participants_title">参加者（%1$,d）</string>
+    <string name="lot2_holder_tickets">%1$,d 枚</string>
+    <string name="lot2_participants_empty">まだ参加者はいません</string>
+    <string name="lot2_participants_failed">参加者を読み込めませんでした。</string>
+    <string name="reader_login_required">このトピックを読むにはログインしてください</string>
 </resources>
