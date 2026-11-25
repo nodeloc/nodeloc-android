@@ -1938,4 +1938,12 @@
     <string name="me3_empty_saved">Belum ada yang disimpan</string>
     <string name="me3_edit_profile">Edit profil</string>
     <string name="me3_ach_unlocked">%1$d / %2$d terbuka</string>
+    <string name="upgrade3_tab_tier">Izin per tingkat</string>
+    <string name="upgrade3_tab_role">Peran pengelola</string>
+    <string name="upgrade3_perm_failed">Gagal memuat tabel izin.</string>
+    <string name="upgrade3_yes">Ya</string>
+    <string name="upgrade3_no">Tidak</string>
+    <string name="ach3_share_title">Pencapaian %1$s</string>
+    <string name="ach3_closed">Tidak lagi diberikan</string>
+    <string name="ach3_manual">Diberikan oleh admin</string>
 </resources>

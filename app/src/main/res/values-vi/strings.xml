@@ -1937,4 +1937,12 @@
     <string name="me3_empty_saved">Chưa lưu gì</string>
     <string name="me3_edit_profile">Sửa hồ sơ</string>
     <string name="me3_ach_unlocked">Đã mở khóa %1$d / %2$d</string>
+    <string name="upgrade3_tab_tier">Quyền theo bậc</string>
+    <string name="upgrade3_tab_role">Vai trò quản lý</string>
+    <string name="upgrade3_perm_failed">Không tải được bảng quyền.</string>
+    <string name="upgrade3_yes">Có</string>
+    <string name="upgrade3_no">Không</string>
+    <string name="ach3_share_title">Thành tựu của %1$s</string>
+    <string name="ach3_closed">Đã ngừng trao</string>
+    <string name="ach3_manual">Do quản trị viên trao</string>
 </resources>

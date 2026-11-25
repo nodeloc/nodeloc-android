@@ -1936,4 +1936,12 @@
     <string name="me3_empty_saved">まだ保存したものはありません</string>
     <string name="me3_edit_profile">プロフィール編集</string>
     <string name="me3_ach_unlocked">%1$d / %2$d 解除済み</string>
+    <string name="upgrade3_tab_tier">ランクの権限</string>
+    <string name="upgrade3_tab_role">管理の役割</string>
+    <string name="upgrade3_perm_failed">権限の一覧を読み込めませんでした。</string>
+    <string name="upgrade3_yes">可</string>
+    <string name="upgrade3_no">不可</string>
+    <string name="ach3_share_title">%1$s の実績</string>
+    <string name="ach3_closed">授与終了</string>
+    <string name="ach3_manual">管理者が授与</string>
 </resources>

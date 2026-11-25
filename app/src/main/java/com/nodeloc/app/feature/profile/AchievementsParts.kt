@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -64,6 +65,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import com.composables.icons.lucide.ArrowRight
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronRight
@@ -157,275 +160,23 @@ data class ApiRepLedgerItem(
 @Serializable
 data class ApiRepLedgerPage(val items: List<ApiRepLedgerItem> = emptyList(), val next: String? = null)
 
-// ------------------------------------------------------------------ Hero
-
-private const val TOP_TIER = 8
-
-/** The hero's light ink on its dark ground, at the strengths the design uses. */
-@Composable
-private fun heroInk(alpha: Float = 1f): Color = Nocturne.neutral100.copy(alpha = alpha)
-
-/**
- * The tier card: where you stand, how far into this tier, and the nine tiers
- * as a track you can tap through to read each one's requirement.
- *
- * The design paints a scene per tier behind the card; those are artwork the
- * app does not have, so the card keeps one dark ground and lets the tier's own
- * colours mark the current node.
- */
-@Composable
-fun RepHero(rep: ApiRepSummary, tiers: List<ApiTierInfo>) {
-    val current = rep.tier.coerceIn(0, TOP_TIER)
-    var selected by rememberSaveable(current) { mutableStateOf(current) }
-    val steps = rep.tiers.sortedBy { it.level }
-    val step = steps.firstOrNull { it.level == selected }
-    fun nameOf(level: Int): String =
-        tiers.level(level)?.name ?: steps.firstOrNull { it.level == level }?.name.orEmpty()
-
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .background(Nocturne.accent900)
-            .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 16.dp),
-    ) {
-        Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            Column(Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(nameOf(selected), style = Type.heading(30, FontWeight.Bold), color = heroInk(), maxLines = 1)
-                    if (selected == current) {
-                        Box(
-                            Modifier
-                                .clip(CircleShape)
-                                .background(heroInk(0.92f))
-                                .padding(horizontal = 9.dp, vertical = 1.dp),
-                        ) {
-                            Text(
-                                stringResource(R.string.upgrade2_current),
-                                style = Type.body(12, FontWeight.Bold),
-                                color = Nocturne.accent900,
-                                maxLines = 1,
-                            )
-                        }
-                    }
-                }
-                Text(
-                    tierLine(rep, selected, step, ::nameOf),
-                    style = Type.body(13),
-                    color = heroInk(0.78f),
-                    modifier = Modifier.padding(top = 2.dp),
-                )
-                val (label, fraction) = when {
-                    selected == current -> stringResource(R.string.ach_track_progress) to rep.progress.toFloat()
-                    selected < current -> stringResource(R.string.ach_track_done) to 1f
-                    else -> stringResource(R.string.ach_track_done) to
-                        (step?.threshold?.takeIf { it > 0 }?.let { rep.reputation.toFloat() / it } ?: 0f)
-                }
-                Row(
-                    Modifier.heightIn(min = 30.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Text(
-                        "$label ${(fraction.coerceIn(0f, 1f) * 100).toInt()}%",
-                        style = Type.body(13),
-                        color = heroInk(0.78f),
-                    )
-                    if (selected != current) {
-                        val press = rememberPressSource()
-                        Box(
-                            Modifier
-                                .pressScale(press)
-                                .height(28.dp)
-                                .clip(CircleShape)
-                                .background(heroInk(0.14f))
-                                .clickable(interactionSource = press, indication = ripple(), role = Role.Button) { selected = current }
-                                .padding(horizontal = 10.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(stringResource(R.string.ach_back_to_mine), style = Type.body(12, FontWeight.Bold), color = heroInk())
-                        }
-                    }
-                }
-            }
-            Column {
-                Text(stringResource(R.string.ach_my_rep), style = Type.body(12, FontWeight.Bold), color = heroInk(0.6f))
-                Text(formatCount(rep.reputation.toLong()), style = Type.heading(36, FontWeight.Bold), color = heroInk())
-                Row(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Row(
-                        Modifier
-                            .height(22.dp)
-                            .clip(CircleShape)
-                            .background(heroInk(0.16f))
-                            .padding(horizontal = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(3.dp),
-                    ) {
-                        Icon(Lucide.TrendingUp, null, tint = heroInk(), modifier = Modifier.size(12.dp))
-                        Text(
-                            stringResource(R.string.upgrade2_week, formatSigned(rep.week.toLong())),
-                            style = Type.body(12, FontWeight.Bold),
-                            color = heroInk(),
-                            maxLines = 1,
-                        )
-                    }
-                }
-                if (rep.pending > 0) {
-                    Text(
-                        stringResource(R.string.upgrade2_pending, formatCount(rep.pending.toLong())),
-                        style = Type.body(11),
-                        color = heroInk(0.6f),
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
-                }
-            }
-        }
-        if (steps.isNotEmpty()) {
-            TierTrack(steps, current, rep.progress.toFloat(), selected, tiers, ::nameOf) { selected = it }
-        }
-    }
-}
-
-/** The line under the tier's name, as the web writes it for each state. */
-@Composable
-private fun tierLine(rep: ApiRepSummary, selected: Int, step: ApiRepStep?, nameOf: (Int) -> String): String {
-    val current = rep.tier
-    if (selected == current) {
-        val next = rep.next
-        val locked = rep.upgradeLockedUntil?.let(DiscourseFormat::instant)?.takeIf { it.isAfter(java.time.Instant.now()) }
-        return when {
-            next == null -> stringResource(R.string.me2_top_tier)
-            locked != null -> stringResource(R.string.upgrade2_locked_until, DiscourseFormat.day(rep.upgradeLockedUntil))
-            rep.legendReview == "pending" && next.level == TOP_TIER -> stringResource(R.string.upgrade2_awaiting_review)
-            rep.tierReview == "pending" && rep.needed == 0 -> stringResource(R.string.upgrade2_awaiting_review)
-            else -> stringResource(R.string.ach_next_needed, nameOf(next.level), formatCount(rep.needed.toLong()))
-        }
-    }
-    val threshold = step?.threshold ?: 0
-    return when {
-        selected < current && selected == 0 -> stringResource(R.string.upgrade2_from_start)
-        selected < current -> stringResource(R.string.ach_tier_threshold, formatCount(threshold.toLong()))
-        else -> stringResource(
-            R.string.ach_tier_ahead,
-            formatCount(threshold.toLong()),
-            formatCount((threshold - rep.reputation).coerceAtLeast(0).toLong()),
-        )
-    }
-}
-
-@Composable
-private fun TierTrack(
-    steps: List<ApiRepStep>,
-    current: Int,
-    progress: Float,
-    selected: Int,
-    tiers: List<ApiTierInfo>,
-    nameOf: (Int) -> String,
-    onSelect: (Int) -> Unit,
-) {
-    val top = steps.maxOf { it.level }.coerceAtLeast(1)
-    BoxWithConstraints(Modifier.fillMaxWidth().padding(top = 20.dp)) {
-        // The rail runs between the first and last node's centres.
-        val inset = maxWidth / (steps.size * 2)
-        val fill = if (current >= top) 1f else ((current + progress.coerceIn(0f, 1f)) / top)
-        Box(
-            Modifier
-                .padding(horizontal = inset)
-                .offset(y = 21.dp)
-                .fillMaxWidth()
-                .height(2.dp)
-                .clip(CircleShape)
-                .background(heroInk(0.2f)),
-        ) {
-            Box(Modifier.fillMaxWidth(fill).fillMaxHeight().background(heroInk(0.85f)))
-        }
-        Row(Modifier.fillMaxWidth()) {
-            steps.forEach { s ->
-                val state = when {
-                    s.level < current -> stringResource(R.string.ach_tier_cd_past, nameOf(s.level))
-                    s.level == current -> stringResource(R.string.ach_tier_cd_now, nameOf(s.level))
-                    else -> stringResource(R.string.ach_tier_cd_ahead, nameOf(s.level))
-                }
-                val press = rememberPressSource()
-                Column(
-                    Modifier
-                        .weight(1f)
-                        .pressScale(press)
-                        .clip(RoundedCornerShape(12.dp))
-                        .semantics(mergeDescendants = true) {
-                            contentDescription = state
-                            this.selected = s.level == selected
-                        }
-                        .clickable(interactionSource = press, indication = ripple(), role = Role.Tab) { onSelect(s.level) }
-                        .padding(top = 4.dp, bottom = 6.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Box(Modifier.height(36.dp), contentAlignment = Alignment.Center) {
-                        TierNode(s.level, current, tiers)
-                    }
-                    val ink by animatedColor(if (s.level == selected) heroInk() else heroInk(0.62f), "tierLabel")
-                    Text(
-                        nameOf(s.level),
-                        style = Type.body(12, if (s.level == selected) FontWeight.Bold else FontWeight.Medium),
-                        color = ink,
-                        maxLines = 1,
-                        overflow = TextOverflow.Clip,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun TierNode(level: Int, current: Int, tiers: List<ApiTierInfo>) {
-    when {
-        level == current -> {
-            val (ground, ink) = tiers.level(level)?.colors(Nocturne.isDark) ?: (Nocturne.accent100 to Nocturne.accent700)
-            Box(
-                Modifier
-                    .size(36.dp)
-                    .border(BorderStroke(2.dp, heroInk()), CircleShape)
-                    .padding(2.dp)
-                    .clip(CircleShape)
-                    .background(ground),
-                contentAlignment = Alignment.Center,
-            ) { Icon(Lucide.Check, null, tint = ink, modifier = Modifier.size(16.dp)) }
-        }
-        level < current -> Box(
-            Modifier
-                .size(28.dp)
-                .clip(CircleShape)
-                .background(heroInk(0.16f))
-                .border(BorderStroke(1.dp, heroInk(0.4f)), CircleShape),
-            contentAlignment = Alignment.Center,
-        ) { Icon(Lucide.Check, null, tint = heroInk(), modifier = Modifier.size(13.dp)) }
-        else -> Box(
-            Modifier
-                .size(28.dp)
-                .clip(CircleShape)
-                .background(Nocturne.neutral900.copy(alpha = 0.35f))
-                .border(BorderStroke(1.dp, heroInk(0.18f)), CircleShape),
-            contentAlignment = Alignment.Center,
-        ) { Icon(Lucide.Lock, null, tint = heroInk(0.5f), modifier = Modifier.size(12.dp)) }
-    }
-}
-
 // ------------------------------------------------------------------ Tasks
 
 @Composable
 fun TasksSection(overview: ApiTaskOverview, navigator: Navigator) {
     if (overview.tasks.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(stringResource(R.string.ach_tasks), style = Type.heading(20, FontWeight.Bold), color = Nocturne.text)
-            Text(
-                if (overview.reputationEligible) stringResource(R.string.ach_tasks_note, overview.weekCap)
-                else stringResource(R.string.ach_tasks_note_bronze),
-                style = Type.body(13),
-                color = Nocturne.textSecondary,
-            )
+        Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text(stringResource(R.string.ach_tasks), style = Type.heading(20, FontWeight.Bold), color = Nocturne.text)
+                Text(
+                    if (overview.reputationEligible) stringResource(R.string.ach_tasks_note, overview.weekCap)
+                    else stringResource(R.string.ach_tasks_note_bronze),
+                    style = Type.body(13),
+                    color = Nocturne.textSecondary,
+                    modifier = Modifier.weight(1f),
+                )
+            }
             if (overview.reputationEligible && overview.weekCap > 0) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
@@ -441,10 +192,13 @@ fun TasksSection(overview: ApiTaskOverview, navigator: Navigator) {
                 }
             }
         }
+        // One height for the whole row, so a two-line title never squeezes its
+        // card and the links line up along the bottom.
         Row(
             Modifier
                 .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 2.dp),
+                .height(IntrinsicSize.Max)
+                .padding(start = 16.dp, end = 16.dp, top = 2.dp, bottom = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             overview.tasks.forEach { TaskCard(it, overview.reputationEligible, navigator) }
@@ -455,25 +209,31 @@ fun TasksSection(overview: ApiTaskOverview, navigator: Navigator) {
 @Composable
 private fun TaskCard(task: ApiTaskItem, repEligible: Boolean, navigator: Navigator) {
     val context = LocalContext.current
+    val weekly = task.period == "weekly"
     Column(
         Modifier
             .width(232.dp)
-            .heightIn(min = 140.dp)
+            .fillMaxHeight()
             .clip(RoundedCornerShape(16.dp))
             .border(BorderStroke(1.dp, Nocturne.divider), RoundedCornerShape(16.dp))
-            .background(Nocturne.bg)
+            // A finished one recedes onto the grey, as on the board.
+            .background(if (task.done) Nocturne.surface else Nocturne.bg)
             .padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TaskRing(task)
             Box(
-                Modifier.clip(CircleShape).background(Nocturne.accent100).padding(horizontal = 8.dp, vertical = 1.dp),
+                Modifier
+                    .height(18.dp)
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(if (weekly) Nocturne.warningBg else Nocturne.accent100)
+                    .padding(horizontal = 8.dp),
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    stringResource(if (task.period == "weekly") R.string.ach_task_weekly else R.string.ach_task_daily),
+                    stringResource(if (weekly) R.string.ach_task_weekly else R.string.ach_task_daily),
                     style = Type.body(11, FontWeight.Bold),
-                    color = Nocturne.accent700,
+                    color = if (weekly) Nocturne.warning else Nocturne.accent700,
                     maxLines = 1,
                 )
             }
@@ -495,28 +255,30 @@ private fun TaskCard(task: ApiTaskItem, repEligible: Boolean, navigator: Navigat
         }
         Text(
             task.title,
-            style = Type.body(15, FontWeight.Bold),
-            color = Nocturne.text,
+            style = Type.body(15, FontWeight.Bold).copy(lineHeight = 1.4.em),
+            color = if (task.done) Nocturne.textSecondary else Nocturne.text,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f, fill = false),
+            modifier = Modifier.padding(top = 10.dp),
         )
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.weight(1f).heightIn(min = 10.dp))
         val cta = task.cta?.takeIf { it.isNotBlank() }
-        when {
-            task.done -> Text(stringResource(R.string.ach_task_done), style = Type.body(13, FontWeight.Bold), color = Nocturne.textSecondary)
-            cta != null -> Row(
-                Modifier
-                    .heightIn(min = 24.dp)
-                    .clip(RoundedCornerShape(6.dp))
-                    .clickable(role = Role.Button) { openTask(task, navigator, context) },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text(cta, style = Type.body(13, FontWeight.Bold), color = Nocturne.accent)
-                Icon(Lucide.ChevronRight, null, tint = Nocturne.accent, modifier = Modifier.size(14.dp))
+        Box(Modifier.heightIn(min = 24.dp), contentAlignment = Alignment.CenterStart) {
+            when {
+                task.done -> Text(stringResource(R.string.ach_task_done), style = Type.body(13, FontWeight.Bold), color = Nocturne.textSecondary)
+                cta != null -> Row(
+                    Modifier
+                        .heightIn(min = 24.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .clickable(role = Role.Button) { openTask(task, navigator, context) },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(cta, style = Type.body(13, FontWeight.Bold), color = Nocturne.accent)
+                    Icon(Lucide.ArrowRight, null, tint = Nocturne.accent, modifier = Modifier.size(14.dp))
+                }
+                else -> Text(stringResource(R.string.ach_task_auto), style = Type.body(13), color = Nocturne.textSecondary)
             }
-            else -> Text(stringResource(R.string.ach_task_auto), style = Type.body(13), color = Nocturne.textSecondary)
         }
     }
 }
@@ -594,16 +356,9 @@ fun AchCardHead(title: String, trailing: String? = null) {
 
 // ------------------------------------------------------------------ Ledger
 
-/** Each source's dot and bar colour; the design's purple and teal are the nearest tokens. */
+/** Each source's dot and bar colour, the web's own (see [GrowthArt]). */
 @Composable
-fun sourceColor(source: String): Color = when (source) {
-    "like" -> Nocturne.accent
-    "accept" -> Nocturne.info
-    "featured" -> Nocturne.love
-    "achievement" -> Nocturne.warning
-    "revoke" -> Nocturne.danger
-    else -> Nocturne.textTertiary
-}
+fun sourceColor(source: String): Color = GrowthArt.source(source)
 
 @Composable
 fun sourceName(source: String): String = when (source) {

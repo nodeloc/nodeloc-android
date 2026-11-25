@@ -1937,4 +1937,12 @@
     <string name="me3_empty_saved">還沒有收藏</string>
     <string name="me3_edit_profile">編輯資料</string>
     <string name="me3_ach_unlocked">%1$d / %2$d 已解鎖</string>
+    <string name="upgrade3_tab_tier">段位權限</string>
+    <string name="upgrade3_tab_role">管理身分</string>
+    <string name="upgrade3_perm_failed">權限對比表沒有載入出來。</string>
+    <string name="upgrade3_yes">可以</string>
+    <string name="upgrade3_no">不可以</string>
+    <string name="ach3_share_title">%1$s 的成就</string>
+    <string name="ach3_closed">已停止發放</string>
+    <string name="ach3_manual">管理員發放</string>
 </resources>

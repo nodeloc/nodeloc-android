@@ -1982,4 +1982,12 @@
     <string name="me3_empty_saved">Пока ничего не сохранено</string>
     <string name="me3_edit_profile">Изменить профиль</string>
     <string name="me3_ach_unlocked">Открыто %1$d / %2$d</string>
+    <string name="upgrade3_tab_tier">Права рангов</string>
+    <string name="upgrade3_tab_role">Роли управления</string>
+    <string name="upgrade3_perm_failed">Не удалось загрузить таблицу прав.</string>
+    <string name="upgrade3_yes">Да</string>
+    <string name="upgrade3_no">Нет</string>
+    <string name="ach3_share_title">Достижения %1$s</string>
+    <string name="ach3_closed">Больше не выдаётся</string>
+    <string name="ach3_manual">Выдаётся администрацией</string>
 </resources>

@@ -36,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -52,9 +53,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.composables.icons.lucide.Award
 import com.composables.icons.lucide.CircleAlert
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Share
 import com.composables.icons.lucide.WifiOff
 import com.nodeloc.app.R
+import com.nodeloc.app.ServiceLocator
 import com.nodeloc.app.core.design.EmptyStateView
+import com.nodeloc.app.core.design.HeaderIconButton
 import com.nodeloc.app.core.design.Nocturne
 import com.nodeloc.app.core.design.SkeletonBox
 import com.nodeloc.app.core.design.ToastCenter
@@ -63,6 +67,7 @@ import com.nodeloc.app.core.design.animatedColor
 import com.nodeloc.app.core.design.pressScale
 import com.nodeloc.app.core.design.rememberPressSource
 import com.nodeloc.app.core.design.skeletonPulsing
+import com.nodeloc.app.core.network.DiscourseConfig
 import com.nodeloc.app.core.network.isOfflineError
 import com.nodeloc.app.core.util.DiscourseFormat
 import com.nodeloc.app.core.util.runCatchingCancellable
@@ -106,6 +111,8 @@ data class AchievementsState(
     val sheetLoading: Boolean = false,
     val isLoading: Boolean = false,
     val error: Throwable? = null,
+    /** The hero, tasks and ledger are still on their way after the catalogue. */
+    val decorating: Boolean = false,
     val pinning: String? = null,
 )
 
@@ -152,6 +159,7 @@ class AchievementsViewModel : ViewModel() {
                             total = it.total,
                             unlocked = it.unlockedCount,
                             isLoading = false,
+                            decorating = true,
                         )
                     }
                     .onFailure {
@@ -159,8 +167,8 @@ class AchievementsViewModel : ViewModel() {
                         return@launch
                     }
                 // The rest decorates the page; any one failing leaves its section out.
-                val rep = async { runCatchingCancellable { growth.reputation() }.getOrNull() }
-                val tasks = async { runCatchingCancellable { repApi.tasks() }.getOrNull() }
+                val rep = async { runCatchingCancellable { growth.reputation() }.onFailure { android.util.Log.w("Achievements", "reputation failed", it) }.getOrNull() }
+                val tasks = async { runCatchingCancellable { repApi.tasks() }.onFailure { android.util.Log.w("Achievements", "tasks failed", it) }.getOrNull() }
                 val ledger = async { runCatchingCancellable { repApi.ledger(null, RECENT) }.getOrNull() }
                 val tiers = async { TierDirectory.get() }
                 val page = ledger.await()
@@ -170,6 +178,7 @@ class AchievementsViewModel : ViewModel() {
                     recent = page?.items ?: _state.value.recent,
                     recentNext = if (page != null) page.next else _state.value.recentNext,
                     tiers = tiers.await(),
+                    decorating = false,
                 )
             } else {
                 runCatchingCancellable { growth.showcase(username) }
@@ -261,9 +270,22 @@ fun AchievementsScreen(username: String?, navigator: Navigator) {
 
     LaunchedEffect(username) { viewModel.bind(username) }
 
+    val context = LocalContext.current
+    val shareName = username ?: ServiceLocator.get.session.username
+    val shareTitle = shareName?.let { stringResource(R.string.ach3_share_title, it) }
+    // The board's top bar is bare on your own page: the hero names it. On
+    // someone else's the name is the only thing saying whose medals these are.
     ModScaffold(
-        title = if (username == null) stringResource(R.string.ach_title) else stringResource(R.string.ach_title_user, username),
+        title = if (username == null) "" else stringResource(R.string.ach_title_user, username),
         onBack = navigator::back,
+        actions = {
+            if (shareName != null) {
+                HeaderIconButton(Lucide.Share, stringResource(R.string.common_share)) {
+                    // The profile is where pinned medals are public; this page itself is sign-in only.
+                    navigator.share(context, "${DiscourseConfig.BASE_URL}/u/$shareName", shareTitle)
+                }
+            }
+        },
     ) {
         Box(Modifier.fillMaxSize().background(Nocturne.bg)) {
             when {
@@ -338,11 +360,23 @@ private fun OwnBody(state: AchievementsState, navigator: Navigator, viewModel: A
         contentPadding = PaddingValues(top = 12.dp, bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
-        state.reputation?.let { rep ->
-            item(key = "hero") { Box(Modifier.padding(horizontal = 16.dp)) { RepHero(rep, state.tiers) } }
+        // The hero and tasks come after the catalogue. Their slots hold a
+        // placeholder until then: a lazy list stays on the item it was showing,
+        // so sections inserted above the catalogue later would open the page
+        // scrolled past its own top.
+        val rep = state.reputation
+        when {
+            rep != null -> item(key = "hero") { GrowthHero(rep, state.tiers, Modifier.padding(horizontal = 16.dp)) }
+            state.decorating -> item(key = "hero") {
+                SkeletonBox(Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(320.dp).skeletonPulsing(), corner = 24.dp)
+            }
         }
-        state.tasks?.takeIf { it.tasks.isNotEmpty() }?.let { tasks ->
-            item(key = "tasks") { TasksSection(tasks, navigator) }
+        val tasks = state.tasks
+        when {
+            tasks != null -> if (tasks.tasks.isNotEmpty()) item(key = "tasks") { TasksSection(tasks, navigator) }
+            state.decorating -> item(key = "tasks") {
+                SkeletonBox(Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(180.dp).skeletonPulsing(), corner = 16.dp)
+            }
         }
         item(key = "achievements") {
             Column {
@@ -384,7 +418,12 @@ private fun OwnBody(state: AchievementsState, navigator: Navigator, viewModel: A
             )
         }
         state.reputation?.let { rep ->
-            item(key = "sources") { SourcesCard(rep) { navigator.openUrl(context, "/permissions") } }
+            item(key = "sources") {
+                SourcesCard(rep) {
+                    val me = ServiceLocator.get.session.username
+                    if (me != null) navigator.openUpgradeProgress(me) else navigator.openUrl(context, "/permissions")
+                }
+            }
             // Only a 青铜 who has not finished the walkthrough still has this road to 白银.
             if (rep.tier == 0 && rep.onboardingDoneAt == null) {
                 item(key = "onboarding") {
@@ -467,17 +506,8 @@ private fun BadgeGrid(items: List<ApiAchItem>, modifier: Modifier, onOpen: (ApiA
 }
 
 @Composable
-private fun AchDisc(item: ApiAchItem, size: Int, iconSize: Int) {
-    val (ground, ink) = achTierColors(item.tier, item.unlocked)
-    Box(
-        Modifier
-            .size(size.dp)
-            .clip(CircleShape)
-            .background(ground)
-            .border(BorderStroke(1.dp, ink.copy(alpha = 0.25f)), CircleShape),
-        contentAlignment = Alignment.Center,
-    ) { Icon(achievementIcon(item.icon), null, tint = ink, modifier = Modifier.size(iconSize.dp)) }
-}
+private fun AchDisc(item: ApiAchItem, size: Int, iconSize: Int) =
+    AchMedal(item.tier, item.unlocked, achievementIcon(item.icon), size.dp, iconSize.dp)
 
 @Composable
 private fun BadgeCard(item: ApiAchItem, modifier: Modifier, onClick: () -> Unit) {
@@ -574,6 +604,8 @@ private fun LockedRow(item: ApiAchItem, onClick: () -> Unit) {
         Modifier
             .fillMaxWidth()
             .clickable(role = Role.Button, onClick = onClick)
+            // Nobody can work towards a retired or admin-granted one; the board greys the whole row.
+            .alpha(if (item.off) 0.62f else 1f)
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -606,7 +638,7 @@ private fun LockedRow(item: ApiAchItem, onClick: () -> Unit) {
             }
             when {
                 item.off -> Text(
-                    stringResource(if (item.closed) R.string.ach_closed else R.string.ach_manual),
+                    stringResource(if (item.closed) R.string.ach3_closed else R.string.ach3_manual),
                     style = Type.body(12),
                     color = Nocturne.textSecondary,
                     modifier = Modifier.padding(top = 4.dp),
@@ -701,15 +733,11 @@ private fun AchievementDialog(
     onTogglePin: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val (ground, ink) = achTierColors(item.tier, item.unlocked)
+    val ink = if (item.unlocked) Nocturne.text else Nocturne.textSecondary
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Nocturne.bg,
-        icon = {
-            Box(Modifier.size(56.dp).clip(CircleShape).background(ground), contentAlignment = Alignment.Center) {
-                Icon(achievementIcon(item.icon), null, tint = ink, modifier = Modifier.size(28.dp))
-            }
-        },
+        icon = { AchMedal(item.tier, item.unlocked, achievementIcon(item.icon), 64.dp, 28.dp) },
         title = {
             Text(item.name, style = Type.heading(20, FontWeight.Bold), color = Nocturne.text, textAlign = TextAlign.Center)
         },
@@ -767,3 +795,4 @@ private fun AchievementDialog(
         },
     )
 }
+

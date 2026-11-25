@@ -2013,4 +2013,12 @@
     <string name="me3_empty_saved">لا محفوظات بعد</string>
     <string name="me3_edit_profile">تعديل الملف الشخصي</string>
     <string name="me3_ach_unlocked">‏%1$d / %2$d مفتوحة</string>
+    <string name="upgrade3_tab_tier">صلاحيات الرتب</string>
+    <string name="upgrade3_tab_role">أدوار الإدارة</string>
+    <string name="upgrade3_perm_failed">تعذر تحميل جدول الصلاحيات.</string>
+    <string name="upgrade3_yes">نعم</string>
+    <string name="upgrade3_no">لا</string>
+    <string name="ach3_share_title">إنجازات %1$s</string>
+    <string name="ach3_closed">لم يعد يُمنح</string>
+    <string name="ach3_manual">يمنحها المشرفون</string>
 </resources>

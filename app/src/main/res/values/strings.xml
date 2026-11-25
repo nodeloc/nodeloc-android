@@ -1953,4 +1953,12 @@
     <string name="me3_empty_saved">Nothing saved yet</string>
     <string name="me3_edit_profile">Edit profile</string>
     <string name="me3_ach_unlocked">%1$d / %2$d unlocked</string>
+    <string name="upgrade3_tab_tier">Tier permissions</string>
+    <string name="upgrade3_tab_role">Staff roles</string>
+    <string name="upgrade3_perm_failed">Couldn\'t load the permissions table.</string>
+    <string name="upgrade3_yes">Yes</string>
+    <string name="upgrade3_no">No</string>
+    <string name="ach3_share_title">%1$s\'s achievements</string>
+    <string name="ach3_closed">No longer awarded</string>
+    <string name="ach3_manual">Awarded by admins</string>
 </resources>

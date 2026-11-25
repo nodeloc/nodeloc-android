@@ -91,6 +91,17 @@ class GrowthApi(private val api: NodelocApi) {
     suspend fun leaderboard(limit: Int = LEADERBOARD_LIMIT): List<ApiLeaderRow> =
         api.get<ApiLeaderboard>("api/v1/points/leaderboard", listOf("limit" to limit.toString())).users
 
+    /**
+     * The `/permissions` page as HTML (see [PermissionsHtml]). Through the
+     * app's own client so the bearer marks the reader's column and
+     * Accept-Language picks the page's language.
+     */
+    suspend fun permissionsPage(): String =
+        api.perform(
+            api.requestBuilder(api.url("permissions")).header("Accept", "text/html").get().build(),
+            NodelocApi.Channel.Read,
+        )
+
     private fun String.enc(): String = java.net.URLEncoder.encode(this, "UTF-8").replace("+", "%20")
 
     companion object {

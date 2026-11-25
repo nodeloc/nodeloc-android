@@ -1952,4 +1952,12 @@
     <string name="me3_empty_saved">هنوز چیزی ذخیره نشده</string>
     <string name="me3_edit_profile">ویرایش نمایه</string>
     <string name="me3_ach_unlocked">%1$d / %2$d باز شده</string>
+    <string name="upgrade3_tab_tier">مجوزهای رتبه</string>
+    <string name="upgrade3_tab_role">نقش‌های مدیریتی</string>
+    <string name="upgrade3_perm_failed">بارگیری جدول مجوزها ممکن نشد.</string>
+    <string name="upgrade3_yes">بله</string>
+    <string name="upgrade3_no">خیر</string>
+    <string name="ach3_share_title">دستاوردهای %1$s</string>
+    <string name="ach3_closed">دیگر اعطا نمی‌شود</string>
+    <string name="ach3_manual">اعطا توسط مدیران</string>
 </resources>
