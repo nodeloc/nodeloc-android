@@ -1510,4 +1510,6 @@
     <string name="captcha_body">Перед продолжением сайт просит пройти короткую проверку.</string>
     <string name="captcha_failed">Проверка не загрузилась или истекла. Попробуйте ещё раз.</string>
     <string name="captcha_cancelled">Проверка отменена.</string>
+    <string name="mod_entry_show_all">Показать все (%1$d)</string>
+    <string name="mod_entry_show_less">Свернуть</string>
 </resources>

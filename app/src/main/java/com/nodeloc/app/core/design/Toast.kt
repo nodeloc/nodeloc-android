@@ -56,7 +56,11 @@ object ToastCenter {
 
     /** Called once at startup; lets non-Compose code resolve string resources. */
     fun attach(context: Context) {
-        appContext = context.applicationContext
+        // The application context keeps the phone's language; the activities
+        // are wrapped in the in-app one. Wrapped here too, or a toast says
+        // "Already checked in today" on a page that is in Chinese. Activities
+        // are recreated on a language change, which re-attaches.
+        appContext = com.nodeloc.app.core.util.AppLocale.wrap(context.applicationContext)
     }
 
     fun show(text: String) {

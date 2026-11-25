@@ -1510,4 +1510,6 @@
     <string name="captcha_body">Перед продовженням сайт просить пройти коротку перевірку.</string>
     <string name="captcha_failed">Перевірка не завантажилась або минула. Спробуйте ще раз.</string>
     <string name="captcha_cancelled">Перевірку скасовано.</string>
+    <string name="mod_entry_show_all">Показати всі (%1$d)</string>
+    <string name="mod_entry_show_less">Згорнути</string>
 </resources>

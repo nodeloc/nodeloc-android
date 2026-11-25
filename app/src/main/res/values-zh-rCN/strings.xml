@@ -1465,4 +1465,6 @@
     <string name="captcha_body">继续之前，网站需要先做一次简单的验证。</string>
     <string name="captcha_failed">验证没加载出来或已过期，请再试一次。</string>
     <string name="captcha_cancelled">已取消人机验证。</string>
+    <string name="mod_entry_show_all">展开全部 %1$d 个</string>
+    <string name="mod_entry_show_less">收起</string>
 </resources>

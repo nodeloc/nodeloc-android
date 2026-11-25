@@ -1481,4 +1481,6 @@
     <string name="captcha_body">The site asks for a quick check before you continue.</string>
     <string name="captcha_failed">Verification didn\'t load or expired. Try again.</string>
     <string name="captcha_cancelled">Verification was cancelled.</string>
+    <string name="mod_entry_show_all">Show all %1$d</string>
+    <string name="mod_entry_show_less">Show less</string>
 </resources>

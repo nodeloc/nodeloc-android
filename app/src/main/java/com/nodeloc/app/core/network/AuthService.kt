@@ -50,10 +50,14 @@ sealed interface SignupResult {
  * back a one-time code that is exchanged here, with PKCE.
  */
 class AuthService(
-    private val context: Context,
+    private val appContext: Context,
     private val client: DiscourseClient,
     private val store: SecureStore,
 ) {
+    // Error text shown on the sign-in screen, so in the in-app language, not
+    // the phone's: the application context alone carries the latter.
+    private val context: Context get() = com.nodeloc.app.core.util.AppLocale.wrap(appContext)
+
     private val auth get() = client.auth
 
     /** Restores a stored sign-in on launch. Returns true when signed in. */

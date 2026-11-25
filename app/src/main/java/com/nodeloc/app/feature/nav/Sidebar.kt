@@ -25,6 +25,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.composables.icons.lucide.ChevronDown
+import com.composables.icons.lucide.ChevronUp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -87,6 +92,11 @@ fun SidebarDrawer(
     // A node moderator has no pushed count; the drawer is where they look, so
     // opening it is when the per-node numbers are worth a fetch.
     LaunchedEffect(privileges.nodes) { services.moderation.refreshNodeCounts() }
+    var showAllManaged by remember { mutableStateOf(false) }
+    // `/me/nodes` carries no logos; the directory the drawer already holds does.
+    val logos = remember(state.nodes, state.recent) {
+        (state.nodes + state.recent).filter { it.logoUrl != null }.associate { it.slug to it.logoUrl }
+    }
 
     ModalDrawerSheet(
         drawerContainerColor = Nocturne.bg,
@@ -106,8 +116,21 @@ fun SidebarDrawer(
                             onAction = { onOpenModDashboard(null) },
                         )
                     }
-                    items(privileges.nodes, key = { "mod-${it.slug}" }) { node ->
-                        SidebarManagedNodeRow(node, nodePending[node.slug] ?: 0) { onOpenNodeAdmin(node.slug) }
+                    // An account that runs dozens of nodes would push the rest of the
+                    // drawer out of reach; the busiest few show, the rest on request.
+                    val ordered = privileges.nodes.sortedByDescending { nodePending[it.slug] ?: 0 }
+                    val shown = if (showAllManaged) ordered else ordered.take(MANAGED_PREVIEW)
+                    items(shown, key = { "mod-${it.slug}" }) { node ->
+                        SidebarManagedNodeRow(node, logos[node.slug], nodePending[node.slug] ?: 0) { onOpenNodeAdmin(node.slug) }
+                    }
+                    if (ordered.size > MANAGED_PREVIEW) {
+                        item(key = "mod-more") {
+                            SidebarAction(
+                                if (showAllManaged) Lucide.ChevronUp else Lucide.ChevronDown,
+                                if (showAllManaged) stringResource(R.string.mod_entry_show_less)
+                                else stringResource(R.string.mod_entry_show_all, ordered.size),
+                            ) { showAllManaged = !showAllManaged }
+                        }
                     }
                 }
 
@@ -228,7 +251,7 @@ private fun SidebarSectionHeader(title: String, action: String? = null, onAction
 
 /** The design's managed-node row: a 52-high pill row with the node's pending count in a warning badge. */
 @Composable
-private fun SidebarManagedNodeRow(node: ModeratedNode, pending: Int, onClick: () -> Unit) {
+private fun SidebarManagedNodeRow(node: ModeratedNode, logoUrl: String?, pending: Int, onClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -240,7 +263,8 @@ private fun SidebarManagedNodeRow(node: ModeratedNode, pending: Int, onClick: ()
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Avatar(node.name.take(1), variant = node.slug.hashCode() and 1, size = 28.dp)
+        if (logoUrl != null) RemoteAvatar(logoUrl, node.name.take(1), size = 28.dp)
+        else Avatar(node.name.take(1), variant = node.slug.hashCode() and 1, size = 28.dp)
         Text(
             "n/${node.slug}",
             style = Type.body(16, FontWeight.Medium),
@@ -334,3 +358,6 @@ private fun SidebarAppRow(app: SidebarDiscourseApp, onClick: () -> Unit) {
         )
     }
 }
+
+/** How many managed nodes the drawer lists before "show all". */
+private const val MANAGED_PREVIEW = 5

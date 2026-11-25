@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 
 /** A node the viewer moderates, as `/me/nodes` lists it. */
 data class ModeratedNode(val slug: String, val name: String, val color: String)
@@ -112,20 +114,47 @@ class ModerationRepository(
                     _sitePending.value = runCatchingCancellable { api.siteQueue(limit = 1).counts["pending"] }.getOrNull()
                 }
             }
-            refreshNodeCounts()
+            refreshNodeCounts(force = true)
         }
     }
 
-    /** Per-node pending counts. Capped at a page: past 50 the exact number stops mattering. */
-    suspend fun refreshNodeCounts() {
-        val nodes = _privileges.value.nodes
+    @Volatile private var countsAt = 0L
+    private val countLimit = Semaphore(2)
+
+    /**
+     * Per-node pending counts. Capped at a page: past 50 the exact number stops
+     * mattering.
+     *
+     * The server has no per-node count (see docs/backend-api-requests.md #1),
+     * so this costs requests, and an account that moderates dozens of nodes
+     * firing one per node at once got the whole app rate-limited by nginx —
+     * notifications and `/me/nodes` included. So: a site reviewer gets every
+     * node's number from one page of the site queue, which already names each
+     * item's node; a node moderator's queues go two at a time; and the drawer,
+     * the node page and sign-in asking within a minute share one answer.
+     */
+    suspend fun refreshNodeCounts(force: Boolean = false) {
+        val privileges = _privileges.value
+        val nodes = privileges.nodes
         if (nodes.isEmpty()) {
             _nodePending.value = emptyMap()
             return
         }
+        if (!force && System.currentTimeMillis() - countsAt < 60_000) return
+        countsAt = System.currentTimeMillis()
+        if (privileges.reviewsSite) {
+            val items = runCatchingCancellable { api.siteQueue(limit = 50).items }.getOrNull() ?: return
+            val bySlug = items.filter { it.isPost }.groupingBy { it.nodeSlug }.eachCount()
+            _nodePending.value = nodes.associate { it.slug to (bySlug[it.slug] ?: 0) }
+            return
+        }
         val counts = coroutineScope {
             nodes.map { node ->
-                async { node.slug to (runCatchingCancellable { api.nodeQueue(node.slug, limit = 50).items.size }.getOrNull() ?: 0) }
+                async {
+                    countLimit.withPermit {
+                        node.slug to (runCatchingCancellable { api.nodeQueue(node.slug, limit = 50).items.size }.getOrNull() ?: 0)
+                    }
+                }
             }.awaitAll()
         }
         _nodePending.value = counts.toMap()
@@ -154,6 +183,7 @@ class ModerationRepository(
         _privileges.value = ModPrivileges()
         _nodePending.value = emptyMap()
         _sitePending.value = null
+        countsAt = 0L
     }
 
     private companion object {

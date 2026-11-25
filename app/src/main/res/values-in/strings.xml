@@ -1466,4 +1466,6 @@
     <string name="captcha_body">Situs meminta pemeriksaan singkat sebelum melanjutkan.</string>
     <string name="captcha_failed">Verifikasi gagal dimuat atau kedaluwarsa. Coba lagi.</string>
     <string name="captcha_cancelled">Verifikasi dibatalkan.</string>
+    <string name="mod_entry_show_all">Tampilkan semua %1$d</string>
+    <string name="mod_entry_show_less">Tampilkan lebih sedikit</string>
 </resources>

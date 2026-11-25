@@ -1464,4 +1464,6 @@
     <string name="captcha_body">続行する前に簡単な確認をお願いします。</string>
     <string name="captcha_failed">確認を読み込めないか期限切れです。もう一度お試しください。</string>
     <string name="captcha_cancelled">確認がキャンセルされました。</string>
+    <string name="mod_entry_show_all">すべて表示（%1$d）</string>
+    <string name="mod_entry_show_less">折りたたむ</string>
 </resources>

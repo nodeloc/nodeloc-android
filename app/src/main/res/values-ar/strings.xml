@@ -1541,4 +1541,6 @@
     <string name="captcha_body">يطلب الموقع تحققًا سريعًا قبل المتابعة.</string>
     <string name="captcha_failed">لم يُحمَّل التحقق أو انتهت صلاحيته. حاول مرة أخرى.</string>
     <string name="captcha_cancelled">أُلغي التحقق.</string>
+    <string name="mod_entry_show_all">عرض الكل (%1$d)</string>
+    <string name="mod_entry_show_less">عرض أقل</string>
 </resources>

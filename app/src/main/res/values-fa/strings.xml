@@ -1480,4 +1480,6 @@
     <string name="captcha_body">سایت پیش از ادامه یک بررسی کوتاه می‌خواهد.</string>
     <string name="captcha_failed">بررسی بارگیری نشد یا منقضی شد. دوباره تلاش کنید.</string>
     <string name="captcha_cancelled">بررسی لغو شد.</string>
+    <string name="mod_entry_show_all">نمایش همه (%1$d)</string>
+    <string name="mod_entry_show_less">نمایش کمتر</string>
 </resources>
