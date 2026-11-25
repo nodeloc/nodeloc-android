@@ -529,7 +529,6 @@
     <string name="trim_too_large">Klip ini terlalu besar. Potong lebih pendek lalu coba lagi.</string>
 
     <!-- Direktori aplikasi -->
-    <string name="apps_more">Aplikasi lain</string>
     <string name="apps_recent">Aplikasi terakhir</string>
     <string name="apps_empty">Tidak ada aplikasi</string>
     <string name="apps_open">Buka aplikasi</string>
@@ -1999,4 +1998,9 @@
     <string name="mod_rep_refunded">Reputasi dikembalikan</string>
     <string name="mod_rep_deducted">−%1$d reputasi</string>
     <string name="mod_rep_deducted_refunded">%1$d reputasi dikembalikan</string>
+    <string name="me4_frequent_nodes">Node favorit</string>
+    <string name="me4_nodes_count">%1$d</string>
+    <string name="me4_node_owner">Pemilik node</string>
+    <string name="sidebar_apps">Game &amp; aplikasi</string>
+    <string name="sidebar_drafts_count">\u0020· %1$d</string>
 </resources>

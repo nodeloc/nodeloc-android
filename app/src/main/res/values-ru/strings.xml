@@ -528,7 +528,6 @@
     <string name="trim_too_large">Этот ролик слишком большой. Обрежьте его короче и попробуйте снова.</string>
 
     <!-- Каталог приложений -->
-    <string name="apps_more">Ещё приложения</string>
     <string name="apps_recent">Недавние приложения</string>
     <string name="apps_empty">Приложений нет</string>
     <string name="apps_open">Открыть приложение</string>
@@ -2028,4 +2027,9 @@
     <string name="mod_rep_refunded">Репутация возвращена</string>
     <string name="mod_rep_deducted">−%1$d репутации</string>
     <string name="mod_rep_deducted_refunded">%1$d репутации возвращено</string>
+    <string name="me4_frequent_nodes">Мои узлы</string>
+    <string name="me4_nodes_count">%1$d</string>
+    <string name="me4_node_owner">Владелец узла</string>
+    <string name="sidebar_apps">Игры и приложения</string>
+    <string name="sidebar_drafts_count">\u0020· %1$d</string>
 </resources>

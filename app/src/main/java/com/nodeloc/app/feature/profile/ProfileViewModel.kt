@@ -105,6 +105,8 @@ data class ProfileState(
     /** Own page: the latest unlocks for the header row. Someone else's: what they pinned. */
     val achievementBadges: List<ApiAchItem> = emptyList(),
     val tiers: List<ApiTierInfo> = emptyList(),
+    /** Own page only: the nodes the account has joined, for the 常去节点 card. */
+    val joinedNodes: List<com.nodeloc.app.core.model.NodeSummary>? = null,
     /**
      * This account on the energy board, when it made the first page the server
      * serves: the only public source of someone else's balance and rank.
@@ -217,6 +219,9 @@ class ProfileViewModel : ViewModel() {
             val showcaseJob = async { if (!own) runCatchingCancellable { growth.showcase(username) }.getOrNull() else null }
             val checkinJob = async { if (own) runCatchingCancellable { growth.checkinStatus() }.getOrNull() else null }
             val tiersJob = async { TierDirectory.get() }
+            val nodesJob = async {
+                if (own) runCatchingCancellable { client.sidebarNodes().communities.orEmpty().map(com.nodeloc.app.feature.node.NodeSummaryFactory::summary) }.getOrNull() else null
+            }
             // One request for the whole first page, not one per profile field:
             // the board is the same for every profile opened.
             val boardJob = async { runCatchingCancellable { growth.leaderboard() }.getOrNull() }
@@ -245,6 +250,7 @@ class ProfileViewModel : ViewModel() {
                     ?.take(3)
                     ?: showcase?.showcase.orEmpty(),
                 tiers = tiersJob.await(),
+                joinedNodes = nodesJob.await(),
                 boardRow = boardJob.await()?.firstOrNull { it.username.equals(username, ignoreCase = true) },
                 isFollowing = profile?.isFollowed == true,
                 isLoading = false,

@@ -531,7 +531,6 @@
     <string name="trim_too_large">这段视频太大了，剪短一点再试。</string>
 
     <!-- 应用目录 -->
-    <string name="apps_more">更多应用</string>
     <string name="apps_recent">最近应用</string>
     <string name="apps_empty">暂无应用</string>
     <string name="apps_open">打开应用</string>
@@ -1998,4 +1997,9 @@
     <string name="mod_rep_refunded">声望已返还</string>
     <string name="mod_rep_deducted">扣 %1$d 声望</string>
     <string name="mod_rep_deducted_refunded">%1$d 声望已返还</string>
+    <string name="me4_frequent_nodes">常去节点</string>
+    <string name="me4_nodes_count">%1$d 个</string>
+    <string name="me4_node_owner">节点主理人</string>
+    <string name="sidebar_apps">小游戏和应用</string>
+    <string name="sidebar_drafts_count">\u0020· %1$d 篇</string>
 </resources>

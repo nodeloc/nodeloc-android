@@ -529,7 +529,6 @@
     <string name="trim_too_large">هذا المقطع أكبر من أن يُرسل. اقتصّه أقصر ثم حاول مجددًا.</string>
 
     <!-- دليل التطبيقات -->
-    <string name="apps_more">تطبيقات أخرى</string>
     <string name="apps_recent">تطبيقات حديثة</string>
     <string name="apps_empty">لا تطبيقات</string>
     <string name="apps_open">افتح التطبيق</string>
@@ -2049,4 +2048,9 @@
     <string name="mod_rep_refunded">أُعيدت السمعة</string>
     <string name="mod_rep_deducted">−%1$d سمعة</string>
     <string name="mod_rep_deducted_refunded">أُعيدت %1$d سمعة</string>
+    <string name="me4_frequent_nodes">عُقدك</string>
+    <string name="me4_nodes_count">%1$d</string>
+    <string name="me4_node_owner">مالك العقدة</string>
+    <string name="sidebar_apps">الألعاب والتطبيقات</string>
+    <string name="sidebar_drafts_count">\u0020· %1$d</string>
 </resources>

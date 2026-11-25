@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
@@ -44,6 +45,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -408,10 +410,6 @@ private fun ProfileBody(
             )
         }
 
-        if (isOwn) {
-            item(key = "shortcuts") { Shortcuts(navigator, profile.username) }
-        }
-
         item(key = "tabs") {
             FilterPillRow(contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 0.dp, bottom = 10.dp)) {
                 tabs.forEach { tab ->
@@ -642,15 +640,22 @@ private fun ProfileHeader(
         }
 
         Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            // Wraps rather than truncating: on your own page the tier and role
+            // ride beside the name (the 2026-11 v292 board), and a long name
+            // pushes them to a second line instead of eating into itself.
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                itemVerticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
                     profile.name?.takeIf { it.isNotBlank() } ?: profile.username,
                     style = Type.heading(22, FontWeight.Bold),
                     color = Nocturne.text,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false),
                 )
+                if (isOwn && tier != null) TierBadge(tier)
                 // Your own role comes from your permissions, which know about
                 // node moderators the profile flags do not.
                 val admin = profile.admin == true || (isOwn && privileges.isAdmin)
@@ -658,6 +663,7 @@ private fun ProfileHeader(
                 when {
                     admin -> StatusPill(stringResource(R.string.profile_admin), PillTone.Accent)
                     moderator -> StatusPill(stringResource(R.string.profile_moderator), PillTone.Accent)
+                    isOwn && privileges.nodes.isNotEmpty() -> StatusPill(stringResource(R.string.me4_node_owner), PillTone.Accent)
                 }
             }
             Text(
@@ -694,10 +700,10 @@ private fun ProfileHeader(
                 Modifier
                     .padding(top = 12.dp)
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(if (isOwn) 16.dp else 12.dp))
                     .background(Nocturne.surface)
-                    .padding(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    .padding(if (isOwn) 4.dp else 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(if (isOwn) 0.dp else 8.dp),
             ) {
                 val summary = state.summary
                 val topics = (summary?.topicCount ?: profile.topicCount)?.toLong()
@@ -705,29 +711,61 @@ private fun ProfileHeader(
                 // 贡献 is topics and replies together, as the web counts it.
                 val contribution = if (topics == null && posts == null) null else (topics ?: 0) + (posts ?: 0)
                 val reputation = if (isOwn) state.reputation?.reputation?.toLong() else state.publicReputation
-                Figure(stringResource(R.string.profile_reputation), reputation, Modifier.weight(1f))
-                Figure(stringResource(R.string.me2_contribution), contribution, Modifier.weight(1f))
-                Figure(stringResource(R.string.me2_followers_label), profile.totalFollowers?.toLong(), Modifier.weight(1f))
+                // Your own balance is always known; someone else's only when they
+                // made the board's first page, the one public source of it.
+                val balance = if (isOwn) state.pointsTotal?.toLong() ?: state.boardRow?.balance else state.boardRow?.balance
+                if (isOwn) {
+                    // Four figures since v292, and the ones with a page behind
+                    // them are the way there: the grid of shortcuts they
+                    // replaced is gone, so 声望 is how 升级进度 is reached.
+                    Figure(stringResource(R.string.profile_reputation), reputation, Modifier.weight(1f), padded = true) {
+                        navigator.openUpgradeProgress(profile.username)
+                    }
+                    Figure(stringResource(R.string.me2_sc_energy), balance, Modifier.weight(1f), padded = true) {
+                        navigator.openEnergyHistory()
+                    }
+                    Figure(stringResource(R.string.me2_contribution), contribution, Modifier.weight(1f), padded = true)
+                    Figure(stringResource(R.string.me2_followers_label), profile.totalFollowers?.toLong(), Modifier.weight(1f), padded = true)
+                } else {
+                    Figure(stringResource(R.string.profile_reputation), reputation, Modifier.weight(1f))
+                    Figure(stringResource(R.string.me2_contribution), contribution, Modifier.weight(1f))
+                    Figure(stringResource(R.string.me2_followers_label), profile.totalFollowers?.toLong(), Modifier.weight(1f))
+                }
             }
 
-            // Your own balance is always known; someone else's only when they
-            // made the board's first page, the one public source of it.
-            val balance = if (isOwn) state.pointsTotal?.toLong() ?: state.boardRow?.balance else state.boardRow?.balance
-            EnergyLine(
-                balance = balance,
-                rank = state.boardRow?.rank,
-                tierName = tier?.name ?: state.reputation?.tierName,
-                onRank = navigator::openWealthRank,
-            )
-
-            val total = state.achievementsTotal
-            if (isOwn && total != null) {
-                AchievementsStrip(
-                    badges = state.achievementBadges,
-                    label = stringResource(R.string.me3_ach_unlocked, state.achievementsUnlocked ?: 0, total),
-                    onClick = { navigator.openAchievements() },
+            if (isOwn) {
+                Row(Modifier.padding(top = 8.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val unlocked = state.achievementsUnlocked
+                    val total = state.achievementsTotal
+                    StackCard(
+                        title = stringResource(R.string.me2_sc_achievements),
+                        count = if (unlocked != null && total != null) "$unlocked / $total" else null,
+                        modifier = Modifier.weight(1f),
+                        onClick = { navigator.openAchievements() },
+                        shown = state.achievementBadges.size,
+                        overflow = (unlocked ?: 0) - state.achievementBadges.size,
+                    ) { index -> AchievementDisc(state.achievementBadges[index], 40.dp) }
+                    val nodes = state.joinedNodes.orEmpty()
+                    val shownNodes = minOf(nodes.size, STACK_NODES)
+                    StackCard(
+                        title = stringResource(R.string.me4_frequent_nodes),
+                        count = state.joinedNodes?.let { stringResource(R.string.me4_nodes_count, it.size) },
+                        modifier = Modifier.weight(1f),
+                        onClick = { navigator.openNodes() },
+                        shown = shownNodes,
+                        overflow = nodes.size - shownNodes,
+                    ) { index -> com.nodeloc.app.feature.node.NodeMark(nodes[index], 40.dp) }
+                }
+            } else {
+                EnergyLine(
+                    balance = state.boardRow?.balance,
+                    rank = state.boardRow?.rank,
+                    tierName = tier?.name ?: state.reputation?.tierName,
+                    onRank = navigator::openWealthRank,
                 )
-            } else if (!isOwn && state.achievementBadges.isNotEmpty()) {
+            }
+
+            if (!isOwn && state.achievementBadges.isNotEmpty()) {
                 AchievementsStrip(
                     badges = state.achievementBadges,
                     label = stringResource(R.string.me2_showcase_label),
@@ -776,9 +814,26 @@ private fun joinedLine(createdAt: String?): String? {
     return stringResource(R.string.me2_joined_at, month)
 }
 
+/**
+ * A figure, and on your own page a way into the page behind it. The cell is
+ * padded either way so the four line up whether or not they press.
+ */
 @Composable
-private fun Figure(label: String, value: Long?, modifier: Modifier) {
-    Column(modifier) {
+private fun Figure(label: String, value: Long?, modifier: Modifier, padded: Boolean = false, onClick: (() -> Unit)? = null) {
+    val press = rememberPressSource()
+    Column(
+        modifier
+            .then(if (onClick != null) Modifier.pressScale(press) else Modifier)
+            .clip(RoundedCornerShape(12.dp))
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable(interactionSource = press, indication = ripple(), role = Role.Button, onClick = onClick)
+                } else {
+                    Modifier
+                },
+            )
+            .then(if (padded) Modifier.padding(8.dp) else Modifier),
+    ) {
         Text(value?.let(::formatCount) ?: "--", style = Type.heading(18, FontWeight.ExtraBold), color = Nocturne.text, maxLines = 1)
         Text(label, style = Type.body(12), color = Nocturne.textSecondary, maxLines = 1)
     }
@@ -840,66 +895,86 @@ private fun AchievementDisc(item: ApiAchItem, size: androidx.compose.ui.unit.Dp)
     }
 }
 
-/** One tile: the design's own glyph (res/drawable ic_me_*) on its own coloured ground. */
-private class Shortcut(
-    @androidx.annotation.DrawableRes val icon: Int,
-    val label: Int,
-    val ground: Color,
-    val ink: Color,
-    val open: () -> Unit,
-)
+/** Joined nodes drawn before the "+N" coin; the card is half the page wide, and four is what fits. */
+private const val STACK_NODES = 4
 
-/** The eight ways out of 我的, four to a row on one grey tray — icons and colours as on the board. */
+/** The tier beside your name: its glyph and name in the site's own colours for it. */
 @Composable
-private fun Shortcuts(navigator: Navigator, username: String) {
-    val items = listOf(
-        Shortcut(R.drawable.ic_me_upgrade, R.string.me2_sc_upgrade, Nocturne.infoBg, Nocturne.info) { navigator.openUpgradeProgress(username) },
-        Shortcut(R.drawable.ic_me_achievements, R.string.me2_sc_achievements, Nocturne.goldBg, Nocturne.gold) { navigator.openAchievements() },
-        Shortcut(R.drawable.ic_me_energy, R.string.me2_sc_energy, Nocturne.goldBg, Nocturne.gold) { navigator.openEnergyHistory() },
-        Shortcut(R.drawable.ic_me_rank, R.string.me2_sc_rank, Nocturne.violetBg, Nocturne.violet) { navigator.openWealthRank() },
-        Shortcut(R.drawable.ic_me_invite, R.string.me2_sc_invite, Nocturne.accent100, Nocturne.accent700) { navigator.openInvite() },
-        Shortcut(R.drawable.ic_me_drafts, R.string.me2_sc_drafts, Nocturne.neutral300, Nocturne.text) { navigator.openDrafts() },
-        Shortcut(R.drawable.ic_me_apps, R.string.me2_sc_apps, Nocturne.dangerBg, Nocturne.danger) { navigator.openApps() },
-        Shortcut(R.drawable.ic_me_settings, R.string.me2_sc_settings, Nocturne.neutral300, Nocturne.text) { navigator.openSettings() },
-    )
-    Column(
+private fun TierBadge(tier: ApiTierInfo) {
+    val (ground, ink) = tier.colors(Nocturne.isDark) ?: (Nocturne.infoBg to Nocturne.info)
+    Row(
         Modifier
-            .padding(start = 12.dp, end = 12.dp, bottom = 14.dp)
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(Nocturne.surface)
-            .padding(horizontal = 4.dp, vertical = 6.dp),
+            .height(24.dp)
+            .clip(CircleShape)
+            .background(ground)
+            .border(1.dp, ink.copy(alpha = 0.3f), CircleShape)
+            .padding(horizontal = 9.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        items.chunked(4).forEach { row ->
-            Row(Modifier.fillMaxWidth()) {
-                row.forEach { item ->
-                    val ground = item.ground
-                    val ink = item.ink
-                    val press = rememberPressSource()
-                    Column(
-                        Modifier
-                            .weight(1f)
-                            .pressScale(press)
-                            .clip(RoundedCornerShape(14.dp))
-                            .clickable(interactionSource = press, indication = ripple(), role = Role.Button, onClick = item.open)
-                            .padding(vertical = 8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Box(
-                            Modifier.size(44.dp).clip(RoundedCornerShape(16.dp)).background(ground),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(androidx.compose.ui.res.painterResource(item.icon), null, tint = ink, modifier = Modifier.size(22.dp))
-                        }
-                        Text(
-                            stringResource(item.label),
-                            style = Type.body(12),
-                            color = Nocturne.text,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
+        Icon(ImageVector.vectorResource(tierIconRes(tier.level)), null, tint = ink, modifier = Modifier.size(14.dp))
+        Text(tier.name.orEmpty(), style = Type.body(12, FontWeight.Bold), color = ink, maxLines = 1)
+    }
+}
+
+/**
+ * 成就 and 常去节点 on your own page: a title with its count, then the first
+ * few as overlapping coins and a "+N" for the rest. Each coin is ringed in the
+ * card's own grey, which is what separates it from the one it overlaps.
+ */
+@Composable
+private fun StackCard(
+    title: String,
+    count: String?,
+    shown: Int,
+    overflow: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    coin: @Composable (Int) -> Unit,
+) {
+    val press = rememberPressSource()
+    Column(
+        modifier
+            .pressScale(press)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Nocturne.surface)
+            .clickable(interactionSource = press, indication = ripple(), role = Role.Button, onClick = onClick)
+            .padding(12.dp),
+    ) {
+        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(title, style = Type.body(14, FontWeight.Bold), color = Nocturne.text, maxLines = 1)
+            count?.let { Text(it, style = Type.body(12), color = Nocturne.textSecondary, maxLines = 1) }
+        }
+        Row(
+            Modifier.padding(top = 8.dp).height(44.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy((-14).dp),
+        ) {
+            val total = shown + if (overflow > 0) 1 else 0
+            repeat(shown) { index ->
+                Box(
+                    Modifier
+                        .zIndex((total - index).toFloat())
+                        .clip(CircleShape)
+                        .background(Nocturne.surface)
+                        .padding(2.dp),
+                ) { coin(index) }
+            }
+            if (overflow > 0) {
+                Box(
+                    Modifier
+                        // Above its neighbour, unlike the coins: under it, the
+                        // overlap ate the "+" of a two-digit count.
+                        .zIndex((total + 1).toFloat())
+                        .clip(CircleShape)
+                        .background(Nocturne.surface)
+                        .padding(2.dp)
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Nocturne.bg),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("+$overflow", style = Type.body(13, FontWeight.Bold), color = Nocturne.text, maxLines = 1)
                 }
             }
         }

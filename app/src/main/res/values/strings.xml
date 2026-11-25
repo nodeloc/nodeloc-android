@@ -532,7 +532,6 @@
     <string name="trim_too_large">That clip is too large to send. Trim it shorter and try again.</string>
 
     <!-- App directory -->
-    <string name="apps_more">More apps</string>
     <string name="apps_recent">Recent apps</string>
     <string name="apps_empty">No apps</string>
     <string name="apps_open">Open app</string>
@@ -2009,4 +2008,9 @@
     <string name="mod_rep_refunded">Reputation refunded</string>
     <string name="mod_rep_deducted">−%1$d reputation</string>
     <string name="mod_rep_deducted_refunded">%1$d reputation refunded</string>
+    <string name="me4_frequent_nodes">Your nodes</string>
+    <string name="me4_nodes_count">%1$d</string>
+    <string name="me4_node_owner">Node owner</string>
+    <string name="sidebar_apps">Games &amp; apps</string>
+    <string name="sidebar_drafts_count">\u0020· %1$d</string>
 </resources>

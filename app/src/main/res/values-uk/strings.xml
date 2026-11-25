@@ -528,7 +528,6 @@
     <string name="trim_too_large">Цей ролик завеликий. Обріжте його коротше й спробуйте ще раз.</string>
 
     <!-- Каталог застосунків -->
-    <string name="apps_more">Ще застосунки</string>
     <string name="apps_recent">Нещодавні застосунки</string>
     <string name="apps_empty">Застосунків немає</string>
     <string name="apps_open">Відкрити застосунок</string>
@@ -2028,4 +2027,9 @@
     <string name="mod_rep_refunded">Репутацію повернуто</string>
     <string name="mod_rep_deducted">−%1$d репутації</string>
     <string name="mod_rep_deducted_refunded">%1$d репутації повернуто</string>
+    <string name="me4_frequent_nodes">Мої вузли</string>
+    <string name="me4_nodes_count">%1$d</string>
+    <string name="me4_node_owner">Власник вузла</string>
+    <string name="sidebar_apps">Ігри та застосунки</string>
+    <string name="sidebar_drafts_count">\u0020· %1$d</string>
 </resources>

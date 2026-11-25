@@ -35,6 +35,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -75,6 +79,9 @@ fun SidebarDrawer(
     onBrowseNodes: () -> Unit,
     onCreateNode: () -> Unit,
     onOpenApps: () -> Unit,
+    onOpenRank: () -> Unit,
+    onOpenInvite: () -> Unit,
+    onOpenDrafts: () -> Unit,
     onOpenApp: (String) -> Unit,
     onOpenProfile: () -> Unit,
     onOpenModDashboard: (String?) -> Unit,
@@ -106,6 +113,21 @@ fun SidebarDrawer(
             LazyColumn(Modifier.weight(1f)) {
                 user?.let { me ->
                     item { SidebarUserCard(me, privileges, onOpenProfile) }
+                }
+
+                // What left 我的 with its shortcut grid (the v292 board): the
+                // board, the app directory, and the two that need an account.
+                item {
+                    SidebarAction(ImageVector.vectorResource(R.drawable.ic_me_rank), stringResource(R.string.me2_sc_rank)) { onOpenRank() }
+                    SidebarAction(ImageVector.vectorResource(R.drawable.ic_me_apps), stringResource(R.string.sidebar_apps)) { onOpenApps() }
+                    if (user != null) {
+                        SidebarAction(ImageVector.vectorResource(R.drawable.ic_me_invite), stringResource(R.string.me2_sc_invite)) { onOpenInvite() }
+                        SidebarAction(
+                            ImageVector.vectorResource(R.drawable.ic_me_drafts),
+                            stringResource(R.string.me2_sc_drafts),
+                            detail = state.drafts?.takeIf { it > 0 }?.let { stringResource(R.string.sidebar_drafts_count, it) },
+                        ) { onOpenDrafts() }
+                    }
                 }
 
                 if (privileges.isModerator) {
@@ -151,10 +173,7 @@ fun SidebarDrawer(
                     items(state.apps, key = { "app-${it.id}" }) { app ->
                         SidebarAppRow(app) { onOpenApp(app.slug) }
                     }
-                    item {
-                        SidebarAction(Lucide.LayoutGrid, stringResource(R.string.apps_more)) { onOpenApps() }
-                        Spacer(Modifier.height(Space.s4))
-                    }
+                    item { Spacer(Modifier.height(Space.s4)) }
                 }
 
                 if (state.recent.isNotEmpty()) {
@@ -289,7 +308,7 @@ private fun SidebarManagedNodeRow(node: ModeratedNode, logoUrl: String?, pending
 }
 
 @Composable
-private fun SidebarAction(icon: ImageVector, label: String, onClick: () -> Unit) {
+private fun SidebarAction(icon: ImageVector, label: String, detail: String? = null, onClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -299,7 +318,14 @@ private fun SidebarAction(icon: ImageVector, label: String, onClick: () -> Unit)
         horizontalArrangement = Arrangement.spacedBy(Space.s4),
     ) {
         Icon(icon, null, tint = Nocturne.muted(0.6f), modifier = Modifier.size(20.dp))
-        Text(label, style = Type.body(15), color = Nocturne.text)
+        Text(
+            buildAnnotatedString {
+                append(label)
+                detail?.let { withStyle(SpanStyle(fontSize = Type.body(13).fontSize, color = Nocturne.textSecondary)) { append(it) } }
+            },
+            style = Type.body(15),
+            color = Nocturne.text,
+        )
     }
 }
 

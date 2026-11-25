@@ -24,6 +24,8 @@ data class SidebarState(
     val nodes: List<NodeSummary> = emptyList(),
     val recent: List<NodeSummary> = emptyList(),
     val apps: List<SidebarDiscourseApp> = emptyList(),
+    /** Signed in only: how many drafts wait in 草稿箱, for the count beside it. */
+    val drafts: Int? = null,
 )
 
 /** A section of the directory, offered as a chip on the node square. */
@@ -113,6 +115,13 @@ class NodeCatalogViewModel : ViewModel() {
                 if (client.auth.isAuthenticated) runCatchingCancellable { client.recentlyVisitedNodes() }.getOrNull() else null
             }
             val siteCall = async { services.siteRepository.siteResponse() }
+            val draftsCall = async {
+                if (client.auth.isAuthenticated) {
+                    runCatchingCancellable { com.nodeloc.app.core.network.PersonalApi(client.api).drafts().drafts.size }.getOrNull()
+                } else {
+                    null
+                }
+            }
             val nodes = nodesCall.await()
             val recent = recentCall.await()
             _sidebarState.value = SidebarState(
@@ -121,6 +130,7 @@ class NodeCatalogViewModel : ViewModel() {
                     .map(NodeSummaryFactory::summary),
                 recent = recent?.communities.orEmpty().map(NodeSummaryFactory::summary),
                 apps = sidebarApps(siteCall.await()),
+                drafts = draftsCall.await(),
             )
         }
     }

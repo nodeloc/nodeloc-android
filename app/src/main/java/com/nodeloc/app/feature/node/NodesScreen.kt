@@ -371,7 +371,7 @@ private fun SectionHeading(title: String, note: String? = null, top: Dp) {
 
 /** The node's own colour behind its letter, as on the web square; a logo wins when there is one. */
 @Composable
-private fun NodeMark(node: NodeSummary, size: Dp) {
+internal fun NodeMark(node: NodeSummary, size: Dp) {
     val ground = nodeColor(node.colorHex)
     when {
         node.logoUrl != null -> RemoteAvatar(node.logoUrl, node.letter, size = size)

@@ -528,7 +528,6 @@
     <string name="trim_too_large">Video này quá lớn. Hãy cắt ngắn rồi thử lại.</string>
 
     <!-- Danh bạ ứng dụng -->
-    <string name="apps_more">Thêm ứng dụng</string>
     <string name="apps_recent">Ứng dụng gần đây</string>
     <string name="apps_empty">Không có ứng dụng</string>
     <string name="apps_open">Mở ứng dụng</string>
@@ -1998,4 +1997,9 @@
     <string name="mod_rep_refunded">Đã hoàn uy tín</string>
     <string name="mod_rep_deducted">−%1$d uy tín</string>
     <string name="mod_rep_deducted_refunded">Đã hoàn %1$d uy tín</string>
+    <string name="me4_frequent_nodes">Node thường lui tới</string>
+    <string name="me4_nodes_count">%1$d</string>
+    <string name="me4_node_owner">Chủ node</string>
+    <string name="sidebar_apps">Trò chơi và ứng dụng</string>
+    <string name="sidebar_drafts_count">\u0020· %1$d</string>
 </resources>

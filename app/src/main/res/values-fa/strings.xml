@@ -528,7 +528,6 @@
     <string name="trim_too_large">این ویدیو خیلی بزرگ است. کوتاه‌ترش کنید و دوباره تلاش کنید.</string>
 
     <!-- فهرست برنامه‌ها -->
-    <string name="apps_more">برنامه‌های بیشتر</string>
     <string name="apps_recent">برنامه‌های اخیر</string>
     <string name="apps_empty">برنامه‌ای نیست</string>
     <string name="apps_open">گشودن برنامه</string>
@@ -2008,4 +2007,9 @@
     <string name="mod_rep_refunded">اعتبار بازگردانده شد</string>
     <string name="mod_rep_deducted">−%1$d اعتبار</string>
     <string name="mod_rep_deducted_refunded">%1$d اعتبار بازگردانده شد</string>
+    <string name="me4_frequent_nodes">گره‌های شما</string>
+    <string name="me4_nodes_count">%1$d</string>
+    <string name="me4_node_owner">مالک گره</string>
+    <string name="sidebar_apps">بازی‌ها و برنامه‌ها</string>
+    <string name="sidebar_drafts_count">\u0020· %1$d</string>
 </resources>

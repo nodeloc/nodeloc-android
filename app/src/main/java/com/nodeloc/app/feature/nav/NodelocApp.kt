@@ -125,6 +125,9 @@ fun NodelocApp(startDestination: Any = Route.Home) {
                     scope.launch { drawerState.close() }
                 },
                 onOpenApps = { navigator.openApps(); scope.launch { drawerState.close() } },
+                onOpenRank = { navigator.openWealthRank(); scope.launch { drawerState.close() } },
+                onOpenInvite = { navigator.openInvite(); scope.launch { drawerState.close() } },
+                onOpenDrafts = { navigator.openDrafts(); scope.launch { drawerState.close() } },
                 onOpenApp = { navigator.openApp(it); scope.launch { drawerState.close() } },
                 onOpenProfile = { navigator.openMe(); scope.launch { drawerState.close() } },
                 onOpenModDashboard = { navigator.openModDashboard(it); scope.launch { drawerState.close() } },
