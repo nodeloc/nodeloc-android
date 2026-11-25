@@ -1,6 +1,7 @@
 package com.nodeloc.app.feature.feed
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -342,7 +343,7 @@ private fun CardMedia(post: Post, onOpen: () -> Unit, onOpenImage: (Int) -> Unit
             onClick = onOpen,
         )
     } else if (post.media.size == 1) {
-        Box(Modifier.fillMaxWidth().aspectRatio(ratio).clip(shape).clickable { onOpenImage(0) }) {
+        Box(Modifier.fillMaxWidth().aspectRatio(ratio).clip(shape).border(1.dp, Nocturne.divider, shape).clickable { onOpenImage(0) }) {
             // Small on purpose: it is about to be blurred, so a bigger one buys
             // nothing but bytes and a longer decode.
             BlurredMediaBackdrop(first?.bestUrl(480), Modifier.fillMaxSize())
@@ -355,7 +356,7 @@ private fun CardMedia(post: Post, onOpen: () -> Unit, onOpenImage: (Int) -> Unit
     } else {
         val pagerState = rememberPagerState { post.media.size }
         val scope = rememberCoroutineScope()
-        Box(Modifier.fillMaxWidth().aspectRatio(ratio).clip(shape)) {
+        Box(Modifier.fillMaxWidth().aspectRatio(ratio).clip(shape).border(1.dp, Nocturne.divider, shape)) {
             HorizontalPager(state = pagerState, modifier = Modifier.fillMaxWidth()) { page ->
                 Box(Modifier.fillMaxWidth().aspectRatio(ratio).clickable { onOpenImage(page) }) {
                     // Per page, not per card: a gallery's pictures are rarely
