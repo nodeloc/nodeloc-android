@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#161826</color>
+    <!-- The pack's "default" icon ground. -->
+    <color name="ic_launcher_background">#0B1F18</color>
 </resources>
