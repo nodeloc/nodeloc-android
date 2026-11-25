@@ -302,7 +302,12 @@ private fun RowExcerpt(post: Post) {
 private fun CardMedia(post: Post, onOpen: () -> Unit, onOpenImage: (Int) -> Unit) {
     val shape = RoundedCornerShape(Radius.lg)
     val first = post.media.firstOrNull()
-    val ratio = 1f / FeedMedia.heightRatio(first?.width, first?.height)
+    // The 2.0 topic list sends only `image_url`, no dimensions. Without them the
+    // ratio fell back to a square and the picture was letterboxed inside it — a
+    // wide banner became a grey box with a strip in the middle. Unknown size
+    // gets the design's short landscape card and a crop instead.
+    val known = first?.width != null && first.height != null
+    val ratio = if (known) 1f / FeedMedia.heightRatio(first?.width, first?.height) else 16f / 9f
 
     val videoUrl = post.videoUrl
     if (videoUrl != null) {
@@ -325,7 +330,7 @@ private fun CardMedia(post: Post, onOpen: () -> Unit, onOpenImage: (Int) -> Unit
             RemoteImage(
                 first?.bestUrl(1080),
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit,
+                contentScale = if (known) ContentScale.Fit else ContentScale.Crop,
             )
         }
     } else {
@@ -410,32 +415,36 @@ private fun RowHeader(
     onOpenAuthor: (String) -> Unit,
     more: PostRowActions?,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        BylineAvatar(byline, 28.dp, onOpenAuthor)
-        Text(
-            byline.label,
-            style = Type.body(14, FontWeight.SemiBold),
-            color = Nocturne.text,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f, fill = false),
-        )
-        Text("· ${post.time}", style = Type.body(14), color = Nocturne.textSecondary, maxLines = 1)
-        if (post.isUnread) UnreadDot()
-        if (post.pinned) {
-            Icon(
-                Lucide.Pin,
-                stringResource(R.string.feed_pinned),
-                tint = Nocturne.accent2,
-                modifier = Modifier.size(13.dp),
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        // The byline gets its own weighted row so the menu always sits at the
+        // far edge: a weighted label next to a weighted spacer splits the slack
+        // between them, and the menu then wandered with the label's length.
+        Row(
+            Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            BylineAvatar(byline, 28.dp, onOpenAuthor)
+            Text(
+                byline.label,
+                style = Type.body(14, FontWeight.SemiBold),
+                color = Nocturne.text,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
             )
+            Text("· ${post.time}", style = Type.body(14), color = Nocturne.textSecondary, maxLines = 1)
+            if (post.isUnread) UnreadDot()
+            if (post.pinned) {
+                Icon(
+                    Lucide.Pin,
+                    stringResource(R.string.feed_pinned),
+                    tint = Nocturne.accent2,
+                    modifier = Modifier.size(13.dp),
+                )
+            }
         }
-        // Pushed to the end of the line the row already has, so it lands at the
-        // top right without an overlay that would sit on whatever is there.
-        more?.let {
-            Spacer(Modifier.weight(1f))
-            PostRowMenu(it)
-        }
+        more?.let { PostRowMenu(it) }
     }
 }
 

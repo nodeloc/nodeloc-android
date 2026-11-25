@@ -183,7 +183,9 @@ fun ProfileScreen(
 
         FloatingHeaderBar(
             scrolled = listState.isScrolledPastTop(threshold = 0),
-            overMedia = true,
+            // Only over the signed-in header's dark band; a guest page is plain white
+            // and the scrim would leave white icons on nothing.
+            overMedia = isSignedIn,
             leading = { com.nodeloc.app.feature.nav.DrawerMenuButton(onClick = onOpenDrawer) },
             centerVisible = listState.isScrolledPastTop(threshold = 120),
             center = {
