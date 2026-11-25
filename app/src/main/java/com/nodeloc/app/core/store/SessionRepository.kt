@@ -73,17 +73,13 @@ class SessionRepository(
         _isSignedIn.value = restored
         if (!restored) return
         scope.launch {
-            // A restored cookie session carries a CSRF token from last launch,
-            // and Discourse rotates it — every write would 403 until it's
-            // refreshed, so do that before anything else touches the network.
-            if (client.auth.hasSession) authService.refreshCsrfToken()
             refresh(force = true)
         }
     }
 
     /**
-     * Reloads the current user. A 404 here is Discourse's way of saying "not
-     * signed in", so it clears the session rather than surfacing an error.
+     * Reloads the current user. Only a 401 means the session is gone; anything
+     * else (offline, a 5xx) leaves it alone.
      */
     suspend fun refresh(force: Boolean = false): CurrentUser? {
         if (!client.auth.isAuthenticated) {
@@ -101,7 +97,7 @@ class SessionRepository(
                 adoptAccountLanguage(user.username)
                 user
             } catch (error: DiscourseError) {
-                if (error.isNotFound || error.isUnauthorized) {
+                if (error.isSessionGone) {
                     // The cookie rotated out from under us, or the key was
                     // revoked. Either way the session is gone, and it has to go
                     // the same way a deliberate sign-out does — otherwise the
@@ -190,7 +186,11 @@ class SessionRepository(
         // The account borrowed the language; the phone gets it back.
         languageAdopted = false
         AppLocale.followSystem()
-        purgeJob = scope.launch { purgeAccountState() }
+        purgeJob = scope.launch {
+            purgeAccountState()
+            // After the purge, which unregisters push with the same token.
+            authService.revokeRetired()
+        }
         if (involuntary) ToastCenter.show(R.string.session_expired)
     }
 

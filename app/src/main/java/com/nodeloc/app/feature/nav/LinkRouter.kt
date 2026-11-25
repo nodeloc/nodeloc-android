@@ -104,11 +104,14 @@ object LinkRouter {
                 else -> LinkDestination.InAppBrowser(absolute)
             }
 
-            // /n/{slug}/{id} is a *topic* in the nested reader view;
-            // /c/{parent}/{child}/{id} is a node.
-            "n" -> segments.drop(1).firstNotNullOfOrNull { it.toIntOrNull() }
-                ?.let { LinkDestination.Topic(it, null) }
-                ?: LinkDestination.InAppBrowser(absolute)
+            // /n/{slug} is a node on the 2.0 site (it was a nested topic view
+            // on the old one, which is why a trailing number still means a topic).
+            "n" -> when {
+                segments.size >= 3 && segments[2].toIntOrNull() != null ->
+                    LinkDestination.Topic(segments[2].toInt(), null)
+                segments.size >= 2 -> LinkDestination.Node(segments[1], null)
+                else -> LinkDestination.InAppBrowser(absolute)
+            }
 
             "c" -> {
                 val id = segments.drop(1).lastOrNull()?.toIntOrNull()
@@ -116,7 +119,8 @@ object LinkRouter {
                 if (slug != null) LinkDestination.Node(slug, id) else LinkDestination.InAppBrowser(absolute)
             }
 
-            // /chat/c/-/{channelId}/{messageId}
+            // /chat/g/{id} is a group conversation; /chat/c/-/{channelId}/{messageId}
+            // the old channel form. A channel named by slug stays on the web.
             "chat" -> {
                 val numbers = segments.mapNotNull { it.toIntOrNull() }
                 numbers.firstOrNull()

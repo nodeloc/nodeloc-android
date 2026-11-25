@@ -28,6 +28,11 @@ internal fun handOverSession() {
     ServiceLocator.get.cookieJar.asSetCookieHeaders().forEach {
         manager.setCookie(DiscourseConfig.BASE_URL, it)
     }
+    // A token sign-in leaves no cookie in the jar. The token is the session's
+    // own value, so the WebView gets it as the cookie pages expect.
+    ServiceLocator.get.auth.token?.let { token ->
+        manager.setCookie(DiscourseConfig.BASE_URL, "$SESSION_COOKIE=$token; Path=/; Secure; HttpOnly")
+    }
     manager.flush()
 }
 
@@ -67,7 +72,6 @@ internal suspend fun clearWebViewSession() {
 internal enum class WebSessionState { Cookie, ApiKeyOnly, Anonymous }
 
 internal fun webSessionState(auth: DiscourseAuth): WebSessionState = when {
-    auth.hasSession -> WebSessionState.Cookie
-    auth.userApiKey != null -> WebSessionState.ApiKeyOnly
+    auth.isAuthenticated -> WebSessionState.Cookie
     else -> WebSessionState.Anonymous
 }

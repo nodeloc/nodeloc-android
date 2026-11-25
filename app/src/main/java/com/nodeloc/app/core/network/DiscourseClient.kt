@@ -2,45 +2,32 @@
 
 package com.nodeloc.app.core.network
 
-import com.nodeloc.app.core.util.rethrowIfCancellation
-import com.nodeloc.app.core.util.runCatchingCancellable
-import android.util.Log
-import com.nodeloc.app.BuildConfig
 import com.nodeloc.app.core.model.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
-import kotlin.coroutines.resumeWithException
+import com.nodeloc.app.core.util.runCatchingCancellable
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.JsonNamingStrategy
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.Dispatcher
-import okhttp3.HttpUrl
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
-import java.io.IOException
-import java.net.URLEncoder
 import java.util.Locale
-import java.util.UUID
 import java.util.TimeZone
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.TimeUnit
 
 /** The session a request was issued under. See [DiscourseAuth.generation]. */
 @JvmInline
@@ -48,40 +35,39 @@ value class AuthGeneration(val value: Int)
 
 /** Mutable auth state shared by every request. */
 class DiscourseAuth {
-    @Volatile var userApiKey: String? = null
-    @Volatile var csrfToken: String? = null
+    /** The bearer token the native API issued at sign-in. */
+    @Volatile var token: String? = null
     @Volatile var username: String? = null
 
-    /** Set when a website (cookie) session is active. */
+    /**
+     * A cookie session instead of a token: what a sign-in completed inside a
+     * WebView leaves behind when the server handed back no token. The jar sends
+     * it; nothing else needs to.
+     */
     @Volatile var hasSession: Boolean = false
 
-    val isAuthenticated: Boolean get() = userApiKey != null || hasSession
-
     /**
-     * A sign-in attempt has to clear these to get a clean CSRF token, but a
-     * *failed* attempt must not cost the user the session they already had.
+     * The token of a session just signed out of, kept until the sign-out's own
+     * last calls (unregistering push, revoking the session) have used it.
      */
-    data class Snapshot(
-        val userApiKey: String?,
-        val csrfToken: String?,
-        val username: String?,
-        val hasSession: Boolean,
-    )
+    @Volatile var retiredToken: String? = null
 
-    fun snapshot(): Snapshot = Snapshot(userApiKey, csrfToken, username, hasSession)
+    val isAuthenticated: Boolean get() = token != null || hasSession
+
+    /** A failed sign-in attempt must not cost the user the session they already had. */
+    data class Snapshot(val token: String?, val username: String?, val hasSession: Boolean)
+
+    fun snapshot(): Snapshot = Snapshot(token, username, hasSession)
 
     fun restore(snapshot: Snapshot) {
-        userApiKey = snapshot.userApiKey
-        csrfToken = snapshot.csrfToken
+        token = snapshot.token
         username = snapshot.username
         hasSession = snapshot.hasSession
     }
 
     /**
-     * Raised when the server rejects the session itself, from any call.
-     *
-     * Set post-construction by `ServiceLocator`: the client is built before the
-     * session repository exists, so this cannot be a constructor argument.
+     * Raised when the server rejects the session itself, from any call. Set after
+     * construction by `ServiceLocator`, which builds the client first.
      */
     @Volatile
     var onSessionRejected: (() -> Unit)? = null
@@ -89,814 +75,811 @@ class DiscourseAuth {
     private val rejected = AtomicBoolean(false)
 
     /**
-     * Bumped whenever the credential changes, and stamped on every request.
-     *
-     * Without it, a request issued under the *old* session and answered after
-     * the user signed in again would sign them straight back out — the reply
-     * is about a session that no longer exists.
+     * Bumped whenever the credential changes, and stamped on every request, so a
+     * request issued under the old session and answered after a new sign-in
+     * cannot sign the new one straight back out.
      */
     private val generationCounter = AtomicInteger()
 
     val generation: Int get() = generationCounter.get()
 
-    /** A sign-in makes the session worth trusting again. */
     fun resetRejection() {
         generationCounter.incrementAndGet()
         rejected.set(false)
     }
 
     /**
-     * Four conditions, none of them optional:
-     *
-     * - the reply is about the session we still hold, not one already replaced.
-     * - not authenticated, so nothing to invalidate. This alone covers the
-     *   sign-in flow, which clears the credential before fetching CSRF.
-     * - the path is part of signing in, where a rejection is the *answer*, not
-     *   a verdict on an existing session. The OAuth flow's own `currentUser`
-     *   call is deliberately absent: rejected there means the key really is
-     *   dead.
-     * - only Discourse's own `not_logged_in` / `invalid_access`; a bare 403 is
-     *   far more often a permission problem, and behind Cloudflare it is a
-     *   challenge. `invalid_access` is itself checked before it gets this far —
-     *   see `DiscourseClient.sessionIsGone` — because Discourse says it both
-     *   for a dead credential and for a topic somebody has not earned.
-     * - once. A screen firing three requests in parallel would otherwise sign
-     *   out three times and toast three times.
+     * Once per session, only for the credential still held, and never for the
+     * sign-in endpoints themselves, where a 401 is the answer rather than a
+     * verdict on an existing session.
      */
     internal fun noteSessionRejected(path: String, requestGeneration: Int) {
         if (requestGeneration != generation) return
         if (!isAuthenticated) return
-        if (path.trimStart('/') in SESSION_SAFE_PATHS) return
-        // Compare-and-set, not read-then-write: three requests failing
-        // together each read the flag before any of them had written it, so
-        // the "once" this latch exists to guarantee was two or three.
+        if (path.trimEnd('/') in SESSION_SAFE_PATHS) return
         if (!rejected.compareAndSet(false, true)) return
         onSessionRejected?.invoke()
     }
 
     private companion object {
         val SESSION_SAFE_PATHS = setOf(
-            "session/csrf.json",
-            "session",
-            "users",
-            "u/confirm-session",
-            "session/forgot_password",
+            "/api/v1/auth/login",
+            "/api/v1/auth/register",
+            "/api/v1/auth/passkey",
+            "/api/v1/auth/password-reset",
+            "/api/v1/me/reauth",
         )
     }
 }
 
 /**
- * The one place network I/O happens.
+ * Everything the screens ask of the server, in the shapes they were written for.
  *
- * Reading is public (`login_required = false`); authenticated calls attach
- * either a User-Api-Key header or the website session — never a hand-built
- * Cookie header, see [PersistentCookieJar].
+ * Since 2.0 this is a compatibility facade: every method calls the native
+ * `/api/v1` interface through [NodelocApi] and maps the answer back onto the
+ * Discourse-era models in `core.model` (see [Legacy]). ViewModels and screens
+ * are untouched by the backend change; what the new server cannot do answers
+ * with an empty result or an "unavailable" error, and the entry points to it
+ * are hidden in the UI.
  */
 class DiscourseClient(
-    /** This install's stable id, sent to the MessageBus so the server can tell devices apart. */
-    private val clientId: String,
+    /** This install's stable id; still used to label the device. */
+    @Suppress("unused") private val clientId: String,
     val auth: DiscourseAuth,
     val cookieJar: PersistentCookieJar,
-    /** Only the tests override this; everything else talks to the site. */
-    private val baseUrl: String = DiscourseConfig.BASE_URL,
+    baseUrl: String = DiscourseConfig.BASE_URL,
 ) {
-    val http: OkHttpClient = OkHttpClient.Builder()
-        .cookieJar(cookieJar)
-        // Every request in the app, plus all of Coil's image loads, goes to one
-        // host. A blocking `execute()` ignored this cap; `enqueue` respects it,
-        // and the default of 5 would throttle the whole app to a crawl.
-        .dispatcher(Dispatcher().apply { maxRequestsPerHost = 15 })
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(20, TimeUnit.SECONDS)
-        .writeTimeout(20, TimeUnit.SECONDS)
-        // readTimeout only bounds the gap between bytes, so a slow trickle can
-        // hang a screen indefinitely without this.
-        .callTimeout(45, TimeUnit.SECONDS)
-        .retryOnConnectionFailure(true)
-        .build()
+    val api = NodelocApi(auth, cookieJar, baseUrl)
 
-    /**
-     * Writes never replay.
-     *
-     * OkHttp resends a request after a connection reset when it judges it
-     * recoverable, which for a POST means a reply posted twice, a reward
-     * charged twice, or two lotteries. The flag is client-scoped with no
-     * per-request override, so writes need a client of their own.
-     */
-    private val writeHttp: OkHttpClient = http.newBuilder()
-        .retryOnConnectionFailure(false)
-        .writeTimeout(60, TimeUnit.SECONDS)
-        .callTimeout(90, TimeUnit.SECONDS)   // uploads
-        .build()
-
-    /**
-     * The long poll is *supposed* to hang, so it gets a dispatcher of its own —
-     * otherwise it would hold a foreground slot for 25 seconds at a time.
-     */
-    private val busHttp: OkHttpClient = http.newBuilder()
-        .readTimeout(40, TimeUnit.SECONDS)
-        .callTimeout(0, TimeUnit.SECONDS)
-        .dispatcher(Dispatcher())
-        .build()
+    val http: OkHttpClient get() = api.http
 
     companion object {
-        val json = Json {
-            ignoreUnknownKeys = true
-            explicitNulls = false
-            isLenient = true
-            coerceInputValues = true
-            namingStrategy = JsonNamingStrategy.SnakeCase
-        }
+        /** The legacy models' decoder, kept for the caches that store them as JSON. */
+        val json: Json = NodelocApi.json
 
-        /**
-         * How long an ignore lasts.
-         *
-         * Long enough to read as permanent, and it has to be *some* number:
-         * see [ignoreUser]. Taken back by hand from the settings list.
-         */
-        private const val IGNORE_DAYS = 3650L
+        private const val PAGE = 30
+        private const val THREAD_PAGE = 20
 
-        private const val TAG = "DiscourseAPI"
-
-        /** What [currentUser] asks; 200 with a session, 404 without one. */
-        private const val SESSION_PROBE_PATH = "session/current.json"
-
-        /** The one attribute [effectiveLocale] wants out of a whole page. */
-        private val HTML_LANG = Regex("""<html[^>]*\blang="([^"]+)"""")
-
-        /**
-         * Faults whose `errors[]` is worse than the app string it would
-         * replace: these are already understood here, and ours are in the
-         * device's language rather than the site's.
-         */
-        private val NON_QUOTABLE_FAULTS =
-            setOf("not_logged_in", "invalid_access", "not_found", "rate_limit")
+        /** Signals a feature the 2.0 backend does not have; its UI entry points are hidden. */
+        fun unavailable(): DiscourseError =
+            DiscourseError.BadResponse(404, null, ServerFault(type = "unavailable"))
     }
 
-    // ------------------------------------------------------------- pipeline
+    /** Kept for source compatibility; the native API does not accept a post source. */
+    @Volatile
+    var postSourceFields: (suspend () -> Map<String, String>)? = null
 
-    private fun url(path: String, query: List<Pair<String, String>> = emptyList()): HttpUrl {
-        val builder = "$baseUrl/${path.trimStart('/')}".toHttpUrl().newBuilder()
-        query.forEach { (name, value) -> builder.addQueryParameter(name, value) }
-        return builder.build()
+    @Volatile private var me: ApiUser? = null
+
+    private val cursors = ConcurrentHashMap<String, String>()
+    private val directUsers = ConcurrentHashMap<Int, String>()
+    private val pollIds = ConcurrentHashMap<String, Int>()
+    private val uploadUrls = ConcurrentHashMap<Int, String>()
+
+    private fun viewer(moderate: Boolean = false) = Legacy.Viewer(me?.id, moderate || me?.isModerator == true)
+
+    // ------------------------------------------------------------ plumbing
+
+    suspend fun fetchBytes(absoluteUrl: String): ByteArray = api.fetchBytes(absoluteUrl)
+
+    private suspend inline fun <reified T> get(path: String, query: List<Pair<String, String>> = emptyList()): T =
+        api.get(path, query)
+
+    private suspend inline fun <reified T> send(method: String, path: String, body: JsonObject? = null): T =
+        api.send(method, path, body)
+
+    private suspend fun call(method: String, path: String, body: JsonObject? = null) {
+        api.sendRaw(method, path, body)
     }
 
-    private fun requestBuilder(url: HttpUrl, includeCsrf: Boolean): Request.Builder {
-        val builder = Request.Builder().url(url).header("Accept", "application/json")
-            // Which session this request belongs to, so a late answer cannot
-            // be mistaken for a verdict on a newer one.
-            .tag(AuthGeneration::class.java, AuthGeneration(auth.generation))
-        val key = auth.userApiKey
-        if (key != null) {
-            builder.header("User-Api-Key", key)
-            builder.header("User-Api-Client-Id", clientId)
-        }
-        if (auth.hasSession) {
-            builder.header("Origin", DiscourseConfig.BASE_URL)
-            builder.header("Referer", DiscourseConfig.BASE_URL)
-        }
-        if (key != null || auth.hasSession) {
-            builder.header("X-Requested-With", "XMLHttpRequest")
-            builder.header("Discourse-Present", "true")
-        }
-        if (includeCsrf || auth.hasSession) {
-            auth.csrfToken?.let { builder.header("X-CSRF-Token", it) }
-        }
-        return builder
+    /** A 404 from an optional endpoint means "none", not a failure. */
+    private suspend inline fun <T> optional(block: () -> T): T? = try {
+        block()
+    } catch (error: DiscourseError.BadResponse) {
+        if (error.code == 404) null else throw error
     }
 
-    /**
-     * Raw bytes from an absolute URL — an already-uploaded image fetched back
-     * for editing. Goes through the same cancellable path as everything else
-     * rather than handing out the OkHttp client.
-     */
-    suspend fun fetchBytes(absoluteUrl: String): ByteArray {
-        val target = absoluteUrl.toHttpUrlOrNull() ?: throw DiscourseError.BadResponse(400)
-        val request = Request.Builder().url(target).get().build()
-        val response = try {
-            http.newCall(request).await()
-        } catch (error: IOException) {
-            throw DiscourseError.Transport(error)
-        }
-        return response.use {
-            if (!it.isSuccessful) throw DiscourseError.BadResponse(it.code)
-            withContext(Dispatchers.IO) { it.body.bytes() }
-        }
-    }
+    // -------------------------------------------------------- node directory
 
-    /** Which client a request belongs on. */
-    private enum class Channel { Read, Write, Bus }
+    private val nodeMutex = Mutex()
+    @Volatile private var nodes: List<ApiNode> = emptyList()
+    @Volatile private var nodesAt: Long = 0
 
-    /** Single funnel: maps transport failures and non-2xx statuses. */
-    suspend fun perform(request: Request): String = perform(request, Channel.Write)
-
-    private suspend fun perform(request: Request, channel: Channel): String {
-        val client = when (channel) {
-            Channel.Read -> http
-            Channel.Write -> writeHttp
-            Channel.Bus -> busHttp
-        }
-        val (response, body) = try {
-            client.newCall(request).awaitWithBody()
-        } catch (error: IOException) {
-            throw DiscourseError.Transport(error)
-        }
-        if (!response.isSuccessful) {
-            val error = classify(response, body, request)
-            if (error.isNotLoggedIn) {
-                val stamped = request.tag(AuthGeneration::class.java)?.value
-                if (stamped != null && sessionIsGone(error, request)) {
-                    auth.noteSessionRejected(request.url.encodedPath, stamped)
-                }
+    /** Every node, cached briefly: ids, slugs and the tree are needed on most screens. */
+    suspend fun nodeDirectory(force: Boolean = false): List<ApiNode> = nodeMutex.withLock {
+        val fresh = System.currentTimeMillis() - nodesAt < 5 * 60_000
+        if (!force && fresh && nodes.isNotEmpty()) return@withLock nodes
+        val directory = get<ApiNodeList>("api/v1/nodes").nodes
+        // Membership, the bell and blocking come from one call rather than per node.
+        val mine = if (auth.isAuthenticated) runCatchingCancellable { get<ApiMyNodes>("api/v1/me/nodes") }.getOrNull() else null
+        val fetched = if (mine == null) directory else {
+            val joined = mine.joined.associateBy { it.slug }
+            val muted = mine.muted.toSet()
+            directory.map { node ->
+                val membership = joined[node.slug]
+                node.copy(
+                    joined = membership != null || node.joined,
+                    notificationLevel = if (node.slug in muted) "muted" else membership?.notificationLevel ?: node.notificationLevel,
+                )
             }
-            throw error
         }
-        return body
+        nodes = fetched
+        nodesAt = System.currentTimeMillis()
+        fetched
     }
 
-    /**
-     * Whether a rejection means the session is dead, or only that this reader
-     * may not have that particular thing.
-     *
-     * `invalid_access` is Discourse's word for both, and discourse-read-permission
-     * raises it for a topic above the reader's trust level: every request the
-     * reader makes for one — the nested tree, `t/{id}/posts` — comes back in the
-     * exact shape of a revoked credential. Believing it signed people out of the
-     * app for having scrolled into a thread they had not earned yet.
-     *
-     * So it is asked instead: `session/current.json` answers 200 for a live
-     * session and 404 for none. Only a definite "nobody is signed in" counts —
-     * a timeout or a 500 leaves the session alone, because a network that
-     * cannot answer is not the same as an answer.
-     */
-    private suspend fun sessionIsGone(error: DiscourseError, request: Request): Boolean {
-        if (error.isSessionGone) return true
-        // The probe rejected in its own right is the answer, not a question to
-        // ask again.
-        if (request.url.encodedPath.trimStart('/') == SESSION_PROBE_PATH) return true
-        return runCatchingCancellable { currentUser() }.fold(
-            onSuccess = { false },
-            onFailure = { probe -> probe is DiscourseError && (probe.isNotFound || probe.isNotLoggedIn) },
-        )
+    private suspend fun nodeId(slug: String?): Int? {
+        if (slug.isNullOrEmpty()) return null
+        return (nodes.takeIf { it.isNotEmpty() } ?: runCatchingCancellable { nodeDirectory() }.getOrDefault(emptyList()))
+            .firstOrNull { it.slug == slug }?.id
     }
 
-    /**
-     * Runs a call and reads its body under one cancellable suspension.
-     *
-     * A blocking `execute()` left the call running after the coroutine that
-     * wanted it was gone: every abandoned screen kept a request alive, and
-     * stopping the message bus did not stop its poll for another 25 seconds.
-     *
-     * The body is read here, on okhttp's own callback thread, rather than in a
-     * `withContext(IO)` afterwards. That is not a detail: headers arrive long
-     * before a slow body finishes, and only `invokeOnCancellation` fires the
-     * moment cancellation starts. A handler on the caller's Job fires when that
-     * job *completes* — which means waiting for the very read it means to stop.
-     *
-     * okhttp 5's own `executeAsync` lives in a side artifact that also drags
-     * coroutines forward a version, so this is the twenty lines instead.
-     */
-    /** Headers only; the caller consumes the body itself. */
-    private suspend fun Call.await(): Response = suspendCancellableCoroutine { continuation ->
-        continuation.invokeOnCancellation { runCatching { cancel() } }
-        enqueue(object : Callback {
-            override fun onResponse(call: Call, response: Response) {
-                continuation.resume(response) { _, value, _ -> runCatching { value.close() } }
-            }
-
-            override fun onFailure(call: Call, e: IOException) {
-                if (!continuation.isCancelled) continuation.resumeWithException(e)
-            }
-        })
-    }
-
-    private suspend fun Call.awaitWithBody(): Pair<Response, String> =
-        suspendCancellableCoroutine { continuation ->
-            continuation.invokeOnCancellation { runCatching { cancel() } }
-            enqueue(object : Callback {
-                override fun onResponse(call: Call, response: Response) {
-                    try {
-                        val body = response.use { it.body.string() }
-                        continuation.resume(response to body) { _, _, _ -> }
-                    } catch (error: Throwable) {
-                        // Not just IOException: okhttp marks the callback
-                        // signalled before calling this, so it will not call
-                        // onFailure afterwards — anything escaping here would
-                        // strand the coroutine forever.
-                        runCatching { response.close() }
-                        if (!continuation.isCancelled) continuation.resumeWithException(error)
-                    }
-                }
-
-                override fun onFailure(call: Call, e: IOException) {
-                    if (!continuation.isCancelled) continuation.resumeWithException(e)
-                }
-            })
-        }
-
-    /**
-     * `server: cloudflare` rides on *every* response here, so it proves
-     * nothing. A real block carries `cf-mitigated`, or is a 403 with an HTML
-     * body; Discourse's own 403 is JSON (`{"error_type":"not_logged_in"}`).
-     */
-    private fun classify(response: Response, body: String, request: Request): DiscourseError {
-        val cfMitigated = response.header("cf-mitigated")
-        val server = response.header("Server")?.lowercase().orEmpty()
-        val contentType = response.header("Content-Type")?.lowercase().orEmpty()
-        val challenged = cfMitigated != null ||
-            (response.code == 403 && server.contains("cloudflare") && contentType.contains("text/html"))
-
-        if (BuildConfig.DEBUG) {
-            Log.w(
-                TAG,
-                "${response.code} ${request.method} ${request.url}\n" +
-                    "  server=$server cf-mitigated=${cfMitigated ?: "-"} cf-ray=${response.header("cf-ray") ?: "-"}\n" +
-                    "  body: ${body.take(200)}",
-            )
-        }
-        if (challenged) return DiscourseError.Challenged
-        // Parsed from the whole body, not the 200-char prefix: a long
-        // validation message used to be truncated into invalid JSON and thrown
-        // away, leaving the generic wording in its place.
-        return DiscourseError.BadResponse(response.code, body.take(200), parseFault(response.code, body))
-    }
-
-    /**
-     * Discourse's error envelope, where there is one.
-     *
-     * Deliberately narrow about which text is allowed to reach a screen. A 5xx
-     * body can carry a Rails backtrace, and the wording for a dead session
-     * ("您没有权限查看请求的资源。") is worse than our own — so both are read
-     * for their `error_type` and neither contributes a message.
-     */
-    private fun parseFault(code: Int, body: String): ServerFault? {
-        if (body.isBlank()) return null
-        val root = runCatching { json.parseToJsonElement(body).jsonObject }.getOrNull() ?: return null
-
-        val type = (root["error_type"] as? JsonPrimitive)?.contentOrNull?.takeIf { it.isNotEmpty() }
-        val waitSeconds = (root["extras"] as? JsonObject)
-            ?.get("wait_seconds")
-            ?.let { it as? JsonPrimitive }
-            ?.contentOrNull
-            ?.toIntOrNull()
-
-        // Only where `errors[]` says something the user can act on — a rejected
-        // write. The rest have an app string that is better than the server's:
-        // "not found" and "too many requests" are already known here, and ours
-        // are in the device's language rather than the site's.
-        val quotable = code in 400..499 && type !in NON_QUOTABLE_FAULTS
-        val messages = if (!quotable) {
-            emptyList()
-        } else {
-            // Core answers with `errors: []`; the plugins this site runs on
-            // answer with a single `error`. Both were written for a person to
-            // read — "您必须先回复此主题才能参与抽奖" is the whole answer to
-            // why a tap did nothing, and reading only the plural spelling
-            // replaced it with "操作失败".
-            val plural = (root["errors"] as? JsonArray)
-                .orEmpty()
-                .mapNotNull { (it as? JsonPrimitive)?.contentOrNull }
-            val singular = listOfNotNull((root["error"] as? JsonPrimitive)?.contentOrNull)
-            // And `message`, which is how the check-in endpoint says why it
-            // turned an attempt away — "尝试次数过多，请稍后再试" is the only
-            // thing that distinguishes its 429 from any other.
-            val named = listOfNotNull((root["message"] as? JsonPrimitive)?.contentOrNull)
-            (plural + singular + named)
-                .mapNotNull { it.trim().takeIf(String::isNotEmpty) }
-                .distinct()
-                .take(3)
-                // A pathological body should not become a wall of toast.
-                .map { it.take(300) }
-        }
-
-        if (messages.isEmpty() && type == null && waitSeconds == null) return null
-        return ServerFault(messages, type, waitSeconds)
-    }
-
-    @PublishedApi
-    internal inline fun <reified T> decode(body: String): T = try {
-        json.decodeFromString<T>(body)
-    } catch (error: Throwable) {
-        error.rethrowIfCancellation()
-        if (BuildConfig.DEBUG) Log.e("DiscourseAPI", "decode ${T::class.simpleName} failed: ${error.message}")
-        throw DiscourseError.Decoding(error)
-    }
-
-    suspend inline fun <reified T> get(path: String, query: List<Pair<String, String>> = emptyList()): T =
-        decode(getRaw(path, query))
-
-    suspend fun getRaw(path: String, query: List<Pair<String, String>> = emptyList()): String =
-        perform(requestBuilder(url(path, query), includeCsrf = false).get().build(), Channel.Read)
-
-    /**
-     * The language the site renders this session in.
-     *
-     * Not `user.locale` from the profile, though that field exists and is
-     * tempting. Discourse honours it only while `allow_user_locale` is on, and
-     * otherwise serves everyone the site default while leaving whatever the
-     * member once picked sitting in the column — and no endpoint this app can
-     * reach reports that setting, so from here the column is unreadable on its
-     * own. What the server actually renders needs no such caveat.
-     *
-     * `safe-mode` because it is the smallest page that still goes through the
-     * normal locale machinery: five kilobytes against a hundred for the feed.
-     */
-    suspend fun effectiveLocale(): String? {
-        // Every other request here asks for JSON, and Discourse answers a page
-        // request carrying that header with 406 rather than rendering it. This
-        // is the one call that genuinely wants markup.
-        val request = requestBuilder(url("safe-mode"), includeCsrf = false)
-            .header("Accept", "text/html")
-            .get()
-            .build()
-        val html = perform(request, Channel.Read)
-        return HTML_LANG.find(html)?.groupValues?.getOrNull(1)?.takeIf { it.isNotBlank() }
-    }
-
-    /** RFC 3986 unreserved set; everything else is percent-encoded. */
-    private fun formEncode(items: List<Pair<String, String>>): String =
-        items.joinToString("&") { (key, value) ->
-            "${encodeComponent(key)}=${encodeComponent(value)}"
-        }
-
-    private fun encodeComponent(value: String): String =
-        URLEncoder.encode(value, "UTF-8").replace("+", "%20").replace("*", "%2A").replace("%7E", "~")
-
-    /**
-     * Ordered, possibly repeated form keys. Rails reads `options[]=a&options[]=b`
-     * as an array — a Map simply cannot express that, and poll votes and
-     * `watched_category_ids[]` both need it.
-     */
-    suspend fun formItems(method: String, path: String, items: List<Pair<String, String>>): String {
-        val body = formEncode(items).toRequestBody("application/x-www-form-urlencoded".toMediaType())
-        return perform(requestBuilder(url(path), includeCsrf = true).method(method, body).build())
-    }
-
-    suspend fun post(path: String, form: Map<String, String>): String =
-        formItems("POST", path, form.toList())
-
-    /** Bodyless authenticated request (PUT / DELETE). */
-    suspend fun send(method: String, path: String, query: List<Pair<String, String>> = emptyList()): String {
-        val body = if (method == "GET" || method == "HEAD") null else ByteArray(0).toRequestBody(null)
-        return perform(requestBuilder(url(path, query), includeCsrf = true).method(method, body).build())
-    }
-
-    suspend fun postJson(path: String, jsonBody: String): String {
-        val body = jsonBody.toRequestBody("application/json".toMediaType())
-        return perform(requestBuilder(url(path), includeCsrf = true).post(body).build())
-    }
-
-    /**
-     * The same upload, streamed off disk.
-     *
-     * A trimmed clip is tens of megabytes and a phone has no business holding
-     * one twice — once as the file and once as the request body. OkHttp reads
-     * a file body in blocks, so this is flat in memory whatever the size.
-     */
-    suspend fun postMultipartFile(
-        path: String,
-        fields: Map<String, String>,
-        fieldName: String,
-        fileName: String,
-        mimeType: String,
-        file: java.io.File,
-        onProgress: ((Float) -> Unit)? = null,
-    ): String {
-        val builder = MultipartBody.Builder().setType(MultipartBody.FORM)
-        fields.forEach { (name, value) -> builder.addFormDataPart(name, value) }
-        builder.addFormDataPart(
-            fieldName,
-            fileName,
-            // Both stream off disk; only one of them counts as it goes.
-            if (onProgress == null) file.asRequestBody(mimeType.toMediaType())
-            else ProgressRequestBody(file, mimeType.toMediaType(), onProgress),
-        )
-        return perform(requestBuilder(url(path), includeCsrf = true).post(builder.build()).build())
-    }
-
-    suspend fun postMultipart(
-        path: String,
-        fields: Map<String, String>,
-        fieldName: String,
-        fileName: String,
-        mimeType: String,
-        data: ByteArray,
-    ): String {
-        val builder = MultipartBody.Builder().setType(MultipartBody.FORM)
-        fields.forEach { (name, value) -> builder.addFormDataPart(name, value) }
-        builder.addFormDataPart(
-            fieldName,
-            fileName,
-            data.toRequestBody(mimeType.toMediaType()),
-        )
-        return perform(requestBuilder(url(path), includeCsrf = true).post(builder.build()).build())
+    private suspend fun nodeSlug(id: Int): String {
+        nodes.firstOrNull { it.id == id }?.let { return it.slug }
+        return nodeDirectory(force = true).firstOrNull { it.id == id }?.slug
+            ?: throw DiscourseError.BadResponse(404)
     }
 
     // ------------------------------------------------------- public reading
 
-    /**
-     * Any of the site-wide topic lists: latest, hot, top, featured, new.
-     *
-     * The same names the category route spells as `l/{sort}` — Discourse
-     * serves them at the root as well, which is why the feed and a node can
-     * share one set of sort options. `new` answers 403 to a guest, so the
-     * picker only offers it to someone signed in.
-     */
-    suspend fun topics(sort: String = "latest", page: Int = 0): LatestResponse =
-        get("$sort.json", if (page > 0) listOf("page" to page.toString()) else emptyList())
-
-    suspend fun latest(page: Int = 0): LatestResponse = topics("latest", page)
-
-    /** Same `topic_list` envelope as [latest]; `period` is daily/weekly/monthly/all. */
-    suspend fun top(period: String? = null): LatestResponse =
-        get("top.json", period?.let { listOf("period" to it) } ?: emptyList())
-
-    suspend fun site(): SiteResponse = get("site.json")
-
-    suspend fun categories(includeSubcategories: Boolean = false): CategoriesResponse =
-        get(
-            "categories.json",
-            if (includeSubcategories) listOf("include_subcategories" to "true") else emptyList(),
-        )
-
-    /** `path` is the parent/child slug pair (e.g. "technology/ai"). */
-    suspend fun nodeTopics(path: String, categoryId: Int, sort: String = "latest", page: Int = 0): CategoryTopicsResponse =
-        get(
-            "c/$path/$categoryId/l/$sort.json",
-            if (page > 0) listOf("page" to page.toString()) else emptyList(),
-        )
-
-    suspend fun sidebarNodes(): SidebarCommunitiesResponse = get("nodes.json")
-
-    suspend fun nodeBrowse(parentCategoryId: Int, page: Int = 0, perPage: Int? = null): SidebarCommunitiesResponse {
-        val query = mutableListOf("page" to page.toString())
-        perPage?.let { query += "per_page" to it.toString() }
-        return get("node/browse/$parentCategoryId.json", query)
+    private suspend fun topicPage(
+        key: String,
+        path: String,
+        query: List<Pair<String, String>>,
+        page: Int,
+        offsetPaging: Boolean,
+    ): ApiTopicList {
+        val params = query.toMutableList()
+        params += "limit" to PAGE.toString()
+        if (offsetPaging) {
+            if (page > 0) params += "offset" to (page * PAGE).toString()
+        } else if (page > 0) {
+            // Cursor paging cannot jump: a page is reachable only from the one
+            // before it, which is the only way the screens ask for them.
+            val cursor = cursors["$key|$page"] ?: return ApiTopicList()
+            params += "cursor" to cursor
+        }
+        val list = get<ApiTopicList>(path, params)
+        list.nextCursor?.let { cursors["$key|${page + 1}"] = it }
+        return list
     }
 
-    suspend fun recentlyVisitedNodes(): SidebarCommunitiesResponse = get("node/recently-visited.json")
-
-    suspend fun customFeeds(): SidebarCustomFeedsResponse = get("custom-feeds.json")
-
-    suspend fun checkNodeSlug(slug: String): NodeSlugAvailabilityResponse =
-        get("node/check-slug", listOf("slug" to slug))
-
-    suspend fun topic(id: Int): TopicResponse = get("t/$id.json")
-
-    /**
-     * Bookmark the topic rather than a post in it.
-     *
-     * A row in a list knows the topic and nothing else — the first post's id
-     * arrives with the topic itself — and this is the endpoint that takes the
-     * one it has.
-     */
-    suspend fun bookmarkTopic(topicId: Int) { send("PUT", "t/$topicId/bookmark") }
-
-    suspend fun removeTopicBookmarks(topicId: Int) { send("PUT", "t/$topicId/remove_bookmarks") }
-
-    /** 0 muted, 1 regular, 2 tracking, 3 watching. */
-    suspend fun setTopicNotificationLevel(topicId: Int, level: Int) {
-        formItems("POST", "t/$topicId/notifications", listOf("notification_level" to level.toString()))
-    }
-
-    /**
-     * Discourse's nested-replies view with server-side sort (top / new / old).
-     * The slug only shapes the canonical URL — the id resolves the topic.
-     */
-    suspend fun nestedTopic(id: Int, slug: String = "topic", sort: String, page: Int = 0): NestedTopicResponse =
-        get("n/$slug/$id.json", listOf("sort" to sort, "page" to page.toString()))
-
-    suspend fun nestedChildren(topicId: Int, postNumber: Int, slug: String = "topic", sort: String, page: Int = 0): NestedChildrenResponse =
-        get("n/$slug/$topicId/children/$postNumber.json", listOf("sort" to sort, "page" to page.toString()))
-
-    /**
-     * Pins a reply to the top of the thread, or takes the pin off.
-     *
-     * One endpoint for both, as the server has one: it answers with the whole
-     * new list rather than with what happened, so the caller reads its own
-     * post's membership out of the reply instead of assuming it flipped.
-     * Staff only, root replies only, and the server caps the list at ten.
-     */
-    suspend fun toggleNestedPin(topicId: Int, postId: Int, slug: String = "topic"): NestedPinResponse =
-        decode(formItems("PUT", "n/$slug/$topicId/pin", listOf("post_id" to postId.toString())))
-
-    suspend fun topicPosts(topicId: Int, postIds: List<Int>): TopicPostsResponse =
-        get("t/$topicId/posts.json", postIds.map { "post_ids[]" to it.toString() })
-
-    /**
-     * discourse-anyvideo: what to play after this one. Anonymous-readable.
-     *
-     * The extension matters here. The plugin's engine is mounted outside
-     * Discourse's own routes, and the bare path falls through to the Ember
-     * shell — a 200 of HTML — for anything not asking for JSON outright.
-     */
-    suspend fun videoSuggestions(excludeTopicId: Int? = null): VideoSuggestionsResponse =
-        get(
-            "anyvideo/videos/suggestions.json",
-            excludeTopicId?.takeIf { it > 0 }
-                ?.let { listOf("exclude_topic_id" to it.toString()) }
-                .orEmpty(),
-        )
-
-    /**
-     * Full-page search, and topics only whatever the term.
-     *
-     * `SearchController#show` hard-codes `type_filter: "topic"`, and
-     * `Search#find_grouped_results` runs exactly one facet once a filter is
-     * set — so `users` and `categories` come back empty here every time. The
-     * other scopes each need their own endpoint; this is the only one that pages.
-     */
-    suspend fun search(term: String, page: Int = 1): SearchResponse =
-        get("search.json", listOf("q" to term, "page" to page.toString()))
-
-    /** Header search: every facet, but only five of each and no paging. */
-    suspend fun searchEverything(term: String): SearchResponse =
-        get("search/query.json", listOf("term" to term))
-
-    /** Name-substring match on categories. 25 is the server ceiling. */
-    suspend fun searchCategories(term: String, limit: Int = 25): CategorySearchResponse =
-        decode(post("categories/search", mapOf("term" to term, "limit" to limit.toString())))
-
-    /** The @-mention backend. 50 is `SEARCH_USERS_LIMIT`; the default is 20. */
-    suspend fun searchUsers(term: String, limit: Int = 50): UserSearchResponse =
-        get("u/search/users.json", listOf("term" to term, "limit" to limit.toString()))
-
-    /** The other half of `#`: nodes come from the cached site, tags from here. */
-    suspend fun searchTags(term: String, limit: Int = 5): TagSearchResponse =
-        get("tags/filter/search.json", listOf("q" to term, "limit" to limit.toString()))
-
-    /**
-     * Every emoji the site knows, grouped.
-     *
-     * A quarter of a megabyte and unauthenticated, so it is fetched once and
-     * held; the custom groups at the end are what makes it worth having.
-     */
-    suspend fun emojis(): Map<String, List<DiscourseEmoji>> = get("emojis.json")
-
-    // ------------------------------------------------- editing and moderating
-
-    /** The source text of one post — the only endpoint that carries `raw`. */
-    suspend fun postDetail(postId: Int): PostDetail = get("posts/$postId.json")
-
-    /**
-     * Rewrites a post.
-     *
-     * The server decides whether this is allowed and says why when it is not:
-     * past the edit window it answers `too_late_to_edit` rather than a bare
-     * 403, and those words are what the reader should see. Nothing here
-     * second-guesses that.
-     */
-    suspend fun updatePost(
-        postId: Int,
-        raw: String,
-        editReason: String? = null,
-        /**
-         * Only the first post has one, and the endpoint only reads it there —
-         * `changes[:title]` is set inside `if post.is_first_post?`. Top level
-         * rather than under `post[]`, which is where the controller looks.
-         */
-        title: String? = null,
-    ) {
-        val items = mutableListOf("post[raw]" to raw)
-        editReason?.takeIf { it.isNotBlank() }?.let { items += "post[edit_reason]" to it }
-        title?.takeIf { it.isNotBlank() }?.let { items += "title" to it }
-        formItems("PUT", "posts/$postId", items)
-    }
-
-    /**
-     * Deletes a post — a soft delete, which staff can still see and recover.
-     *
-     * Never the first post: Discourse treats deleting that as deleting the
-     * whole topic, and refuses it here (`can_delete_post?` returns false for
-     * `is_first_post?`). [deleteTopic] is the other half.
-     */
-    suspend fun deletePost(postId: Int) {
-        send("DELETE", "posts/$postId")
-    }
-
-    suspend fun recoverPost(postId: Int) {
-        send("PUT", "posts/$postId/recover")
-    }
-
-    /**
-     * discourse-vote. The direction is the state to end up in, so taking a vote
-     * back is [VoteDirection.None] rather than a second call.
-     */
-    /** Who reacted to a post, grouped by face. Readable signed out, as the tally is. */
-    suspend fun postReactionUsers(postId: Int): ReactionUsersResponse =
-        get("discourse-reactions/posts/$postId/reactions-users.json")
-
-    suspend fun castVote(
-        postId: Int,
-        direction: VoteDirection,
-        /** Which face to vote with; without one the direction's default is cast. */
-        reaction: String? = null,
-    ): PostVoteResult = decode(
-        formItems(
-            "PUT",
-            "vote/posts/$postId",
-            listOfNotNull("direction" to direction.wire, reaction?.let { "reaction" to it }),
-        ),
-    )
-
-    /**
-     * Discourse's own flag — what the web's flag dialog posts.
-     *
-     * The reason is an id out of the site's `post_action_types` rather than a
-     * constant here: this deployment has added two reasons of its own, and the
-     * ids of those are the site's to choose. `flag_topic` stays false because
-     * what the viewer has in front of it is a post, not the thread.
-     */
-    suspend fun flagPost(postId: Int, actionTypeId: Int, message: String? = null) {
-        formItems(
-            "POST",
-            "post_actions",
-            listOfNotNull(
-                "id" to postId.toString(),
-                "post_action_type_id" to actionTypeId.toString(),
-                "flag_topic" to "false",
-                message?.takeIf { it.isNotBlank() }?.let { "message" to it },
+    private suspend fun latestResponse(list: ApiTopicList): LatestResponse {
+        val ids = list.topics.associate { it.id to nodeId(it.nodeSlug) }
+        val hasMore = list.nextCursor != null || list.nextOffset != null
+        return LatestResponse(
+            users = Legacy.topicUsers(list.topics),
+            topicList = TopicList(
+                topics = list.topics.map { Legacy.topicListItem(it, ids[it.id]) },
+                moreTopicsUrl = if (hasMore) "next" else null,
             ),
         )
     }
 
-    /** Staff only. A locked post cannot be edited by its author. */
+    /**
+     * The site-wide lists. `hot` and `top` are the server's hot ranking (offset
+     * paged); `best` is the personal feed; the rest are the latest list.
+     */
+    suspend fun topics(sort: String = "latest", page: Int = 0): LatestResponse {
+        val list = when (sort) {
+            "hot", "top" -> topicPage("hot", "api/v1/topics", listOf("sort" to "hot"), page, offsetPaging = true)
+            "best" -> topicPage("best", "api/v1/feed/personal", emptyList(), page, offsetPaging = true)
+            "featured" -> topicPage("featured", "api/v1/topics", listOf("featured" to "1"), page, offsetPaging = false)
+            else -> topicPage("latest", "api/v1/topics", emptyList(), page, offsetPaging = false)
+        }
+        return latestResponse(list)
+    }
+
+    suspend fun latest(page: Int = 0): LatestResponse = topics("latest", page)
+
+    suspend fun top(@Suppress("UNUSED_PARAMETER") period: String? = null): LatestResponse = topics("hot", 0)
+
+    suspend fun site(): SiteResponse {
+        val all = nodeDirectory(force = true)
+        // The server lists what it has configured; a failed fetch shows no
+        // buttons rather than ones that might lead nowhere.
+        val providers = runCatchingCancellable { get<ApiAuthProviders>("api/v1/auth/providers").providers }
+            .getOrDefault(emptyList())
+            .map { AuthProvider(name = it.name, prettyNameOverride = it.label, providerUrl = it.url, iconOverride = it.icon) }
+        return SiteResponse(
+            categories = all.map { Legacy.category(it) },
+            postActionTypes = Legacy.reportTypes(Locale.getDefault().language == "zh"),
+            // The server folds a reply whose score drops below -5; the app folds
+            // at or below its threshold.
+            voteCollapseScoreThreshold = -6,
+            authProviders = providers,
+            siteSettings = DiscourseSiteSettings(
+                pollEnabled = true,
+                redEnvelopeEnabled = true,
+                lotteryEnabled = true,
+            ),
+        )
+    }
+
+    suspend fun categories(includeSubcategories: Boolean = false): CategoriesResponse {
+        val all = nodeDirectory()
+        val byParent = all.groupBy { it.parentId }
+        val roots = all.filter { it.parentId == null }.map { root ->
+            Legacy.category(root, if (includeSubcategories) byParent[root.id].orEmpty().map { Legacy.category(it) } else null)
+        }
+        return CategoriesResponse(CategoryList(roots))
+    }
+
+    suspend fun nodeTopics(path: String, categoryId: Int, sort: String = "latest", page: Int = 0): CategoryTopicsResponse {
+        val slug = runCatchingCancellable { nodeSlug(categoryId) }.getOrNull() ?: path.substringAfterLast('/')
+        val query = mutableListOf("node" to slug)
+        if (sort == "featured") query += "featured" to "1"
+        val list = topicPage("node:$slug:${sort == "featured"}", "api/v1/topics", query, page, offsetPaging = false)
+        val latest = latestResponse(list)
+        return CategoryTopicsResponse(topicList = latest.topicList, users = latest.users)
+    }
+
+    /** Joined nodes first, then the busiest of the rest; sections become the grouped shelves. */
+    suspend fun sidebarNodes(): SidebarCommunitiesResponse {
+        val all = nodeDirectory()
+        val leaves = all.filter { it.parentId != null }
+        val joined = leaves.filter { it.joined }
+        val popular = leaves.filterNot { it.joined }.sortedByDescending { it.memberCount ?: 0 }.take(20)
+        val byParent = leaves.groupBy { it.parentId }
+        val grouped = all.filter { it.parentId == null }.associate { section ->
+            val children = byParent[section.id].orEmpty()
+            section.slug to SidebarGroupedNodeBucket(
+                category = Legacy.category(section),
+                totalCount = children.size,
+                hasMore = children.size > 6,
+            )
+        }
+        return SidebarCommunitiesResponse(
+            communities = joined.map { Legacy.category(it) },
+            recommended = popular.map { Legacy.category(it) },
+            grouped = grouped,
+        )
+    }
+
+    suspend fun nodeBrowse(parentCategoryId: Int, page: Int = 0, perPage: Int? = null): SidebarCommunitiesResponse {
+        val size = perPage ?: PAGE
+        val children = nodeDirectory().filter { it.parentId == parentCategoryId }
+            .sortedByDescending { it.memberCount ?: 0 }
+        val slice = children.drop(page * size).take(size)
+        return SidebarCommunitiesResponse(
+            communities = slice.map { Legacy.category(it) },
+            meta = SidebarCommunitiesMeta(
+                total = children.size,
+                page = page,
+                perPage = size,
+                hasMore = (page + 1) * size < children.size,
+            ),
+        )
+    }
+
+    /** The native API keeps no visit history; the shelf stays empty and is hidden. */
+    suspend fun recentlyVisitedNodes(): SidebarCommunitiesResponse = SidebarCommunitiesResponse()
+
+    suspend fun customFeeds(): SidebarCustomFeedsResponse = SidebarCustomFeedsResponse()
+
+    suspend fun checkNodeSlug(slug: String): NodeSlugAvailabilityResponse {
+        val body = get<JsonObject>("api/v1/nodes/slug-available", listOf("slug" to slug))
+        val available = (body["available"] as? JsonPrimitive)?.contentOrNull == "true"
+        val message = (body["message"] as? JsonPrimitive)?.contentOrNull
+            ?: (body["slug_message"] as? JsonPrimitive)?.contentOrNull
+        return NodeSlugAvailabilityResponse(available = available, message = message)
+    }
+
+    /**
+     * A topic's first page, plus what the old payload carried inline and the new
+     * one serves separately: polls, the lottery on the first post, the red
+     * envelope on the topic, and playable addresses for uploaded videos.
+     */
+    suspend fun topic(id: Int): TopicResponse {
+        val page = get<ApiTopicPage>("api/v1/topics/$id", listOf("limit" to PAGE.toString()))
+        val nodeId = nodeId(page.topic.nodeSlug)
+        val viewer = viewer(page.permissions.moderate)
+        val base = Legacy.topicResponse(withVideos(page), nodeId, viewer)
+        return coroutineScope {
+            val envelope = async {
+                runCatchingCancellable { optional { get<ApiRedEnvelopeEnvelope>("api/v1/topics/$id/red-envelope") } }
+                    .getOrNull()?.redEnvelope
+            }
+            val firstId = page.posts.firstOrNull { it.postNumber == 1 }?.id
+            val lottery = async {
+                firstId?.let { postId ->
+                    runCatchingCancellable { optional { get<ApiLotteryEnvelope>("api/v1/posts/$postId/lottery") } }
+                        .getOrNull()?.lottery
+                }
+            }
+            val polls = page.posts.filter { POLL_MARKUP.containsMatchIn(it.html) }.map { post ->
+                async { post.id to runCatchingCancellable { pollsFor(post.id) }.getOrDefault(emptyList()) }
+            }.awaitAll().toMap()
+            val claims = envelope.await()?.claims.orEmpty()
+            val lotteryValue = lottery.await()
+            base.copy(
+                redEnvelope = envelope.await()?.let { Legacy.redEnvelope(it, id) },
+                postStream = base.postStream.copy(
+                    posts = base.postStream.posts.map { post ->
+                        val postPolls = polls[post.id].orEmpty()
+                        val claim = claims.firstOrNull { it.postId == post.id }
+                        post.copy(
+                            polls = postPolls.map(Legacy::poll).takeIf { it.isNotEmpty() },
+                            pollsVotes = Legacy.pollVotes(postPolls).takeIf { it.isNotEmpty() },
+                            lottery = if (post.id == firstId) lotteryValue?.let(Legacy::lottery) else null,
+                            redEnvelopeClaim = claim?.let {
+                                RedEnvelopeClaim(postId = it.postId, pointsReceived = it.points, redEnvelopeId = envelope.await()?.id)
+                            },
+                        )
+                    },
+                ),
+            )
+        }
+    }
+
+    private suspend fun pollsFor(postId: Int): List<ApiPoll> {
+        val polls = get<ApiPollList>("api/v1/posts/$postId/polls").polls
+        polls.forEach { pollIds["$postId/${it.name.ifEmpty { "poll" }}"] = it.id }
+        return polls
+    }
+
+    /**
+     * Uploaded videos arrive as a bare id; the player needs the stream. Resolved
+     * here into the placeholder markup the parser already plays, once each video
+     * has finished transcoding — until then it stays a poster-less placeholder.
+     */
+    private suspend fun withVideos(page: ApiTopicPage): ApiTopicPage {
+        val ids = page.posts.flatMap { post -> VIDEO_MARKUP.findAll(post.html).map { it.groupValues[1] } }.toSet()
+        if (ids.isEmpty()) return page
+        val videos = coroutineScope {
+            ids.map { sha1 ->
+                async { sha1 to runCatchingCancellable { get<ApiVideoEnvelope>("api/v1/videos/$sha1").video }.getOrNull() }
+            }.awaitAll().toMap()
+        }
+        return page.copy(posts = page.posts.map { post -> post.copy(html = rewriteVideos(post.html, videos)) })
+    }
+
+    private fun rewriteVideos(html: String, videos: Map<String, ApiVideo?>): String =
+        VIDEO_MARKUP.replace(html) { match ->
+            val video = videos[match.groupValues[1]]
+            val stream = video?.hlsUrl?.takeIf { video.status == null || video.status == "ready" }
+            if (stream == null) {
+                match.value
+            } else {
+                val poster = video.posterUrl?.let { " data-thumbnail-src=\"${it.escapeAttr()}\"" }.orEmpty()
+                "<div class=\"video-placeholder-container\" data-video-src=\"${stream.escapeAttr()}\"$poster></div>"
+            }
+        }
+
+    private fun String.escapeAttr(): String = replace("&", "&amp;").replace("\"", "&quot;").replace("<", "&lt;")
+
+    private suspend fun firstPostId(topicId: Int): Int =
+        get<ApiTopicPage>("api/v1/topics/$topicId", listOf("limit" to "1")).posts.firstOrNull()?.id
+            ?: throw DiscourseError.BadResponse(404)
+
+    suspend fun bookmarkTopic(topicId: Int) {
+        call("PUT", "api/v1/posts/${firstPostId(topicId)}/bookmark")
+    }
+
+    suspend fun removeTopicBookmarks(topicId: Int) {
+        call("DELETE", "api/v1/posts/${firstPostId(topicId)}/bookmark")
+    }
+
+    /** 0 muted, 1 regular, 2 tracking, 3 watching — the native API has watching / normal / muted. */
+    suspend fun setTopicNotificationLevel(topicId: Int, level: Int) {
+        val value = when (level) {
+            3, 2 -> "watching"
+            0 -> "muted"
+            else -> "normal"
+        }
+        call("PUT", "api/v1/topics/$topicId/follow", buildJsonObject { put("level", value) })
+    }
+
+    private fun replySort(sort: String): String = when (sort) {
+        "top" -> "best"
+        "new" -> "new"
+        else -> "old"
+    }
+
+    suspend fun nestedTopic(id: Int, slug: String = "topic", sort: String, page: Int = 0): NestedTopicResponse {
+        val thread = get<ApiThreadPage>(
+            "api/v1/topics/$id/thread",
+            listOf("sort" to replySort(sort), "offset" to (page * THREAD_PAGE).toString(), "limit" to THREAD_PAGE.toString()),
+        )
+        return NestedTopicResponse(
+            roots = Legacy.tree(thread.posts, viewer()),
+            hasMoreRoots = FlexibleBool(thread.nextOffset != null),
+            page = page,
+            sort = sort,
+            effectiveSort = sort,
+        )
+    }
+
+    suspend fun nestedChildren(topicId: Int, postNumber: Int, slug: String = "topic", sort: String, page: Int = 0): NestedChildrenResponse {
+        val key = "children:$topicId:$postNumber"
+        val after = if (page == 0) "0" else cursors["$key|$page"] ?: return NestedChildrenResponse(emptyList(), FlexibleBool(false), page)
+        val body = api.getRaw(
+            "api/v1/topics/$topicId/thread",
+            listOf("parent" to postNumber.toString(), "after" to after, "limit" to THREAD_PAGE.toString()),
+        )
+        val thread = api.decode<ApiThreadPage>(body)
+        val nextAfter = (api.decode<JsonObject>(body)["next_after"] as? JsonPrimitive)?.intOrNull
+        nextAfter?.let { cursors["$key|${page + 1}"] = it.toString() }
+        val below = thread.posts.filter { it.postNumber != postNumber }
+        return NestedChildrenResponse(
+            children = Legacy.tree(below, viewer()),
+            hasMore = FlexibleBool(nextAfter != null),
+            page = page,
+        )
+    }
+
+    /** Pinning replies has no native counterpart; the menu item is hidden. */
+    suspend fun toggleNestedPin(topicId: Int, postId: Int, slug: String = "topic"): NestedPinResponse = throw unavailable()
+
+    suspend fun topicPosts(topicId: Int, postIds: List<Int>): TopicPostsResponse {
+        val page = get<ApiTopicPage>("api/v1/topics/$topicId", listOf("limit" to "100"))
+        val wanted = postIds.toSet()
+        val viewer = viewer(page.permissions.moderate)
+        return TopicPostsResponse(
+            PostStream(posts = page.posts.filter { it.id in wanted }.map { Legacy.topicPost(it, viewer) }),
+        )
+    }
+
+    suspend fun videoSuggestions(excludeTopicId: Int? = null): VideoSuggestionsResponse = VideoSuggestionsResponse()
+
+    private suspend fun searchNative(term: String, page: Int, limit: Int): SearchResponse {
+        val result = optional {
+            get<ApiSearchResults>(
+                "api/v1/search",
+                listOf("q" to term, "offset" to (page * limit).toString(), "limit" to limit.toString()),
+            )
+        } ?: return SearchResponse(topics = emptyList())
+        val ids = result.topics.associate { it.id to nodeId(it.nodeSlug) }
+        return SearchResponse(
+            topics = result.topics.map { Legacy.topicListItem(it, ids[it.id]) },
+            posts = result.posts.map {
+                SearchPost(id = it.id, topicId = it.topicId, blurb = it.blurb ?: it.excerpt, username = it.author)
+            },
+            categories = result.nodes.mapNotNull { found ->
+                val id = nodeId(found.slug) ?: return@mapNotNull null
+                Legacy.category(
+                    ApiNode(
+                        id = id,
+                        slug = found.slug,
+                        name = found.name,
+                        color = found.color,
+                        description = found.description,
+                        memberCount = found.memberCount,
+                        joined = found.joined,
+                        parentId = nodes.firstOrNull { it.id == id }?.parentId,
+                    ),
+                )
+            },
+            users = result.users.map { Legacy.user(it.username, it.avatar, it.name) },
+        )
+    }
+
+    /** Pages are 1-based here, as they were. */
+    suspend fun search(term: String, page: Int = 1): SearchResponse = searchNative(term, (page - 1).coerceAtLeast(0), PAGE)
+
+    suspend fun searchEverything(term: String): SearchResponse = searchNative(term, 0, 5)
+
+    suspend fun searchCategories(term: String, limit: Int = 25): CategorySearchResponse {
+        val needle = term.trim().lowercase(Locale.ROOT)
+        val found = nodeDirectory().filter { it.parentId != null }
+            .filter { needle.isEmpty() || it.name.lowercase(Locale.ROOT).contains(needle) || it.slug.contains(needle) }
+            .sortedByDescending { it.memberCount ?: 0 }
+        return CategorySearchResponse(found.size, found.take(limit).map { Legacy.category(it) })
+    }
+
+    suspend fun searchUsers(term: String, limit: Int = 50): UserSearchResponse {
+        if (!auth.isAuthenticated) return UserSearchResponse(emptyList())
+        val users = get<ApiMentionCandidates>("api/v1/mention-candidates", listOf("q" to term)).users
+        return UserSearchResponse(users.take(limit).map { Legacy.user(it.username, it.avatar, it.name) })
+    }
+
+    suspend fun searchTags(term: String, limit: Int = 5): TagSearchResponse {
+        val tags = get<ApiTagList>("api/v1/tags", listOf("q" to term, "limit" to limit.coerceIn(1, 30).toString())).tags
+        return TagSearchResponse(tags.map { DiscourseTag(id = it.id, name = it.name, slug = it.name, count = it.topicCount) })
+    }
+
+    /**
+     * The site's own emoji. Standard Unicode emoji come from the keyboard now —
+     * the server turns their shortcodes into characters — so the picker carries
+     * the custom packs only.
+     */
+    suspend fun emojis(): Map<String, List<DiscourseEmoji>> {
+        val catalog = get<ApiEmojiCatalog>("api/v1/emojis")
+        val grouped = linkedMapOf<String, List<DiscourseEmoji>>()
+        val packed = mutableSetOf<String>()
+        catalog.packs.filter { it.enabled }.forEach { pack ->
+            val items = pack.emojis.map { DiscourseEmoji(name = it.code.ifEmpty { it.name }, url = it.url, group = pack.name) }
+            packed += items.map { it.name }
+            if (items.isNotEmpty()) grouped[pack.name.ifEmpty { "custom" }] = items
+        }
+        val loose = catalog.emojis.filterKeys { it !in packed }.map { (code, url) -> DiscourseEmoji(name = code, url = url, group = "custom") }
+        if (loose.isNotEmpty()) grouped["custom"] = grouped["custom"].orEmpty() + loose
+        return grouped
+    }
+
+    // ------------------------------------------------- editing and moderating
+
+    suspend fun postDetail(postId: Int): PostDetail {
+        val raw = get<ApiRaw>("api/v1/posts/$postId/raw")
+        return PostDetail(id = postId, raw = raw.raw, canEdit = true)
+    }
+
+    suspend fun updatePost(postId: Int, raw: String, editReason: String? = null, title: String? = null) {
+        call(
+            "PATCH",
+            "api/v1/posts/$postId",
+            buildJsonObject {
+                put("raw", toNativeMarkdown(raw))
+                editReason?.takeIf { it.isNotBlank() }?.let { put("reason", it) }
+                title?.takeIf { it.isNotBlank() }?.let { put("title", it) }
+            },
+        )
+    }
+
+    suspend fun deletePost(postId: Int) {
+        call("DELETE", "api/v1/posts/$postId")
+    }
+
+    suspend fun recoverPost(postId: Int) {
+        call("POST", "api/v1/posts/$postId/restore")
+    }
+
+    /** No per-face voter list in the native API; the sheet shows nothing and its entry is hidden. */
+    suspend fun postReactionUsers(postId: Int): ReactionUsersResponse = ReactionUsersResponse()
+
+    suspend fun castVote(
+        postId: Int,
+        direction: VoteDirection,
+        reaction: String? = null,
+        /** Cast from a list rather than the topic: the server does not count it towards reputation. */
+        fromFeed: Boolean = false,
+    ): PostVoteResult {
+        val result = send<ApiVoteResult>(
+            "PUT",
+            "api/v1/posts/$postId/vote",
+            buildJsonObject {
+                put("value", Legacy.voteValue(direction))
+                reaction?.let { put("emoji", it) }
+                if (fromFeed) put("from", "feed")
+            },
+        )
+        return PostVoteResult(
+            id = postId,
+            voteScore = result.upvotes - result.downvotes,
+            voteDirection = Legacy.direction(result.viewerVote),
+            canVoteDown = true,
+        )
+    }
+
+    suspend fun flagPost(postId: Int, actionTypeId: Int, message: String? = null) {
+        call(
+            "POST",
+            "api/v1/posts/$postId/reports",
+            buildJsonObject {
+                put("reason", Legacy.reportReasonFor(actionTypeId))
+                message?.takeIf { it.isNotBlank() }?.let { put("note", it) }
+            },
+        )
+    }
+
     suspend fun setPostLocked(postId: Int, locked: Boolean) {
-        formItems("PUT", "posts/$postId/locked", listOf("locked" to locked.toString()))
+        call("PUT", "api/v1/posts/$postId/flags", buildJsonObject { put("locked", locked) })
     }
 
     suspend fun deleteTopic(topicId: Int) {
-        send("DELETE", "t/$topicId")
+        call("DELETE", "api/v1/topics/$topicId")
     }
 
-    /** `status` is Discourse's own: closed, pinned, archived, visible. */
+    /** `closed` and `pinned` exist natively; archiving and unlisting do not. */
     suspend fun setTopicStatus(topicId: Int, status: String, enabled: Boolean) {
-        formItems(
-            "PUT",
-            "t/$topicId/status",
-            listOf("status" to status, "enabled" to enabled.toString()),
+        val field = when (status) {
+            "closed" -> "closed"
+            "pinned", "pinned_globally" -> "pinned"
+            else -> throw unavailable()
+        }
+        call("PUT", "api/v1/topics/$topicId/state", buildJsonObject { put(field, enabled) })
+    }
+
+    suspend fun user(username: String): UserResponse = Legacy.profile(get("api/v1/users/$username"))
+
+    suspend fun userSummary(username: String): UserSummaryResponse {
+        val stats = get<ApiUserEnvelope>("api/v1/users/$username").stats
+        return UserSummaryResponse(
+            UserSummary(
+                likesReceived = stats?.votesReceived,
+                daysVisited = stats?.daysVisited,
+                topicCount = stats?.topicCount,
+                postCount = stats?.postCount,
+            ),
         )
     }
 
-    suspend fun user(username: String): UserResponse = get("u/$username.json")
-
-    suspend fun userSummary(username: String): UserSummaryResponse = get("u/$username/summary.json")
-
-    suspend fun accountDetail(username: String): AccountDetail = get("u/$username.json")
-
-    suspend fun userBadges(username: String): UserBadgesResponse = get("user-badges/$username.json")
-
-    /**
-     * Saved bookmarks, which do not come from [userActions].
-     *
-     * There is no bookmark filter to pass it: `UserAction` dropped the type
-     * years ago and nothing writes those rows any more, so asking for filter 3
-     * returns an empty list forever rather than an error. Bookmarks have their
-     * own table and their own route, and this is it. Pages, not offsets.
-     */
-    suspend fun bookmarks(username: String, page: Int = 0): UserBookmarksResponse =
-        get("u/$username/bookmarks.json", listOf("page" to page.toString()))
-
-    /**
-     * Drafts the site is holding for this account, newest first.
-     *
-     * Includes the ones started in a browser, which is the point: the app has
-     * always had a draft slot of its own and no idea any others existed.
-     */
-    suspend fun drafts(): DraftsResponse = get("drafts.json")
-
-    /** filter: 1 likes given, 4 topics, 5 replies. Bookmarks are [bookmarks]. */
-    suspend fun userActions(username: String, filter: Int, offset: Int = 0): UserActionsResponse =
-        get(
-            "user_actions.json",
-            listOf("username" to username, "filter" to filter.toString(), "offset" to offset.toString()),
+    suspend fun accountDetail(username: String): AccountDetail = coroutineScope {
+        val identities = async { runCatchingCancellable { get<ApiIdentities>("api/v1/me/identities") }.getOrNull() }
+        val sessions = async { runCatchingCancellable { get<ApiSessions>("api/v1/me/sessions") }.getOrNull() }
+        val twoFactor = async { runCatchingCancellable { get<ApiTwoFactorStatus>("api/v1/me/two-factor") }.getOrNull() }
+        AccountDetail(
+            AccountDetailPayload(
+                associatedAccounts = identities.await()?.identities?.map { AssociatedAccount(it.provider, it.name ?: it.username) },
+                userAuthTokens = sessions.await()?.sessions?.map {
+                    UserAuthToken(
+                        id = it.id,
+                        clientName = it.userAgent,
+                        deviceName = it.ip,
+                        seenAt = it.lastSeenAt,
+                        isActive = it.current,
+                    )
+                },
+                secondFactorEnabled = twoFactor.await()?.enabled,
+            ),
         )
+    }
 
-    suspend fun pointsHistory(username: String, page: Int = 0): PointsHistoryResponse =
-        get("u/$username/points-history.json", listOf("page" to page.toString()))
+    suspend fun userBadges(username: String): UserBadgesResponse {
+        val showcase = optional { get<ApiAchievements>("api/v1/users/$username/achievements") }?.showcase.orEmpty()
+        return UserBadgesResponse(
+            showcase.mapIndexed { index, item ->
+                BadgeDefinition(id = index + 1, name = item.name, description = item.description, allowTitle = false)
+            },
+        )
+    }
+
+    /**
+     * Only your own, newest first, across every folder: the app has no folder
+     * screen, so `/api/v1/saved` without `folder` is the whole collection.
+     */
+    suspend fun bookmarks(username: String, page: Int = 0): UserBookmarksResponse {
+        val list = get<ApiSavedList>(
+            "api/v1/saved",
+            listOf("offset" to (page * PAGE).toString(), "limit" to PAGE.toString()),
+        )
+        val ids = list.bookmarks.associate { it.postId to nodeId(it.nodeSlug) }
+        return UserBookmarksResponse(
+            UserBookmarkList(
+                bookmarks = list.bookmarks.map {
+                    UserBookmark(
+                        // Keyed by post: taking one off is `DELETE /posts/{id}/bookmark`.
+                        id = it.postId,
+                        title = it.topicTitle,
+                        excerpt = it.excerpt,
+                        createdAt = it.createdAt,
+                        topicId = it.topicId,
+                        categoryId = ids[it.postId],
+                        postId = it.postId,
+                        linkedPostNumber = it.postNumber,
+                        user = it.author?.let { name -> Legacy.user(name, null) },
+                    )
+                },
+                moreBookmarksUrl = if (list.nextOffset != null) "next" else null,
+            ),
+        )
+    }
+
+    suspend fun drafts(): DraftsResponse {
+        val list = get<ApiDraftList>("api/v1/drafts")
+        return DraftsResponse(
+            list.drafts.map { draft ->
+                val data = draft.data as? JsonObject
+                fun field(vararg names: String) = names.firstNotNullOfOrNull { (data?.get(it) as? JsonPrimitive)?.contentOrNull }
+                val payload = buildJsonObject {
+                    field("raw", "body", "reply")?.let { put("reply", it) }
+                    field("title")?.let { put("title", it) }
+                }
+                DraftItem(
+                    draftKey = draft.key,
+                    data = payload.toString(),
+                    title = field("title"),
+                    createdAt = draft.updatedAt,
+                    topicId = (data?.get("topic_id") as? JsonPrimitive)?.intOrNull,
+                )
+            },
+        )
+    }
+
+    /** filter: 4 topics, 5 replies; likes given (1) is not kept by the native API. */
+    suspend fun userActions(username: String, filter: Int, offset: Int = 0): UserActionsResponse {
+        val page = offset / PAGE
+        return when (filter) {
+            4 -> {
+                val list = optional {
+                    topicPage("user-topics:$username", "api/v1/users/$username/topics", emptyList(), page, offsetPaging = false)
+                } ?: return UserActionsResponse()
+                UserActionsResponse(
+                    list.topics.map {
+                        UserActionItem(
+                            actionType = 4,
+                            title = it.title,
+                            excerpt = it.excerpt,
+                            createdAt = it.createdAt,
+                            avatarTemplate = it.authorAvatar,
+                            username = it.author,
+                            categoryId = nodeId(it.nodeSlug),
+                            topicId = it.id,
+                            postNumber = 1,
+                        )
+                    },
+                )
+            }
+            5 -> {
+                val key = "user-posts:$username"
+                val query = mutableListOf("limit" to PAGE.toString())
+                if (page > 0) query += "cursor" to (cursors["$key|$page"] ?: return UserActionsResponse())
+                val body = optional { get<JsonObject>("api/v1/users/$username/posts", query) } ?: return UserActionsResponse()
+                (body["next_cursor"] as? JsonPrimitive)?.contentOrNull?.let { cursors["$key|${page + 1}"] = it }
+                val posts = (body["posts"] as? JsonArray).orEmpty().mapNotNull { element ->
+                    val item = element as? JsonObject ?: return@mapNotNull null
+                    fun s(name: String) = (item[name] as? JsonPrimitive)?.contentOrNull
+                    fun i(name: String) = (item[name] as? JsonPrimitive)?.intOrNull
+                    UserActionItem(
+                        actionType = 5,
+                        title = s("topic_title"),
+                        excerpt = s("excerpt") ?: s("html")?.let { com.nodeloc.app.core.util.DiscourseFormat.plainText(it) },
+                        createdAt = s("created_at"),
+                        username = username,
+                        topicId = i("topic_id"),
+                        postNumber = i("post_number"),
+                        postId = i("id"),
+                    )
+                }
+                UserActionsResponse(posts)
+            }
+            else -> UserActionsResponse()
+        }
+    }
+
+    suspend fun pointsHistory(username: String, page: Int = 0): PointsHistoryResponse {
+        val key = "points"
+        val query = mutableListOf("limit" to PAGE.toString())
+        if (page > 0) query += "before" to (cursors["$key|$page"] ?: return PointsHistoryResponse(page = page, hasMore = false))
+        val history = get<ApiPointsHistory>("api/v1/points/history", query)
+        history.nextBefore?.let { cursors["$key|${page + 1}"] = it.toString() }
+        return PointsHistoryResponse(
+            pointsHistory = history.entries.map {
+                PointsHistoryEntry(
+                    date = it.createdAt,
+                    points = it.amount.toInt(),
+                    description = it.memo ?: it.counterpart ?: it.kind,
+                    createdAt = it.createdAt,
+                    isPositive = it.amount >= 0,
+                )
+            },
+            page = page,
+            hasMore = history.nextBefore != null,
+        )
+    }
 
     suspend fun pointsTotal(username: String): PointsScoresResponse =
-        get("u/$username/points-scores.json", listOf("page" to "0"))
+        PointsScoresResponse(get<ApiPointsSummary>("api/v1/points").balance.toInt())
 
-    // ------------------------------------------------------- nodeloc plugin
+    // ------------------------------------------------------- site features
 
-    /** Whether the site runs the app plugin, and which optional pieces it has. */
-    suspend fun mobileMeta(): MobileMeta = get("mobile/meta")
-
-    /** Today, as the server counts it — the read side the check-in plugin lacks. */
-    suspend fun checkinStatus(): CheckinStatus = get("mobile/checkin")
-
-    suspend fun postSourcePreference(): PostSourcePreference = get("mobile/preferences/post_source")
-
-    suspend fun setPostSourcePreference(level: Int): PostSourcePreference =
-        decode(formItems("PUT", "mobile/preferences/post_source", listOf("level" to level.toString())))
-
-    /** Takes the tails off everything already posted; see the plugin. */
-    suspend fun clearPostSources() {
-        send("DELETE", "mobile/preferences/post_source/history")
+    /**
+     * What this server offers to the app. Check-in exists natively; the post
+     * source tail does not, so its settings page stays hidden.
+     */
+    suspend fun mobileMeta(): MobileMeta {
+        val flags = runCatchingCancellable { get<ApiFlags>("api/v1/mobile/flags").flags }.getOrDefault(emptyMap())
+        return MobileMeta(apiVersion = 2, features = mapOf("checkin" to true, "post_source" to false, "devices" to true) + flags)
     }
 
-    /** Where to deliver this account.s notifications on this handset. */
+    suspend fun checkinStatus(): CheckinStatus {
+        val status = get<ApiCheckinStatus>("api/v1/checkin")
+        return CheckinStatus(
+            checkedInToday = status.checkedInToday,
+            pointsToday = if (status.checkedInToday) status.todayPoints else null,
+            nextPoints = if (status.checkedInToday) null else status.todayPoints,
+            streak = status.streak,
+            totalDays = status.total,
+        )
+    }
+
+    suspend fun postSourcePreference(): PostSourcePreference = throw unavailable()
+
+    suspend fun setPostSourcePreference(level: Int): PostSourcePreference = throw unavailable()
+
+    suspend fun clearPostSources() { throw unavailable() }
+
+    /** Where to deliver this account's notifications on this handset (FCM). */
     suspend fun registerDevice(
         token: String,
         appVersion: String,
@@ -904,278 +887,236 @@ class DiscourseClient(
         timezone: String,
         categories: List<String>,
     ) {
-        post(
-            "mobile/devices",
-            mapOf(
-                "token" to token,
-                "platform" to "android",
-                "app_version" to appVersion,
-                "locale" to locale,
-                "timezone" to timezone,
-                "categories" to categories.joinToString(","),
-            ),
+        call(
+            "POST",
+            "api/v1/mobile/devices",
+            buildJsonObject {
+                put("platform", "android")
+                put("push_token", token)
+                put("app_build", com.nodeloc.app.BuildConfig.VERSION_CODE)
+                put("name", "${android.os.Build.MANUFACTURER ?: ""} ${android.os.Build.MODEL ?: ""}".trim().ifEmpty { "Android" })
+            },
         )
     }
 
+    /** Also runs during sign-out, after the credential is gone: hence the retired token. */
     suspend fun unregisterDevice(token: String) {
-        formItems("DELETE", "mobile/devices", listOf("token" to token))
+        api.sendRaw(
+            "POST",
+            "api/v1/mobile/devices/unregister",
+            buildJsonObject { put("push_token", token) },
+            bearer = auth.token ?: auth.retiredToken,
+        )
     }
 
-    suspend fun latestRelease(versionCode: Int, clientIdForRollout: String): ReleaseResponse =
-        get(
-            "mobile/releases/latest",
-            listOf(
-                "platform" to "android",
-                "version_code" to versionCode.toString(),
-                "client_id" to clientIdForRollout,
+    suspend fun latestRelease(versionCode: Int, clientIdForRollout: String): ReleaseResponse {
+        val check = get<ApiUpdateCheck>(
+            "api/v1/mobile/update",
+            listOf("platform" to "android", "build" to versionCode.toString()),
+        )
+        val latest = check.latest
+        if (latest == null || !check.updateAvailable || latest.downloadUrl.isNullOrEmpty()) return ReleaseResponse(null)
+        return ReleaseResponse(
+            ReleaseInfo(
+                platform = "android",
+                versionCode = latest.build,
+                versionName = latest.version,
+                url = latest.downloadUrl,
+                sha256 = latest.sha256,
+                notes = latest.notes,
+                mandatory = check.updateRequired,
             ),
         )
+    }
 
     /**
-     * Progress towards the next trust level.
-     *
-     * No `.json` suffix: the plugin's route already defaults the format, and
-     * the username is matched by a route constraint that a suffix confuses.
+     * Progress towards the next tier. Tiers are earned by reputation alone now,
+     * so the checklist the page draws has exactly one line.
      */
-    suspend fun upgradeProgress(username: String): UpgradeProgress =
-        get("u/$username/upgrade-progress")
+    suspend fun upgradeProgress(username: String): UpgradeProgress {
+        val rep = get<ApiReputation>("api/v1/me/reputation")
+        val next = rep.next
+        val target = next?.threshold
+        return UpgradeProgress(
+            currentLevel = rep.tier,
+            currentLevelName = rep.tierName,
+            nextLevel = next?.level,
+            nextLevelName = next?.name,
+            conditions = if (target == null) emptyList() else listOf(
+                UpgradeCondition(
+                    key = "reputation",
+                    label = if (Locale.getDefault().language == "zh") "声望" else "Reputation",
+                    text = "${rep.reputation} / $target",
+                    group = "standing",
+                    comparison = "min",
+                    value = rep.reputation,
+                    target = target,
+                    met = rep.reputation >= target,
+                ),
+            ),
+            totalConditions = if (target == null) 0 else 1,
+            metCount = if (target != null && rep.reputation >= target) 1 else 0,
+            maxLevelReached = next == null,
+        )
+    }
 
-    /** The directory endpoint returns a **bare JSON array**, unlike the detail one. */
-    suspend fun appsDirectory(): List<DirectoryApp> = get("apps/directory.json")
+    suspend fun appsDirectory(): List<DirectoryApp> {
+        val body = get<JsonObject>("apps/directory.json")
+        val apps = body["apps"] as? JsonArray ?: return emptyList()
+        return apps.mapNotNull { runCatching { json.decodeFromJsonElement(DirectoryApp.serializer(), it) }.getOrNull() }
+    }
 
     suspend fun app(slug: String): DirectoryAppResponse = get("apps/$slug.json")
 
     fun appWebviewUrl(installId: Int): String = "${DiscourseConfig.BASE_URL}/apps/installs/$installId/webview"
 
-    suspend fun customGroupStyles(): List<CustomGroupStyleItem> = get("discourse_custom_badge/group-styles/list")
+    suspend fun customGroupStyles(): List<CustomGroupStyleItem> = emptyList()
 
-    suspend fun customBadgeStyles(): List<CustomBadgeStyleItem> = get("discourse_custom_badge/badge-styles/list")
+    suspend fun customBadgeStyles(): List<CustomBadgeStyleItem> = emptyList()
 
-    suspend fun checkUsername(username: String): UsernameCheckResponse =
-        get("u/check_username.json", listOf("username" to username))
+    suspend fun checkUsername(username: String): UsernameCheckResponse = try {
+        api.getRaw("api/v1/auth/username-check", listOf("username" to username))
+        UsernameCheckResponse(available = true)
+    } catch (error: DiscourseError.BadResponse) {
+        if (error.code in 400..499) UsernameCheckResponse(available = false) else throw error
+    }
 
-    suspend fun honeypot(): HoneypotResponse = get("session/hp.json")
+    suspend fun honeypot(): HoneypotResponse = HoneypotResponse()
 
-    suspend fun checkEmail(email: String): EmailCheckResponse =
-        get("u/check_email.json", listOf("email" to email))
+    /** The server checks the address when the code is sent; nothing to ask beforehand. */
+    suspend fun checkEmail(email: String): EmailCheckResponse = EmailCheckResponse(success = "OK")
 
     // -------------------------------------------------- authenticated reads
 
-    /** Returns **404** when not signed in — that is the signal, not an error. */
-    suspend fun currentUser(): CurrentUserResponse = get("session/current.json")
-
-    /**
-     * [limit] because the badge is counted from these rows: at the server's
-     * default of 30, a user with more unread than that would see the count
-     * stop at 30 while the list said otherwise.
-     */
-    suspend fun notifications(limit: Int = 60): NotificationsResponse =
-        get("notifications.json", listOf("limit" to limit.toString()))
-
-    suspend fun privateMessages(username: String): PrivateMessagesResponse =
-        get("topics/private-messages/$username.json")
-
-    suspend fun groupPrivateMessages(username: String, group: String): PrivateMessagesResponse =
-        get("topics/private-messages-group/$username/$group.json")
-
-    /**
-     * Marks whole topics read — which for a conversation is the same thing.
-     *
-     * `dismiss_posts` sets `last_read_post_number` to the topic's highest, and
-     * that pair is exactly what the inbox reads back as unread. One request for
-     * the lot rather than a timing per conversation, and Discourse caps the
-     * list at its own MAX_BULK_TOPIC_IDS.
-     */
-    suspend fun dismissTopicPosts(topicIds: List<Int>) {
-        if (topicIds.isEmpty()) return
-        val items = topicIds.map { "topic_ids[]" to it.toString() } +
-            ("operation[type]" to "dismiss_posts")
-        formItems("PUT", "topics/bulk", items)
+    suspend fun currentUser(): CurrentUserResponse = coroutineScope {
+        val balance = async { runCatchingCancellable { get<ApiPointsSummary>("api/v1/points").balance }.getOrNull() }
+        val user = get<ApiUserEnvelope>("api/v1/me").user
+        me = user
+        val unread = runCatchingCancellable {
+            get<ApiNotificationList>("api/v1/notifications", listOf("limit" to "1")).unread
+        }.getOrNull()
+        CurrentUserResponse(Legacy.currentUser(user, balance.await()).copy(unreadNotifications = unread))
     }
+
+    suspend fun notifications(limit: Int = 60): NotificationsResponse {
+        val list = get<ApiNotificationList>("api/v1/notifications", listOf("limit" to limit.coerceIn(1, 50).toString()))
+        return NotificationsResponse(list.notifications.map(Legacy::notification))
+    }
+
+    /** Private messages are chat conversations now; they are listed there. */
+    suspend fun privateMessages(username: String): PrivateMessagesResponse = PrivateMessagesResponse()
+
+    suspend fun groupPrivateMessages(username: String, group: String): PrivateMessagesResponse = PrivateMessagesResponse()
+
+    suspend fun dismissTopicPosts(topicIds: List<Int>) = Unit
 
     // -------------------------------------------------------------- writing
 
-    /**
-     * The daily check-in.
-     *
-     * The endpoint is armoured against scripted claiming rather than against
-     * clients: it wants a per-attempt nonce — echoed in both a header and the
-     * body, and held in redis for an hour so a replay is refused — plus a
-     * header naming the feature. Everything else it inspects (the JSON accept,
-     * the XHR marker, the origin and the CSRF token) [requestBuilder] already
-     * sends, so nothing here is a browser impersonation.
-     *
-     * Never retry this automatically. The rate limiter counts every attempt,
-     * runs *ahead* of the already-checked-in branch, and only clears itself on
-     * a successful claim — so a handful of hopeful calls locks the account out
-     * of the feature for the rest of the window.
-     */
-    suspend fun checkin(): CheckinResponse {
-        val nonce = UUID.randomUUID().toString().replace("-", "")
-        val form = listOf("nonce" to nonce, "timestamp" to System.currentTimeMillis().toString())
-        val body = formEncode(form).toRequestBody("application/x-www-form-urlencoded".toMediaType())
-        val request = requestBuilder(url("checkin"), includeCsrf = true)
-            .header("X-Discourse-Checkin", "true")
-            .header("X-Checkin-Nonce", nonce)
-            // Only read when the browser-fingerprint gate is switched on, and
-            // absent from okhttp's defaults — the one header this endpoint can
-            // ask for that the rest of the app never needed.
-            .header("Accept-Language", Locale.getDefault().toLanguageTag())
-            .post(body)
-            .build()
-        return decode(perform(request))
+    /** The daily check-in. Already-claimed answers 4xx; reported as not checked in, with the reason. */
+    suspend fun checkin(): CheckinResponse = try {
+        val result = send<ApiCheckinResult>("POST", "api/v1/checkin")
+        CheckinResponse(success = FlexibleBool(true), points = result.points, userDate = result.day)
+    } catch (error: DiscourseError.BadResponse) {
+        if (error.code in 400..499 && error.code != 401 && error.code != 429) {
+            CheckinResponse(success = FlexibleBool(false), message = error.serverMessage)
+        } else {
+            throw error
+        }
     }
 
     suspend fun likePost(id: Int) {
-        post("post_actions", mapOf("id" to id.toString(), "post_action_type_id" to "2", "flag_topic" to "false"))
+        castVote(id, VoteDirection.Up)
     }
 
     suspend fun unlikePost(id: Int) {
-        formItems("DELETE", "post_actions/$id", listOf("post_action_type_id" to "2"))
+        castVote(id, VoteDirection.None)
     }
 
-    /** Answers with the new bookmark's id, which is what takes it off again. */
-    suspend fun bookmark(postId: Int): BookmarkCreated =
-        decode(
-            post(
-                "bookmarks",
-                mapOf("bookmarkable_id" to postId.toString(), "bookmarkable_type" to "Post"),
-            ),
-        )
+    /** Bookmarks are keyed by post; the "bookmark id" handed back is the post id. */
+    suspend fun bookmark(postId: Int): BookmarkCreated {
+        call("PUT", "api/v1/posts/$postId/bookmark")
+        return BookmarkCreated(id = postId, success = "OK")
+    }
 
-    /** Keyed on the bookmark, not the post — there is no delete-by-post route. */
     suspend fun removeBookmark(bookmarkId: Int) {
-        send("DELETE", "bookmarks/$bookmarkId")
+        call("DELETE", "api/v1/posts/$bookmarkId/bookmark")
     }
-
-    /**
-     * What this handset would say about itself, when its owner has said it may.
-     *
-     * Set by `ServiceLocator` rather than passed down through every composer:
-     * a tail belongs to the request, not to the screen that started it, and
-     * threading it through would mean every future caller remembering to.
-     */
-    @Volatile
-    var postSourceFields: (suspend () -> Map<String, String>)? = null
-
-    private suspend fun withSource(form: Map<String, String>): Map<String, String> =
-        form + (postSourceFields?.invoke().orEmpty())
 
     suspend fun reply(topicId: Int, raw: String, replyToPostNumber: Int? = null): CreatePostResponse {
-        val form = mutableMapOf("raw" to raw, "topic_id" to topicId.toString())
-        replyToPostNumber?.let { form["reply_to_post_number"] = it.toString() }
-        return decode(post("posts", withSource(form)))
+        val created = send<ApiCreatedReply>(
+            "POST",
+            "api/v1/topics/$topicId/posts",
+            buildJsonObject {
+                put("raw", toNativeMarkdown(raw))
+                replyToPostNumber?.let { put("reply_to_post_number", it) }
+            },
+        )
+        return CreatePostResponse(id = created.post?.id, topicId = topicId, postNumber = created.post?.postNumber)
     }
 
-    suspend fun createTopic(title: String, raw: String, categoryId: Int): CreatePostResponse =
-        decode(
-            post(
-                "posts",
-                withSource(
-                    mapOf(
-                        "title" to title,
-                        "raw" to raw,
-                        "category" to categoryId.toString(),
-                        "archetype" to "regular",
-                    ),
-                ),
-            ),
+    suspend fun createTopic(title: String, raw: String, categoryId: Int): CreatePostResponse {
+        val created = send<ApiCreatedTopic>(
+            "POST",
+            "api/v1/topics",
+            buildJsonObject {
+                put("node", nodeSlug(categoryId))
+                put("title", title)
+                put("raw", toNativeMarkdown(raw))
+            },
         )
+        return CreatePostResponse(id = created.post?.id, topicId = created.topic?.id, postNumber = 1)
+    }
 
     /**
-     * A private message is a topic with a different archetype and people
-     * instead of a node — the same endpoint, and the same response.
+     * A private message is a chat message now. The subject line has nowhere to
+     * go except the message itself, so it leads.
      */
-    suspend fun createPrivateMessage(title: String, raw: String, recipient: String): CreatePostResponse =
-        decode(
-            post(
-                "posts",
-                mapOf(
-                    "title" to title,
-                    "raw" to raw,
-                    "archetype" to "private_message",
-                    "target_recipients" to recipient,
-                ),
-            ),
-        )
+    suspend fun createPrivateMessage(title: String, raw: String, recipient: String): CreatePostResponse {
+        val text = listOf(title.trim(), raw.trim()).filter { it.isNotEmpty() }.joinToString("\n\n")
+        val sent = send<ApiChatSent>("POST", "api/v1/messages/$recipient", buildJsonObject { put("raw", toNativeMarkdown(text)) })
+        return CreatePostResponse(id = sent.message?.id)
+    }
 
     /**
-     * The direct-message channel with [username], created if this is the first
-     * time. Discourse returns the existing one otherwise, so this is safe to
-     * call on every tap.
+     * The conversation with [username], or a placeholder for one not started
+     * yet. Directs are addressed by username either way; the id only has to be
+     * stable while the screen is open.
      */
-    suspend fun openDirectMessageChannel(username: String): ChatChannelResponse =
-        decode(formItems("POST", "chat/api/direct-message-channels", listOf("target_usernames[]" to username)))
+    suspend fun openDirectMessageChannel(username: String): ChatChannelResponse {
+        val page = get<ApiChatPage>("api/v1/messages/$username", listOf("limit" to "1", "read" to "0"))
+        val id = page.conversationId ?: -(Legacy.syntheticUserId(username))
+        directUsers[id] = username
+        return ChatChannelResponse(Legacy.direct(ApiDirect(id = id, with = username)))
+    }
 
-    /**
-     * How loudly this user's activity should reach you: normal, mute, ignore.
-     *
-     * PUT, not POST — the route is only declared for PUT, and posting to it
-     * answers a 404 that reads like a missing user rather than a wrong verb.
-     */
     suspend fun setUserNotificationLevel(username: String, level: String) {
-        formItems("PUT", "u/$username/notification_level", listOf("notification_level" to level))
+        call(if (level == "normal") "DELETE" else "PUT", "api/v1/users/$username/block")
     }
 
-    /**
-     * Stop seeing someone: their posts, their replies, their messages.
-     *
-     * `ignore` is the only level of the three that will not save without a
-     * deadline — `IgnoredUser` validates `expiring_at` for presence and the
-     * controller runs it through `Time.parse`, so omitting it is a 500 rather
-     * than a default of forever. Discourse's own dialog makes you pick a
-     * duration for the same reason; this picks one far enough out to mean
-     * "until it is taken back".
-     *
-     * Two more rules live on the server and are not worth duplicating here,
-     * because the answer comes back as a message worth showing: staff cannot
-     * be ignored, and the site decides through `ignore_allowed_groups` who is
-     * allowed to ignore at all.
-     */
     suspend fun ignoreUser(username: String) {
-        val until = java.time.Instant.now()
-            .plus(java.time.Duration.ofDays(IGNORE_DAYS))
-            .toString()
-        formItems(
-            "PUT",
-            "u/$username/notification_level",
-            listOf("notification_level" to "ignore", "expiring_at" to until),
-        )
+        call("PUT", "api/v1/users/$username/block")
     }
 
-    /** Back to normal, which clears both the ignore and any mute beside it. */
     suspend fun unignoreUser(username: String) = setUserNotificationLevel(username, "normal")
 
-    /**
-     * Flag a chat message.
-     *
-     * A separate endpoint from `post_actions` and a differently named field —
-     * `flag_type_id` here, `post_action_type_id` there — for the same set of
-     * reasons out of `site.json`.
-     */
-    suspend fun flagChatMessage(
-        channelId: Int,
-        messageId: Int,
-        flagTypeId: Int,
-        message: String? = null,
-    ) {
-        formItems(
-            "POST",
-            "chat/api/channels/$channelId/messages/$messageId/flags",
-            listOfNotNull(
-                "flag_type_id" to flagTypeId.toString(),
-                message?.takeIf { it.isNotBlank() }?.let { "message" to it },
-            ),
-        )
+    suspend fun flagChatMessage(channelId: Int, messageId: Int, flagTypeId: Int, message: String? = null) {
+        throw unavailable()
     }
 
-    suspend fun joinNode(categoryId: Int): NodeMembershipResponse = decode(send("POST", "node/join/$categoryId"))
+    suspend fun joinNode(categoryId: Int): NodeMembershipResponse {
+        call("PUT", "api/v1/nodes/${nodeSlug(categoryId)}/membership")
+        nodesAt = 0
+        return NodeMembershipResponse(success = FlexibleBool(true), joined = true)
+    }
 
-    suspend fun leaveNode(categoryId: Int): NodeMembershipResponse = decode(send("DELETE", "node/leave/$categoryId"))
+    suspend fun leaveNode(categoryId: Int): NodeMembershipResponse {
+        call("DELETE", "api/v1/nodes/${nodeSlug(categoryId)}/membership")
+        nodesAt = 0
+        return NodeMembershipResponse(success = FlexibleBool(true), joined = false)
+    }
 
-    /** Without a CSRF header this answers 403 BAD CSRF. */
     suspend fun setCategoryNotification(categoryId: Int, level: Int) {
-        post("category/$categoryId/notifications", mapOf("notification_level" to level.toString()))
+        call("PUT", "api/v1/nodes/${nodeSlug(categoryId)}/notification", buildJsonObject { put("level", Legacy.nodeLevel(level)) })
     }
 
     suspend fun createNode(
@@ -1185,241 +1126,310 @@ class DiscourseClient(
         colorHex: String?,
         parentCategoryId: Int,
     ): CreateCommunityResponse {
-        val form = mutableMapOf(
-            "name" to name,
-            "description" to description,
-            "slug" to slug,
-            "parent_category_id" to parentCategoryId.toString(),
+        val created = send<ApiNodeDetail>(
+            "POST",
+            "api/v1/nodes",
+            buildJsonObject {
+                put("parent", nodeSlug(parentCategoryId))
+                put("slug", slug)
+                put("name", name)
+                put("description", description)
+                colorHex?.takeIf { it.isNotEmpty() }?.let { put("color", it.trim('#').lowercase(Locale.ROOT)) }
+            },
         )
-        colorHex?.takeIf { it.isNotEmpty() }?.let { form["color"] = it.trim('#').uppercase() }
-        return decode(post("node/create", form))
+        nodesAt = 0
+        return CreateCommunityResponse(created.node?.let { Legacy.category(it) })
     }
 
-    /**
-     * [raw] is what the reposter wrote above the pointer. Left out, the server
-     * posts the bare link, which is what a repost was before it could carry a
-     * remark; sent, the server still guarantees the link is in there.
-     */
     suspend fun repost(topicId: Int, categoryId: Int, title: String, raw: String? = null) {
-        val form = mutableMapOf(
-            "topic_id" to topicId.toString(),
-            "category_id" to categoryId.toString(),
-            "title" to title,
+        call(
+            "POST",
+            "api/v1/topics/$topicId/reposts",
+            buildJsonObject {
+                put("to", "node")
+                put("node", nodeSlug(categoryId))
+                put("title", title)
+                raw?.takeIf { it.isNotBlank() }?.let { put("comment", it) }
+            },
         )
-        raw?.takeIf { it.isNotBlank() }?.let { form["raw"] = it }
-        post("node/repost", form)
     }
 
-    /** 打赏 — discourse-reward. */
+    /** 打赏: a tip from the reader's energy to the post's author. */
     suspend fun giveReward(postId: Int, amount: Int, note: String? = null) {
-        val form = mutableMapOf("post_id" to postId.toString(), "amount" to amount.toString())
-        note?.takeIf { it.isNotEmpty() }?.let { form["note"] = it }
-        post("reward/give", form)
+        call(
+            "POST",
+            "api/v1/posts/$postId/tips",
+            buildJsonObject {
+                put("amount", amount)
+                note?.takeIf { it.isNotEmpty() }?.let { put("note", it) }
+            },
+        )
     }
 
-    suspend fun follow(username: String) { send("PUT", "follow/$username") }
+    suspend fun follow(username: String) {
+        call("PUT", "api/v1/users/$username/follow")
+    }
 
-    suspend fun unfollow(username: String) { send("DELETE", "follow/$username") }
+    suspend fun unfollow(username: String) {
+        call("DELETE", "api/v1/users/$username/follow")
+    }
 
-    /**
-     * Every unread notification, or just [id].
-     *
-     * The single-id form degrades safely: a deployment that ignored the
-     * parameter would mark them all read, which is what this did
-     * unconditionally before.
-     */
     suspend fun markNotificationsRead(id: Int? = null) {
-        val items = id?.let { listOf("id" to it.toString()) }.orEmpty()
-        if (items.isEmpty()) send("PUT", "notifications/mark-read") else formItems("PUT", "notifications/mark-read", items)
+        call("POST", "api/v1/notifications/read", buildJsonObject { id?.let { put("id", it) } })
     }
 
-    /**
-     * Read progress. `timings` maps post number → ms on screen; the server
-     * marks those posts read and clears the topic's unread state.
-     */
+    /** Read progress: the furthest post seen, and how long the reader spent. */
     suspend fun sendTopicTimings(topicId: Int, topicTimeMs: Int, timings: Map<Int, Int>) {
-        val items = mutableListOf("topic_id" to topicId.toString(), "topic_time" to topicTimeMs.toString())
-        timings.forEach { (postNumber, ms) -> items += "timings[$postNumber]" to ms.toString() }
-        formItems("POST", "topics/timings", items)
-    }
-
-    /** `options[]` repeats once per selected option — a Map can't express it. */
-    suspend fun votePoll(postId: Int, pollName: String, options: List<String>): PollVoteResponse {
-        val items = mutableListOf("post_id" to postId.toString(), "poll_name" to pollName)
-        options.forEach { items += "options[]" to it }
-        return decode(formItems("PUT", "polls/vote", items))
-    }
-
-    suspend fun removePollVote(postId: Int, pollName: String): PollVoteResponse =
-        decode(formItems("DELETE", "polls/vote", listOf("post_id" to postId.toString(), "poll_name" to pollName)))
-
-    suspend fun participateInLottery(lotteryId: Int, quantity: Int, isRandom: Boolean): LotteryActionResponse =
-        decode(
-            formItems(
-                "POST",
-                "lottery/$lotteryId/participate",
-                listOf("quantity" to quantity.toString(), "random" to isRandom.toString()),
-            ),
+        val furthest = timings.keys.maxOrNull() ?: return
+        call(
+            "PUT",
+            "api/v1/topics/$topicId/read",
+            buildJsonObject {
+                put("post_number", furthest)
+                put("seconds", (topicTimeMs / 1000).coerceAtLeast(1))
+            },
         )
+    }
+
+    private suspend fun pollId(postId: Int, pollName: String): Int =
+        pollIds["$postId/$pollName"] ?: run {
+            pollsFor(postId)
+            pollIds["$postId/$pollName"] ?: throw DiscourseError.BadResponse(404)
+        }
+
+    /** Option ids travel as strings in the old model; the native API wants the numbers. */
+    suspend fun votePoll(postId: Int, pollName: String, options: List<String>): PollVoteResponse {
+        val id = pollId(postId, pollName)
+        val result = send<ApiPollEnvelope>(
+            "PUT",
+            "api/v1/polls/$id/votes",
+            buildJsonObject { putJsonArray("option_ids") { options.mapNotNull { it.toLongOrNull() }.forEach { add(JsonPrimitive(it)) } } },
+        )
+        val poll = result.poll
+        return PollVoteResponse(
+            poll = poll?.let(Legacy::poll),
+            vote = poll?.options?.filter { it.chosen }?.map { it.id.toString() } ?: options,
+        )
+    }
+
+    suspend fun removePollVote(postId: Int, pollName: String): PollVoteResponse {
+        val id = pollId(postId, pollName)
+        val result = send<ApiPollEnvelope>("PUT", "api/v1/polls/$id/votes", buildJsonObject { put("option_ids", buildJsonArray { }) })
+        return PollVoteResponse(poll = result.poll?.let(Legacy::poll), vote = emptyList())
+    }
+
+    suspend fun participateInLottery(lotteryId: Int, quantity: Int, isRandom: Boolean): LotteryActionResponse {
+        call(
+            "POST",
+            "api/v1/lotteries/$lotteryId/tickets",
+            buildJsonObject {
+                put("tickets", quantity)
+                put("random", isRandom)
+            },
+        )
+        return LotteryActionResponse(success = FlexibleBool(true))
+    }
 
     /**
-     * Keyed by **post id**, not topic id, and always a second request after the
-     * post is saved — the plugin has no markup, the web client posts it from an
-     * afterCreate hook.
+     * The composer still builds the old plugin's payload; the field names are
+     * translated here rather than in the screen.
      */
-    suspend fun createLottery(postId: Int, payloadJson: String): LotteryCreateResponse =
-        decode(postJson("lottery", payloadJson))
+    suspend fun createLottery(postId: Int, payloadJson: String): LotteryCreateResponse {
+        val old = json.parseToJsonElement(payloadJson).jsonObject
+        fun s(name: String) = (old[name] as? JsonPrimitive)?.contentOrNull
+        fun i(name: String) = (old[name] as? JsonPrimitive)?.intOrNull
+        val body = buildJsonObject {
+            put("title", s("title").orEmpty())
+            s("draw_at")?.let { put("draw_at", it) }
+            i("min_tickets_per_user")?.let { put("min_tickets", it) }
+            i("max_tickets_per_user")?.let { put("max_tickets", it) }
+            i("min_participants")?.let { put("min_participants", it) }
+            i("max_participants")?.let { put("max_participants", it) }
+            i("min_trust_level")?.let { put("min_trust_level", it) }
+            put("prizes", old["levels"] as? JsonArray ?: JsonArray(emptyList()))
+        }
+        val created = send<ApiLotteryEnvelope>("POST", "api/v1/posts/$postId/lottery", body)
+        return LotteryCreateResponse(success = FlexibleBool(true), id = created.lottery?.id)
+    }
 
-    /** Also a second request after the topic exists, for the same reason. */
-    suspend fun createRedEnvelope(topicId: Int, totalPoints: Int, totalCount: Int): RedEnvelopeResponse =
-        decode(
-            post(
-                "red-envelopes.json",
-                mapOf(
-                    "topic_id" to topicId.toString(),
-                    "total_points" to totalPoints.toString(),
-                    "total_count" to totalCount.toString(),
-                ),
-            ),
+    suspend fun createRedEnvelope(topicId: Int, totalPoints: Int, totalCount: Int): RedEnvelopeResponse {
+        val created = send<ApiRedEnvelopeEnvelope>(
+            "POST",
+            "api/v1/topics/$topicId/red-envelope",
+            buildJsonObject {
+                put("total", totalPoints)
+                put("count", totalCount)
+            },
         )
+        return RedEnvelopeResponse(success = FlexibleBool(true), id = created.redEnvelope?.id)
+    }
 
     // --------------------------------------------------- profile / settings
 
-    /** `PUT /u/:username` is users#update: ordered repeated keys, CSRF required. */
+    /** Account preferences live on the website; only the profile fields carry over. */
     suspend fun updatePreferences(username: String, items: List<Pair<String, String>>) {
-        formItems("PUT", "u/$username.json", items)
+        updateProfile(username, items)
     }
 
     suspend fun updateProfile(username: String, items: List<Pair<String, String>>) {
-        formItems("PUT", "u/$username.json", items)
+        val fields = items.toMap()
+        val current = runCatchingCancellable { get<ApiUserEnvelope>("api/v1/me").user }.getOrNull()
+        val known = setOf("name", "bio_raw", "website", "location")
+        if (fields.keys.none { it in known }) return
+        call(
+            "PUT",
+            "api/v1/me",
+            buildJsonObject {
+                put("name", fields["name"] ?: current?.name.orEmpty())
+                put("bio", fields["bio_raw"] ?: current?.bioRaw.orEmpty())
+                put("website", fields["website"] ?: current?.website.orEmpty())
+                put("location", fields["location"] ?: current?.location.orEmpty())
+            },
+        )
     }
 
     suspend fun pickAvatar(username: String, uploadId: Int, type: String = "uploaded") {
-        formItems(
-            "PUT",
-            "u/$username/preferences/avatar/pick",
-            listOf("upload_id" to uploadId.toString(), "type" to type),
-        )
+        val path = if (type == "profile_background" || type == "card_background") "api/v1/me/cover" else "api/v1/me/avatar"
+        call("PUT", path, buildJsonObject { put("upload_id", uploadId) })
     }
 
     suspend fun revokeAssociatedAccount(username: String, provider: String) {
-        formItems("POST", "u/$username/preferences/revoke-account", listOf("provider_name" to provider))
+        call("DELETE", "api/v1/me/identities/$provider")
     }
 
-    /** Discourse has no in-app password change; this mails a reset link. */
     suspend fun requestPasswordReset(login: String) {
-        formItems("POST", "session/forgot_password", listOf("login" to login))
+        call("POST", "api/v1/auth/password-reset", buildJsonObject { put("email", login.trim()) })
     }
 
-    suspend fun trustedSession(): SessionTrustResponse = get("u/trusted-session")
+    /** The native reauth window is short and unknown to the client; always ask. */
+    suspend fun trustedSession(): SessionTrustResponse = SessionTrustResponse(failed = "FAILED")
 
-    suspend fun confirmSession(password: String): SessionTrustResponse =
-        decode(formItems("POST", "u/confirm-session", listOf("password" to password)))
+    suspend fun confirmSession(password: String): SessionTrustResponse {
+        call("POST", "api/v1/me/reauth", buildJsonObject { put("password", password) })
+        return SessionTrustResponse(success = "OK")
+    }
 
-    /** Note: the 2FA routes carry no username segment. */
-    suspend fun listSecondFactors(): SecondFactorsResponse = decode(formItems("POST", "u/second_factors", emptyList()))
+    suspend fun listSecondFactors(): SecondFactorsResponse {
+        val status = get<ApiTwoFactorStatus>("api/v1/me/two-factor")
+        return SecondFactorsResponse(totps = if (status.enabled) listOf(TOTPDevice(id = 1, name = "TOTP")) else emptyList())
+    }
 
-    suspend fun createTotp(): TOTPCreateResponse = decode(formItems("POST", "u/create_second_factor_totp", emptyList()))
+    /** The QR the old screen drew came from the server; it gets the otpauth URI to render instead. */
+    suspend fun createTotp(): TOTPCreateResponse {
+        val setup = send<ApiTwoFactorSetup>("POST", "api/v1/me/two-factor")
+        return TOTPCreateResponse(key = setup.secret, qr = setup.uri)
+    }
 
     suspend fun enableTotp(token: String, name: String) {
-        formItems(
-            "POST",
-            "u/enable_second_factor_totp",
-            listOf("second_factor_token" to token, "name" to name),
-        )
+        call("PUT", "api/v1/me/two-factor", buildJsonObject { put("code", token) })
     }
 
-    suspend fun disableSecondFactor() { formItems("PUT", "u/disable_second_factor", emptyList()) }
+    suspend fun disableSecondFactor() {
+        call("DELETE", "api/v1/me/two-factor")
+    }
 
-    suspend fun generateBackupCodes(): BackupCodesResponse = decode(formItems("PUT", "u/second_factors_backup", emptyList()))
+    suspend fun generateBackupCodes(): BackupCodesResponse =
+        BackupCodesResponse(send<ApiBackupCodes>("POST", "api/v1/me/two-factor/backup-codes").backupCodes)
 
-    /** Revokes one session, or all others when [tokenId] is null. */
     suspend fun revokeAuthToken(username: String, tokenId: Int?) {
-        val items = tokenId?.let { listOf("token_id" to it.toString()) } ?: emptyList()
-        formItems("POST", "u/$username/preferences/revoke-auth-token", items)
+        if (tokenId == null) call("DELETE", "api/v1/me/sessions") else call("DELETE", "api/v1/me/sessions/$tokenId")
     }
 
     // -------------------------------------------------------------- uploads
 
-    /** `upload_type` replaces the `type` param Discourse dropped in 3.5. */
+    private suspend fun uploadImage(body: okhttp3.RequestBody, fileName: String, mimeType: String): DiscourseUpload {
+        val kind = if (mimeType.startsWith("image/")) "image" else "attachment"
+        val raw = api.multipart("api/v1/uploads", mapOf("kind" to kind), fileName, mimeType, body)
+        val upload = api.decode<ApiUploadEnvelope>(raw).upload
+        upload.url?.let { uploadUrls[upload.id] = it }
+        return Legacy.upload(upload)
+    }
+
+    private suspend fun uploadVideo(body: okhttp3.RequestBody, fileName: String, mimeType: String): DiscourseUpload {
+        val raw = api.multipart("api/v1/videos", emptyMap(), fileName, mimeType, body)
+        val upload = Legacy.videoUpload(api.decode<ApiVideoEnvelope>(raw).video, fileName)
+        // Chat attaches by upload id; a video's "id" points at its tag instead.
+        upload.shortUrl?.let { uploadUrls[upload.id] = it }
+        return upload
+    }
+
     suspend fun uploadComposerMedia(data: ByteArray, fileName: String, mimeType: String): DiscourseUpload =
-        decode(
-            postMultipart(
-                "uploads.json",
-                mapOf("upload_type" to "composer", "synchronous" to "true"),
-                "file", fileName, mimeType, data,
-            ),
-        )
+        if (mimeType.startsWith("video/")) uploadVideo(api.bytesBody(data, mimeType), fileName, mimeType)
+        else uploadImage(api.bytesBody(data, mimeType), fileName, mimeType)
 
     suspend fun uploadUserImage(data: ByteArray, fileName: String, mimeType: String, type: String): DiscourseUpload =
-        decode(
-            postMultipart(
-                "uploads.json",
-                mapOf("upload_type" to type, "synchronous" to "true"),
-                "file", fileName, mimeType, data,
-            ),
-        )
+        uploadImage(api.bytesBody(data, mimeType), fileName, mimeType)
 
-    /**
-     * A video poster is linked to its video purely by **filename**: pretty_text
-     * looks up `original_filename LIKE '<video_sha1>.%'`. There is no markdown
-     * that references it, so the name is the entire contract.
-     */
-    /** A clip, streamed rather than held. See [postMultipartFile]. */
     suspend fun uploadMediaFile(
         file: java.io.File,
         fileName: String,
         mimeType: String,
         onProgress: ((Float) -> Unit)? = null,
-    ): DiscourseUpload =
-        decode(
-            postMultipartFile(
-                "uploads.json",
-                mapOf("upload_type" to "composer", "synchronous" to "true"),
-                "file", fileName, mimeType, file, onProgress,
-            ),
-        )
-
-    suspend fun uploadVideoPoster(data: ByteArray, videoSha1: String): DiscourseUpload =
-        decode(
-            postMultipart(
-                "uploads.json",
-                mapOf("upload_type" to "thumbnail", "synchronous" to "true"),
-                "file", "$videoSha1.jpg", "image/jpeg", data,
-            ),
-        )
-
-    // ----------------------------------------------------------------- chat
-
-    suspend fun chatChannels(): ChatChannelsResponse = try {
-        get("chat/api/me/channels.json")
-    } catch (error: DiscourseError.BadResponse) {
-        if (error.code == 404) get("chat/api/channels.json") else throw error
+    ): DiscourseUpload {
+        val body = api.fileBody(file, mimeType, onProgress)
+        return if (mimeType.startsWith("video/")) uploadVideo(body, fileName, mimeType) else uploadImage(body, fileName, mimeType)
     }
 
     /**
-     * A page of history.
-     *
-     * `direction` is what makes this pageable: without it the server answers
-     * around the target and nothing older ever arrives. "past" reads backwards
-     * from [targetMessageId], which is the oldest message already on screen.
+     * The server makes its own poster for a video; this one only ever serves as
+     * the composer's preview, so an ordinary image upload is enough.
      */
-    /**
-     * `fetch_from_last_read` centres the page on the reader's last-read mark
-     * rather than on the end of the channel, so with more unread than half a
-     * page the newest messages are not in the answer at all. Off by default:
-     * opening a conversation should show what was just said.
-     */
-    private fun chatMessageQuery(
-        pageSize: Int,
-        fetchFromLastRead: Boolean,
-        targetMessageId: Int?,
-        direction: String? = null,
-    ) = buildList {
-        add("page_size" to pageSize.toString())
-        if (fetchFromLastRead) add("fetch_from_last_read" to "true")
-        targetMessageId?.let { add("target_message_id" to it.toString()) }
-        direction?.let { add("direction" to it) }
+    suspend fun uploadVideoPoster(data: ByteArray, videoSha1: String): DiscourseUpload =
+        uploadImage(api.bytesBody(data, "image/jpeg"), "$videoSha1.jpg", "image/jpeg")
+
+    /** `upload://` and `|video` markdown are Discourse's; the native renderer has its own. */
+    private fun toNativeMarkdown(raw: String): String =
+        VIDEO_COMPOSER_MARKDOWN.replace(raw) { "[video id=${it.groupValues[1]}]" }
+
+    // ----------------------------------------------------------------- chat
+
+    @Volatile private var overview: ApiChatOverview? = null
+
+    private suspend fun chatOverview(): ApiChatOverview {
+        val fresh = get<ApiChatOverview>("api/v1/chat")
+        fresh.directs.forEach { directUsers[it.id] = it.with }
+        overview = fresh
+        return fresh
+    }
+
+    private fun isDirect(channelId: Int): Boolean = directUsers.containsKey(channelId)
+
+    /** Channels (joined first), then groups and directs, which the old model calls direct messages. */
+    suspend fun chatChannels(): ChatChannelsResponse {
+        val data = chatOverview()
+        val me = auth.username ?: this.me?.username
+        val channels = data.channels.sortedByDescending { it.joined }.map(Legacy::channel)
+        val dms = data.groups.map { Legacy.group(it, me) } + data.directs.map(Legacy::direct)
+        val tracking = (data.channels.map { it.id to (it.unreadCount to it.mentionCount) } +
+            data.groups.map { it.id to (it.unreadCount to 0) } +
+            data.directs.map { it.id to (it.unreadCount to 0) })
+            .associate { (id, counts) ->
+                id.toString() to ChatTrackingState(unreadCount = counts.first, mentionCount = counts.second)
+            }
+        return ChatChannelsResponse(
+            publicChannels = channels,
+            directMessageChannels = dms.sortedByDescending { it.lastMessage?.createdAt.orEmpty() },
+            tracking = ChatTrackingReport(tracking),
+        )
+    }
+
+    private suspend fun chatPage(channelId: Int, pageSize: Int, targetMessageId: Int?, direction: String?): ApiChatPage {
+        val query = mutableListOf("limit" to pageSize.coerceIn(1, 100).toString(), "read" to "0")
+        if (targetMessageId != null) {
+            query += if (direction == "future") "after" to targetMessageId.toString() else "before" to targetMessageId.toString()
+        }
+        val user = directUsers[channelId]
+        return if (user != null) {
+            if (channelId < 0) {
+                val page = get<ApiChatPage>("api/v1/messages/$user", query)
+                page.conversationId?.let { directUsers[it] = user }
+                page
+            } else {
+                get("api/v1/messages/$user", query)
+            }
+        } else {
+            get("api/v1/chat/channels/$channelId/messages", query)
+        }
     }
 
     suspend fun chatMessages(
@@ -1428,14 +1438,23 @@ class DiscourseClient(
         targetMessageId: Int? = null,
         direction: String? = null,
         fetchFromLastRead: Boolean = false,
-    ): ChatMessagesResponse =
-        get(
-            "chat/api/channels/$channelId/messages.json",
-            chatMessageQuery(pageSize, fetchFromLastRead, targetMessageId, direction),
-        )
+    ): ChatMessagesResponse {
+        val page = chatPage(channelId, pageSize, targetMessageId, direction)
+        return Legacy.chatPage(page, channelId, chatVideos(page))
+    }
 
-    /** Raw variant for the disk snapshot: stored exactly as served, so the
-     *  cache re-decodes through this same path later. */
+    /** Streams for the uploaded videos on a chat page, looked up like a topic's (see [withVideos]). */
+    private suspend fun chatVideos(page: ApiChatPage): Map<String, ApiVideo?> {
+        val ids = page.messages.flatMap { message -> Legacy.chatVideoMarkup.findAll(message.html).map { it.groupValues[1] } }.toSet()
+        if (ids.isEmpty()) return emptyMap()
+        return coroutineScope {
+            ids.map { sha1 ->
+                async { sha1 to runCatchingCancellable { get<ApiVideoEnvelope>("api/v1/videos/$sha1").video }.getOrNull() }
+            }.awaitAll().toMap()
+        }
+    }
+
+    /** The disk cache replays through the legacy decoder, so it stores the legacy shape. */
     suspend fun chatMessagesWithRaw(
         channelId: Int,
         pageSize: Int = 50,
@@ -1443,23 +1462,15 @@ class DiscourseClient(
         direction: String? = null,
         fetchFromLastRead: Boolean = false,
     ): Pair<ChatMessagesResponse, String> {
-        val raw = getRaw(
-            "chat/api/channels/$channelId/messages.json",
-            chatMessageQuery(pageSize, fetchFromLastRead, targetMessageId, direction),
-        )
-        return decode<ChatMessagesResponse>(raw) to raw
+        val response = chatMessages(channelId, pageSize, targetMessageId, direction, fetchFromLastRead)
+        return response to json.encodeToString(ChatMessagesResponse.serializer(), response)
     }
 
-    private fun chatThreadsQuery(limit: Int, offset: Int) = listOf(
-        "limit" to limit.coerceIn(1, 10).toString(),
-        "offset" to offset.coerceAtLeast(0).toString(),
-    )
+    // Threads, chat search, edits, reactions and typing are not in the native
+    // chat; their entry points are hidden and these answer empty.
+    suspend fun chatThreads(channelId: Int, limit: Int = 10, offset: Int = 0): ChatThreadsResponse = ChatThreadsResponse()
 
-    suspend fun chatThreads(channelId: Int, limit: Int = 10, offset: Int = 0): ChatThreadsResponse =
-        get("chat/api/channels/$channelId/threads.json", chatThreadsQuery(limit, offset))
-
-    suspend fun currentUserChatThreads(limit: Int = 10, offset: Int = 0): ChatThreadsResponse =
-        get("chat/api/me/threads.json", chatThreadsQuery(limit, offset))
+    suspend fun currentUserChatThreads(limit: Int = 10, offset: Int = 0): ChatThreadsResponse = ChatThreadsResponse()
 
     suspend fun chatThreadMessages(
         channelId: Int,
@@ -1467,11 +1478,7 @@ class DiscourseClient(
         pageSize: Int = 50,
         targetMessageId: Int? = null,
         direction: String? = null,
-    ): ChatMessagesResponse =
-        get(
-            "chat/api/channels/$channelId/threads/$threadId/messages.json",
-            chatMessageQuery(pageSize, fetchFromLastRead = false, targetMessageId, direction),
-        )
+    ): ChatMessagesResponse = ChatMessagesResponse()
 
     suspend fun chatSearch(
         query: String,
@@ -1479,29 +1486,11 @@ class DiscourseClient(
         offset: Int = 0,
         sort: String = "latest",
         excludeThreads: Boolean = false,
-    ): ChatSearchResponse =
-        get(
-            "chat/api/search.json",
-            listOf(
-                "query" to query,
-                "limit" to limit.coerceIn(1, 40).toString(),
-                "offset" to offset.coerceAtLeast(0).toString(),
-                "sort" to sort,
-                "exclude_threads" to excludeThreads.toString(),
-            ),
-        )
+    ): ChatSearchResponse = ChatSearchResponse()
 
     /**
-     * Sends a message, with any uploads attached as ids.
-     *
-     * Chat does not take markdown for an upload the way a post does: the
-     * message body and the files are separate, and `upload_ids` is how a file
-     * reaches a message at all. Putting `![](upload://…)` in the body instead
-     * stores exactly that text and shows it as one — the server has no reason
-     * to think it means a picture.
-     *
-     * A message with an upload may be empty; the server only requires words
-     * when there is nothing else to send.
+     * Files travel inside the message as markdown now; `upload_ids` was the old
+     * server's separate attachment list.
      */
     suspend fun createChatMessage(
         channelId: Int,
@@ -1510,136 +1499,78 @@ class DiscourseClient(
         inReplyToId: Int? = null,
         uploadIds: List<Int> = emptyList(),
     ): ChatCreateMessageResponse {
-        val form = mutableListOf("message" to message)
-        threadId?.let { form += "thread_id" to it.toString() }
-        inReplyToId?.let { form += "in_reply_to_id" to it.toString() }
-        // Repeated key, not a joined string: Rails reads `upload_ids[]` into an
-        // array, and a map could only hold one of them.
-        uploadIds.forEach { form += "upload_ids[]" to it.toString() }
-        return decode(formItems("POST", "chat/$channelId.json", form))
+        val images = uploadIds.mapNotNull { uploadUrls[it] }.map { url ->
+            if (url.startsWith(Legacy.VIDEO_URL_PREFIX)) "[video id=${url.removePrefix(Legacy.VIDEO_URL_PREFIX)}]" else "![]($url)"
+        }
+        val raw = (listOf(message.trim()).filter { it.isNotEmpty() } + images).joinToString("\n")
+        val body = buildJsonObject {
+            put("raw", toNativeMarkdown(raw))
+            inReplyToId?.let { put("reply_to", it) }
+        }
+        val user = directUsers[channelId]
+        val sent = if (user != null) {
+            send<ApiChatSent>("POST", "api/v1/messages/$user", body)
+        } else {
+            send<ApiChatSent>("POST", "api/v1/chat/channels/$channelId/messages", body)
+        }
+        return ChatCreateMessageResponse(success = "OK", messageId = sent.message?.id)
     }
 
     suspend fun updateChatMessage(channelId: Int, messageId: Int, message: String) {
-        formItems("PUT", "chat/api/channels/$channelId/messages/$messageId", listOf("message" to message))
+        throw unavailable()
     }
 
     suspend fun deleteChatMessage(channelId: Int, messageId: Int) {
-        send("DELETE", "chat/api/channels/$channelId/messages/$messageId")
+        call("DELETE", "api/v1/chat/messages/$messageId")
     }
 
-    /**
-     * One emoji on one message. `react_action` is the verb — the same endpoint
-     * takes it back off, which is why this is a toggle rather than two calls.
-     */
     suspend fun reactToChatMessage(channelId: Int, messageId: Int, emoji: String, add: Boolean) {
-        formItems(
-            "PUT",
-            "chat/$channelId/react/$messageId",
-            listOf(
-                "emoji" to emoji,
-                "react_action" to if (add) "add" else "remove",
-            ),
-        )
+        throw unavailable()
     }
 
-    /**
-     * Discourse's presence, which is how the web knows who is typing: being
-     * *in* `/chat-reply/{id}` is the whole signal. It has to be repeated — the
-     * server drops anyone who stops saying so — hence the caller's timer.
-     */
-    suspend fun presenceUpdate(present: List<String>, leave: List<String>) {
-        formItems(
-            "POST",
-            "presence/update",
-            buildList {
-                add("client_id" to clientId)
-                present.forEach { add("present_channels[]" to it) }
-                leave.forEach { add("leave_channels[]" to it) }
-            },
-        )
+    suspend fun presenceUpdate(present: List<String>, leave: List<String>) = Unit
+
+    suspend fun presenceGet(channels: List<String>): PresenceGetResponse = PresenceGetResponse()
+
+    suspend fun chatChannel(channelId: Int): ChatChannelResponse {
+        val data = overview?.takeIf { cached ->
+            cached.channels.any { it.id == channelId } || cached.groups.any { it.id == channelId } || cached.directs.any { it.id == channelId }
+        } ?: chatOverview()
+        val me = auth.username ?: this.me?.username
+        data.channels.firstOrNull { it.id == channelId }?.let { return ChatChannelResponse(Legacy.channel(it)) }
+        data.groups.firstOrNull { it.id == channelId }?.let { return ChatChannelResponse(Legacy.group(it, me)) }
+        data.directs.firstOrNull { it.id == channelId }?.let { return ChatChannelResponse(Legacy.direct(it)) }
+        directUsers[channelId]?.let { return ChatChannelResponse(Legacy.direct(ApiDirect(id = channelId, with = it))) }
+        throw DiscourseError.BadResponse(404)
     }
 
-    suspend fun presenceGet(channels: List<String>): PresenceGetResponse =
-        get("presence/get", channels.map { "channels[]" to it })
+    suspend fun chatChannelMembers(channelId: Int, limit: Int = 50): ChatMembershipsResponse {
+        if (isDirect(channelId) || overview?.groups?.none { it.id == channelId } != false) return ChatMembershipsResponse()
+        val members = get<ApiGroupMembers>("api/v1/chat/groups/$channelId/members").members
+        return ChatMembershipsResponse(members.take(limit).map { ChatMemberRow(Legacy.chatUser(it.username, it.avatar)) })
+    }
 
-    /** One channel with its chatable and this reader's membership. */
-    suspend fun chatChannel(channelId: Int): ChatChannelResponse =
-        get("chat/api/channels/$channelId.json")
-
-    /** Everyone in a channel; a direct message names them on the chatable instead. */
-    suspend fun chatChannelMembers(channelId: Int, limit: Int = 50): ChatMembershipsResponse =
-        get("chat/api/channels/$channelId/memberships.json", listOf("limit" to limit.toString()))
-
-    /** `never`, `mention` or `always` — the enum's names, not its numbers. */
+    /** `never` is mute; anything else takes the mute off. */
     suspend fun setChatNotificationLevel(channelId: Int, level: String) {
-        formItems(
-            "PUT",
-            "chat/api/channels/$channelId/notifications-settings/me",
-            listOf("notifications_settings[notification_level]" to level),
-        )
+        if (channelId < 0) return
+        call(if (level == "never") "PUT" else "DELETE", "api/v1/chat/conversations/$channelId/mute")
     }
 
-    /**
-     * Leaves the channel: unfollows it, which is what takes it off the list.
-     * For a direct message that is as close to deleting it as chat offers —
-     * the transcript stays, and a new message brings it back.
-     */
     suspend fun leaveChatChannel(channelId: Int) {
-        send("DELETE", "chat/api/channels/$channelId/memberships/me")
+        if (isDirect(channelId)) throw unavailable()
+        call("DELETE", "api/v1/chat/channels/$channelId/membership")
     }
 
     suspend fun markChatChannelRead(channelId: Int, messageId: Int) {
-        send("PUT", "chat/api/channels/$channelId/read", listOf("message_id" to messageId.toString()))
+        if (channelId < 0) return
+        call("PUT", "api/v1/chat/conversations/$channelId/read", buildJsonObject { put("message_id", messageId) })
     }
 
-    /**
-     * A thread keeps its own last-read, and the channel's does not cover it —
-     * so an unread reply in a watched thread holds the channel's badge up
-     * however often the channel itself is opened.
-     */
-    suspend fun markChatThreadRead(channelId: Int, threadId: Int, messageId: Int) {
-        send(
-            "PUT",
-            "chat/api/channels/$channelId/threads/$threadId/read",
-            listOf("message_id" to messageId.toString()),
-        )
-    }
-
-    /**
-     * One MessageBus long-poll round — the transport Discourse's own web client
-     * uses. `positions` maps bus channel ("/chat/123") to the last seen id;
-     * -1 subscribes to new events only. The server holds the request ~25s.
-     */
-    /**
-     * [sequence] is MessageBus's `__seq`. Without it the server cannot tell a
-     * fresh poll from a stale duplicate arriving under the same client id, and
-     * treats the newcomer as a reconnection to cancel.
-     */
-    suspend fun messageBusPoll(positions: Map<String, Int>, sequence: Int): String {
-        val fields = positions.entries.map { (key, value) -> "${encodeComponent(key)}=$value" } +
-            "__seq=$sequence"
-        val body = fields.joinToString("&")
-            .toRequestBody("application/x-www-form-urlencoded".toMediaType())
-        return perform(
-            requestBuilder(url("message-bus/$clientId/poll"), includeCsrf = true)
-                // Without this, message_bus hijacks the socket and *streams*
-                // the long poll: it writes each message as a chunk and closes
-                // only at the end of its window. This client reads a body, not
-                // a stream, so a message published two seconds in was not seen
-                // until the server hung up twenty-five seconds later — every
-                // chat message arrived up to half a minute late. Asking it not
-                // to chunk turns the same request into what it looks like: one
-                // response, sent the moment there is something to say.
-                .header("Dont-Chunk", "true")
-                .post(body)
-                .build(),
-            Channel.Bus,
-        )
-    }
+    suspend fun markChatThreadRead(channelId: Int, threadId: Int, messageId: Int) = Unit
 
     // -------------------------------------------------------------- externals
 
-    /** Klipy is an external host, not the Discourse backend. */
+    /** Klipy is an external host, not the site. */
     suspend fun klipySearch(query: String, pos: String? = null): KlipySearchResponse {
         if (DiscourseConfig.KLIPY_API_KEY.isEmpty()) throw DiscourseError.BadResponse(401)
         val target = "https://api.klipy.com/v2/search".toHttpUrl().newBuilder()
@@ -1649,18 +1580,22 @@ class DiscourseClient(
             .addQueryParameter("limit", "24")
             .addQueryParameter("pos", pos ?: "0")
             .build()
-        val body = perform(
-            Request.Builder().url(target).header("Accept", "application/json").get().build(),
-            Channel.Read,
-        )
-        return decode(body)
+        return api.decode(api.getExternal(target))
     }
 
     // ---------------------------------------------------------------- misc
 
+    /**
+     * The native server answers in whatever language the request asks for, so
+     * there is no account language to adopt: the app's own choice is the one.
+     */
+    suspend fun effectiveLocale(): String? = null
+
     val timezone: String get() = TimeZone.getDefault().id
 
     fun avatarUrl(template: String?, size: Int = 120): String? = DiscourseConfig.avatarUrl(template, size)
-
-    private fun RequestBody?.orEmptyBody(): RequestBody = this ?: ByteArray(0).toRequestBody(null)
 }
+
+private val POLL_MARKUP = Regex("""class="[^"]*\bpoll\b""")
+private val VIDEO_MARKUP = Regex("""<div class="video-embed" data-provider="upload" data-video-id="([0-9a-fA-F]{40})"></div>""")
+private val VIDEO_COMPOSER_MARKDOWN = Regex("""!\[[^\]]*\|video]\(video:([0-9a-fA-F]{40})\)""")

@@ -113,24 +113,29 @@ fun AuthNavHost(app: AppViewModel, navigator: Navigator, startAtSignup: Boolean 
                 app.refreshBadge()
                 navigator.finishAuth()
             }
-            // The provider's page is an overlay on this screen rather than a
-            // destination of its own: it is a sheet, and a sheet with nothing
-            // behind it is just a screen with a gap at the top.
-            var social by remember { mutableStateOf<String?>(null) }
+            // The provider runs in a Custom Tab and the result arrives through
+            // MainActivity, so this screen only learns of it as the session
+            // appearing.
+            val context = androidx.compose.ui.platform.LocalContext.current
+            var socialStarted by remember { mutableStateOf(false) }
+            val isSignedIn by app.isSignedIn.collectAsState()
+            LaunchedEffect(isSignedIn, socialStarted) {
+                if (isSignedIn && socialStarted) {
+                    socialStarted = false
+                    signedIn()
+                }
+            }
             Box(Modifier.fillMaxSize()) {
                 LoginScreen(
                     viewModel = viewModel,
                     onClose = navigator::back,
                     onSignedIn = signedIn,
                     onSignup = { controller.navigate(Route.SignupEmail) },
-                    onSocial = { social = it },
+                    onSocial = {
+                        socialStarted = true
+                        viewModel.startSocialLogin(context, it)
+                    },
                 )
-                social?.let { provider ->
-                    SocialLoginSheet(provider) { ok ->
-                        social = null
-                        if (ok) signedIn()
-                    }
-                }
             }
         }
         composable<Route.SignupEmail> {

@@ -372,7 +372,7 @@ fun VideoViewerOverlay(
 
         write(post.copy(voteDirection = next, voteScore = score + post.voteDirection.stepTo(next)))
         scope.launch {
-            runCatchingCancellable { ServiceLocator.get.client.castVote(post.postId, next, face) }
+            runCatchingCancellable { ServiceLocator.get.client.castVote(post.postId, next, face, fromFeed = true) }
                 .onSuccess { result ->
                     write(
                         post.copy(

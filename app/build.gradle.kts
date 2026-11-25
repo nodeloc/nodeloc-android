@@ -56,8 +56,8 @@ android {
         applicationId = "com.nodeloc.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 17
-        versionName = "1.1.15"
+        versionCode = 30
+        versionName = "2.0.0-beta1"
 
         buildConfigField("String", "INVITE_CODE", "\"$inviteCode\"")
     }
@@ -229,6 +229,8 @@ dependencies {
     implementation(libs.coil.svg)
 
     implementation(libs.media3.exoplayer)
+    // Uploaded videos are served as HLS by the 2.0 backend.
+    implementation(libs.media3.exoplayer.hls)
     implementation(libs.media3.ui)
     implementation(libs.media3.common)
     // ExoPlayer's own HTTP stack carries no cookies, and an upload on this site

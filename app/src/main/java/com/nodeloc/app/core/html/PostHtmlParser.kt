@@ -4,10 +4,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Turns Discourse's `cooked` HTML into a [PostContent] block tree.
+ * Turns a post's rendered HTML into a [PostContent] block tree.
  *
- * Hand-written rather than a DOM library because the input is narrow: `cooked`
- * is server-generated from markdown, so it is well-formed and uses a small,
+ * Two vocabularies arrive here. The NodeLoc backend's own (`internal/markup`:
+ * `a.mention.mn-node`, `div.video-embed`, `div.post-spoiler`, `div.poll[data-poll]`,
+ * `div.hidden-block`, callouts, tabs) is what every post now carries — imported
+ * posts included, since the importer re-renders their source rather than
+ * keeping Discourse's `cooked`. Discourse's markup is still understood because
+ * nothing about supporting it costs the new one anything, and quoted or cached
+ * content can still hold it.
+ *
+ * Hand-written rather than a DOM library because the input is narrow: it is
+ * server-generated from markdown, so it is well-formed and uses a small,
  * stable tag vocabulary. The scanner walks the string by index with an explicit
  * element stack; regex is deliberately avoided, since nested structures (a
  * quote containing a list containing a link) cannot be matched correctly by
@@ -290,8 +298,9 @@ object PostHtmlParser {
         -> true
         // A bare image is a block; an emoji is inline.
         "img" -> !isEmoji(tag)
-        // Only the lightbox flavour, which wraps a full-width image.
-        "a" -> "lightbox" in classList(tag)
+        // The lightbox flavour wraps a full-width image; a onebox link is a
+        // paragraph of its own that stands for a preview card.
+        "a" -> classList(tag).let { "lightbox" in it || "onebox" in it }
         else -> false
     }
 
@@ -311,7 +320,16 @@ object PostHtmlParser {
 
             // `a.lightbox` wraps the thumbnail and carries the full-size href;
             // its subtree also holds `.meta` chrome that must not surface.
-            "a" -> extractLightboxImage(tokens, cursor, tag.attributes["href"])?.let { listOf(PostBlock.Image(it)) }
+            "a" -> if ("onebox" in classes) {
+                // The backend marks a bare pasted URL and fetches its preview
+                // separately, so the link text — the URL itself — is all the
+                // card has to say until something richer is attached.
+                val href = tag.attributes["href"]
+                val text = parseInlinesUntil(tokens, cursor, "a", depth).plainText.trim()
+                listOf(PostBlock.Onebox(PostOnebox(url = href, title = text.ifEmpty { href })))
+            } else {
+                extractLightboxImage(tokens, cursor, tag.attributes["href"])?.let { listOf(PostBlock.Image(it)) }
+            }
 
             "video" -> {
                 val source = tag.attributes["src"] ?: nestedVideoSource(tokens, cursor, "video")
@@ -324,7 +342,12 @@ object PostHtmlParser {
 
             "p", "div", "section", "article", "figure" -> when {
                 "poll" in classes -> {
-                    val name = tag.attributes["data-poll-name"] ?: "poll"
+                    // `data-poll` is the backend's spelling, `data-poll-name`
+                    // Discourse's; either way the name is what the reader
+                    // matches against the post's polls.
+                    val name = tag.attributes["data-poll"]?.takeIf { it.isNotEmpty() }
+                        ?: tag.attributes["data-poll-name"]
+                        ?: "poll"
                     skipSubtree(tokens, cursor, tag.name)
                     listOf(PostBlock.PollPlaceholder(name))
                 }
@@ -339,8 +362,47 @@ object PostHtmlParser {
                     skipSubtree(tokens, cursor, tag.name)
                     listOf(PostBlock.Video(video))
                 }
-                "spoiler" in classes || "spoiled" in classes ->
+                "spoiler" in classes || "spoiled" in classes || "post-spoiler" in classes ->
                     listOf(PostBlock.Spoiler(parseBlocks(tokens, cursor, tag.name, depth)))
+
+                "video-embed" in classes -> {
+                    skipSubtree(tokens, cursor, tag.name)
+                    listOf(videoEmbed(tag))
+                }
+
+                // A mini-app placeholder: the app itself runs in its own
+                // container, so the post only needs a way to reach it.
+                "app-embed" in classes -> {
+                    skipSubtree(tokens, cursor, tag.name)
+                    tag.attributes["data-app-install"]?.toIntOrNull()?.let {
+                        listOf(PostBlock.Onebox(PostOnebox(url = "/apps/installs/$it/webview")))
+                    }
+                }
+
+                // Still locked for this reader: the server sends a one-line
+                // notice in place of the content. Set off as a quote so it
+                // reads as a note about the post rather than part of it.
+                // Once unlocked the same wrapper holds ordinary content and
+                // falls through to the generic case below.
+                "hidden-block" in classes && "unlocked" !in classes ->
+                    parseBlocks(tokens, cursor, tag.name, depth)
+                        .takeIf { it.isNotEmpty() }
+                        ?.let { listOf(PostBlock.BlockQuote(it)) }
+
+                // A tab strip has no native counterpart, and hiding all but one
+                // pane behind a control would hide content on a phone where the
+                // strip barely fits. Each pane is laid out in turn under its title.
+                "tab-pane" in classes -> {
+                    val title = tag.attributes["data-tab-title"]?.trim().orEmpty()
+                    val blocks = parseBlocks(tokens, cursor, tag.name, depth)
+                    val heading = if (title.isEmpty()) emptyList() else listOf(PostBlock.Heading(4, listOf(PostInline.Text(title))))
+                    (heading + blocks).takeIf { it.isNotEmpty() }
+                }
+
+                "callout-title" in classes -> {
+                    val title = trimEdges(parseInlinesUntil(tokens, cursor, tag.name, depth))
+                    if (title.isEffectivelyEmpty) null else listOf(PostBlock.Paragraph(styled(title, PostTextStyle.Bold)))
+                }
 
                 // An embed carries its content in attributes and an iframe, so
                 // there is no text to fall through to: a post whose whole body
@@ -375,7 +437,7 @@ object PostHtmlParser {
 
             "blockquote" -> parseBlocks(tokens, cursor, "blockquote", depth)
                 .takeIf { it.isNotEmpty() }
-                ?.let { listOf(PostBlock.BlockQuote(it)) }
+                ?.let { listOf(attributedQuote(it) ?: PostBlock.BlockQuote(it)) }
 
             "aside" -> when {
                 "quote" in classes -> listOf(PostBlock.Quote(parseQuote(tag, tokens, cursor, depth)))
@@ -412,6 +474,54 @@ object PostHtmlParser {
             cursor.index++
         }
         return source
+    }
+
+    /**
+     * `div.video-embed`: a site player for an upload, or a third-party page.
+     *
+     * An upload carries only its hash; see [PostVideo.src]. A YouTube or
+     * Bilibili embed is a link the reader opens elsewhere, which is what a
+     * onebox already is.
+     */
+    private fun videoEmbed(tag: HtmlTag): PostBlock {
+        val provider = tag.attributes["data-provider"].orEmpty()
+        val id = tag.attributes["data-video-id"].orEmpty()
+        if (provider == "upload") return PostBlock.Video(PostVideo(src = "", uploadSha1 = id.lowercase()))
+        val url = when (provider) {
+            "youtube" -> "https://www.youtube.com/watch?v=$id"
+            "bilibili" -> "https://www.bilibili.com/video/$id"
+            else -> null
+        }
+        return PostBlock.Onebox(PostOnebox(url = url, title = url))
+    }
+
+    /**
+     * A quote written the way the backend's importer and editor attribute one:
+     * the first line is `[name](/t/topic/post)：`. Lifted into [PostBlock.Quote]
+     * so it gets the same attribution chrome a Discourse quote had; a plain
+     * blockquote that merely starts with a link is left alone.
+     */
+    private fun attributedQuote(blocks: List<PostBlock>): PostBlock.Quote? {
+        val first = blocks.firstOrNull() as? PostBlock.Paragraph ?: return null
+        val link = first.inlines.firstOrNull() as? PostInline.Link ?: return null
+        if (!QUOTE_SOURCE.matches(link.href)) return null
+        val colon = first.inlines.getOrNull(1) as? PostInline.Text ?: return null
+        val afterColon = colon.value.trimStart()
+        if (!afterColon.startsWith("：") && !afterColon.startsWith(":")) return null
+        val username = link.children.plainText.trim().takeIf { it.isNotEmpty() } ?: return null
+
+        val rest = buildList {
+            val tail = afterColon.drop(1)
+            if (tail.isNotBlank()) add(PostInline.Text(tail))
+            addAll(first.inlines.drop(2))
+        }
+        // The source newline after the header became a space; at the head of
+        // the quote it is only indentation.
+        val remaining = trimEdges(rest).toMutableList().apply {
+            (firstOrNull() as? PostInline.Text)?.let { this[0] = PostInline.Text(it.value.trimStart()) }
+        }
+        val body = if (remaining.isEffectivelyEmpty) blocks.drop(1) else listOf(PostBlock.Paragraph(remaining)) + blocks.drop(1)
+        return PostBlock.Quote(PostQuote(username = username, blocks = body))
     }
 
     /** Pulls the `<img>` out of a lightbox anchor and skips its chrome. */
@@ -822,6 +932,14 @@ object PostHtmlParser {
                 val children = parseInlinesUntil(tokens, cursor, "a", depth)
                 val href = tag.attributes["href"].orEmpty()
                 when {
+                    // The backend uses `mention` for every kind of reference and
+                    // tells them apart by a second class. Only a person opens a
+                    // profile; a node, a tag or a group is a place to go.
+                    "mn-node" in classes || "mn-tag" in classes || "mention-group" in classes -> {
+                        val label = children.plainText.trim()
+                        if (label.isEmpty()) emptyList() else listOf(PostInline.Link(href, listOf(PostInline.Text(label))))
+                    }
+
                     "mention" in classes -> {
                         val username = children.plainText.trim().trim('@', ' ')
                         if (username.isEmpty()) children else listOf(PostInline.Mention(username))
@@ -880,7 +998,7 @@ object PostHtmlParser {
             } else {
                 cursor.index++
                 val children = parseInlinesUntil(tokens, cursor, tag.name, depth)
-                if ("spoiler" in classes || "spoiled" in classes) {
+                if ("spoiler" in classes || "spoiled" in classes || "post-spoiler" in classes) {
                     // discourse-spoiler-alert emits a span for the inline
                     // `[spoiler]` form, which is the common one. This used to
                     // style it as code and show it in the clear.
@@ -893,6 +1011,17 @@ object PostHtmlParser {
             "code" -> {
                 cursor.index++
                 styled(parseInlinesUntil(tokens, cursor, "code", depth), PostTextStyle.Code)
+            }
+
+            // Task lists are the only source of an input the sanitizer lets
+            // through, always a disabled checkbox; a box glyph keeps the tick.
+            "input" -> {
+                cursor.index++
+                if (tag.attributes["type"] == "checkbox") {
+                    listOf(PostInline.Text(if ("checked" in tag.attributes) "\u2611" else "\u2610"))
+                } else {
+                    emptyList()
+                }
             }
 
             else -> {
@@ -913,14 +1042,38 @@ object PostHtmlParser {
 
     // --------------------------------------------------------------- helpers
 
-    private fun imageBlock(tag: HtmlTag, href: String?) = PostImage(
-        src = tag.attributes["src"].orEmpty(),
-        href = href ?: tag.attributes["data-download-href"],
-        alt = tag.attributes["alt"],
-        width = tag.attributes["width"]?.toIntOrNull(),
-        height = tag.attributes["height"]?.toIntOrNull(),
-        srcsetBest = largestSrcsetCandidate(tag.attributes["srcset"]),
-    )
+    private fun imageBlock(tag: HtmlTag, href: String?): PostImage {
+        val src = tag.attributes["src"].orEmpty()
+        val thumbnail = postThumbnail(src)
+        return PostImage(
+            src = thumbnail ?: src,
+            href = href ?: tag.attributes["data-full"] ?: tag.attributes["data-download-href"] ?: thumbnail?.let { src },
+            alt = tag.attributes["alt"],
+            width = tag.attributes["width"]?.toIntOrNull(),
+            height = tag.attributes["height"]?.toIntOrNull(),
+            srcsetBest = largestSrcsetCandidate(tag.attributes["srcset"]),
+        )
+    }
+
+    /**
+     * The backend stores a post's own uploads at their original size and
+     * swaps in a display copy only when its web pages render. The same copy
+     * exists for the app at a predictable path, generated on first request,
+     * and is what a phone should load; the original stays as the full-size
+     * target. Mirrors `thumb.URL(src, "post")`: GIFs and anything off-pattern
+     * are left as they are.
+     */
+    private fun postThumbnail(src: String): String? {
+        val match = ORIGINAL_UPLOAD.matchEntire(src) ?: return null
+        val (prefix, sha1, extension) = match.destructured
+        if (!sha1.startsWith(prefix)) return null
+        return "/uploads/thumb/post/$prefix/$sha1.$extension"
+    }
+
+    private val ORIGINAL_UPLOAD = Regex("""/uploads/original/([0-9a-f]{2})/([0-9a-f]{40})\.(jpg|png|webp)""")
+
+    /** Where an attributed quote's header link points: a topic, optionally a post in it. */
+    private val QUOTE_SOURCE = Regex("""(https?://[^/]+)?/t/\d+(/\d+)?/?""")
 
     /**
      * The highest-density candidate in a `srcset`.

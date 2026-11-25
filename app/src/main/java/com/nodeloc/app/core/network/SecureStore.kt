@@ -109,19 +109,24 @@ class SecureStore(context: Context) {
         private const val TRANSFORMATION = "AES/GCM/NoPadding"
         private const val IV_LENGTH = 12
 
-        const val KEY_USER_API = "user_api_key"
+        /**
+         * The native API's bearer token. A new key rather than the 1.x
+         * `user_api_key`: whatever an older build left there is a Discourse
+         * credential this server has never issued.
+         */
+        const val KEY_TOKEN = "api_token"
         const val KEY_COOKIES = "session_cookies"
-        const val KEY_CSRF = "csrf_token"
         const val KEY_USERNAME = "username"
 
+        /** "Don't ask for a code on this device for 30 days", sent back as `X-Nodeloc-Trust`. */
+        const val KEY_TRUST = "trust_token"
+
         /**
-         * The website OAuth flow's half-finished state. The Custom Tab belongs
-         * to another app, so this process can be killed behind it; without a
-         * durable copy the redirect comes back to a keypair that no longer
-         * exists. Cleared the moment the flow ends, either way.
+         * A browser sign-in's PKCE verifier. The Custom Tab belongs to another
+         * app and this process can die behind it, so the verifier has to outlive
+         * it; cleared the moment the redirect is handled, either way.
          */
-        const val KEY_AUTH_PRIVATE_KEY = "auth_private_key"
-        const val KEY_AUTH_NONCE = "auth_nonce"
-        const val KEY_AUTH_STARTED_AT = "auth_started_at"
+        const val KEY_PKCE_VERIFIER = "pkce_verifier"
+        const val KEY_PKCE_STARTED_AT = "pkce_started_at"
     }
 }

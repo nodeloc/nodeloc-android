@@ -54,7 +54,7 @@ object TopicVoting {
         publish(current().replacing(topicId) { it.copy(voteDirection = next, voteScore = score + before.voteDirection.stepTo(next)) })
 
         scope.launch {
-            runCatchingCancellable { client.castVote(postId, next, face) }
+            runCatchingCancellable { client.castVote(postId, next, face, fromFeed = true) }
                 .onFailure {
                     publish(
                         current().replacing(topicId) {

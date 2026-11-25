@@ -1,7 +1,9 @@
 package com.nodeloc.app.core.html
 
 /**
- * Typed intermediate representation of a Discourse post's `cooked` HTML.
+ * Typed intermediate representation of a post's rendered HTML — the NodeLoc
+ * backend's `html`, and the Discourse `cooked` markup that older content and
+ * tests still use.
  *
  * Posts arrive as server-rendered HTML. Stripping it to plain text loses
  * formatting, images, quotes and code; hosting a WebView per post is heavy and
@@ -109,10 +111,18 @@ data class PostQuote(
  * Discourse cooks `![name|video](upload://…)`.
  */
 data class PostVideo(
+    /**
+     * Empty for an upload the site transcodes: its markup names the clip by
+     * hash only, and the playable HLS address exists only once transcoding has
+     * finished, so it is looked up (`GET /api/v1/videos/{sha1}`) rather than
+     * written into the post.
+     */
     val src: String,
     val originalSrc: String? = null,
     /** Attached server-side by matching an upload named after the video SHA1. */
     val posterSrc: String? = null,
+    /** `div.video-embed[data-provider=upload]`'s `data-video-id`; see [src]. */
+    val uploadSha1: String? = null,
 ) {
     /**
      * Upload SHA1, from the filename — deliberately *not* the plugin's regex,
@@ -122,6 +132,7 @@ data class PostVideo(
      */
     val sha1: String?
         get() {
+            uploadSha1?.let { return it }
             val path = src.substringBefore("?")
             val stem = path.substringAfterLast('/').substringBeforeLast('.')
             return stem.takeIf { it.length == 40 && it.all { c -> c.isDigit() || c in 'a'..'f' || c in 'A'..'F' } }
@@ -167,7 +178,7 @@ val PostBlock.stableKey: String
         is PostBlock.Paragraph -> "p:${inlines.plainText.take(48)}"
         is PostBlock.Heading -> "h$level:${inlines.plainText.take(48)}"
         is PostBlock.Image -> "img:${image.src}"
-        is PostBlock.Video -> "video:${video.src}"
+        is PostBlock.Video -> "video:${video.src.ifEmpty { video.sha1.orEmpty() }}"
         is PostBlock.CodeBlock -> "code:${language.orEmpty()}${code.take(32)}"
         is PostBlock.Quote -> "quote:${quote.username.orEmpty()}${quote.blocks.size}"
         is PostBlock.BlockQuote -> "bq:${blocks.size}:${blocks.firstOrNull()?.stableKey.orEmpty()}"

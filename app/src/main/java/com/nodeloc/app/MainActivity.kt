@@ -1,5 +1,7 @@
 package com.nodeloc.app
 
+import com.nodeloc.app.core.store.normalizePush
+import com.nodeloc.app.core.network.AuthError
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -115,17 +117,37 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Two kinds of incoming link: the User API Key redirect (`nodeloc://auth`),
+     * Two kinds of incoming link: the browser sign-in's redirect (`nodeloc://auth?code=…`),
      * and a tapped notification or shared nodeloc.com URL.
      */
     private fun handleIntent(intent: Intent?) {
-        val data: Uri = intent?.data ?: return
+        // A push the system displayed itself (app in the background) opens the
+        // launcher with the message's data as extras and no URI.
+        if (intent?.data == null) {
+            val extras = intent?.extras ?: return
+            val keys = listOf("topic_id", "post_number", "path", "kind", "notification_id")
+            val payload = keys.mapNotNull { key -> extras.getString(key)?.let { key to it } }.toMap()
+            if (payload.isEmpty()) return
+            normalizePush(payload)["url"]?.let { _pendingLink.value = it }
+            payload["notification_id"]?.toIntOrNull()?.let { id ->
+                lifecycleScope.launch { runCatching { ServiceLocator.get.client.markNotificationsRead(id) } }
+            }
+            return
+        }
+        val data: Uri = intent.data ?: return
         if (data.scheme == "nodeloc" && data.host == "auth") {
             lifecycleScope.launch {
                 val services = ServiceLocator.get
                 runCatching { services.authService.handleAuthRedirect(data) }
                     .onSuccess { services.session.onSignedIn() }
-                    .onFailure { ToastCenter.showError(it) }
+                    .onFailure { error ->
+                        when (error) {
+                            // Backing out of the browser is a choice, not a failure.
+                            AuthError.Cancelled -> Unit
+                            is AuthError -> ToastCenter.show(error.text(this@MainActivity))
+                            else -> ToastCenter.showError(error)
+                        }
+                    }
             }
             return
         }

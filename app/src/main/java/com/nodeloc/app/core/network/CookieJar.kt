@@ -6,8 +6,14 @@ import okhttp3.HttpUrl
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** Discourse's session cookie; the only one that means "signed in". */
-private const val SESSION_COOKIE = "_t"
+/** The site's session cookie; the only one that means "signed in". */
+internal const val SESSION_COOKIE = "nl_session"
+
+/**
+ * What survives a restart: the session, and the two device cookies the server
+ * uses to recognise a trusted device and a returning browser.
+ */
+private val PERSISTED_COOKIES = setOf(SESSION_COOKIE, "nl_2fa_trust", "rc_t")
 
 /**
  * Persistent cookie jar — the single most important piece of the auth stack.
@@ -116,6 +122,10 @@ class PersistentCookieJar(private val store: CookieStorage) : CookieJar {
     @Synchronized
     fun hasSessionCookie(): Boolean = cookies.values.any { it.name == SESSION_COOKIE }
 
+    /** The session cookie's value, which the API also accepts as a bearer token. */
+    @Synchronized
+    fun sessionToken(): String? = cookies.values.firstOrNull { it.name == SESSION_COOKIE }?.value?.takeIf { it.isNotEmpty() }
+
     /**
      * The jar's cookies as `Set-Cookie` values, for handing to the WebView.
      *
@@ -155,50 +165,6 @@ class PersistentCookieJar(private val store: CookieStorage) : CookieJar {
     }
 
     /**
-     * The one place a WebView may hand this jar a session it did not already
-     * have: the end of a sign-in run through the website, where the whole point
-     * is that a `_t` now exists which did not before.
-     *
-     * Deliberately not part of [mergeFromWebView], which stays update-only. The
-     * rule that a stale WebView store cannot conjure a session out of nothing
-     * is what keeps a browsed page from silently re-authenticating the app, so
-     * the exception is one cookie, on the site's own host, and only when a
-     * caller says a sign-in just finished.
-     *
-     * @return true when a session cookie was adopted.
-     */
-    @Synchronized
-    fun adoptSessionFromWebView(header: String?, url: HttpUrl): Boolean {
-        if (url.host != DiscourseConfig.HOST) return false
-        val value = header?.split(';')
-            ?.firstNotNullOfOrNull { pair ->
-                val separator = pair.indexOf('=')
-                if (separator <= 0) return@firstNotNullOfOrNull null
-                val name = pair.substring(0, separator).trim()
-                if (name != SESSION_COOKIE) null else pair.substring(separator + 1).trim()
-            }
-            ?.takeIf { it.isNotEmpty() }
-            ?: return false
-
-        val cookie = Cookie.Builder()
-            .name(SESSION_COOKIE)
-            .value(value)
-            .hostOnlyDomain(url.host)
-            .path("/")
-            .secure()
-            .httpOnly()
-            // The server's own expiry is not in `CookieManager.getCookie`,
-            // which returns a request header and nothing else. A year matches
-            // what Discourse issues, and a wrong guess costs a re-login rather
-            // than a stale session: the server decides when `_t` stops working.
-            .expiresAt(System.currentTimeMillis() + 365L * 24 * 60 * 60 * 1000)
-            .build()
-        cookies[cookieKey(cookie)] = cookie
-        persist()
-        return true
-    }
-
-    /**
      * A sign-in attempt has to start from an empty jar to get a clean
      * `_forum_session` for CSRF, but a *failed* attempt must not cost the user
      * the session they already had. Paired with [restoreSnapshot].
@@ -223,7 +189,7 @@ class PersistentCookieJar(private val store: CookieStorage) : CookieJar {
 
     private fun persist() {
         val array = JSONArray()
-        cookies.values.filter { it.name == SESSION_COOKIE || it.name.startsWith("_forum_session") || it.name == "_bypass_cache" }
+        cookies.values.filter { it.name in PERSISTED_COOKIES }
             .forEach { cookie ->
                 array.put(
                     JSONObject().apply {
@@ -257,7 +223,8 @@ class PersistentCookieJar(private val store: CookieStorage) : CookieJar {
                 val domain = item.getString("domain")
                 if (item.optBoolean("hostOnly")) builder.hostOnlyDomain(domain) else builder.domain(domain)
                 val cookie = builder.build()
-                cookies[cookieKey(cookie)] = cookie
+                // A 1.x install left Discourse's `_t` here; it means nothing now.
+                if (cookie.name in PERSISTED_COOKIES) cookies[cookieKey(cookie)] = cookie
             }
         }
     }

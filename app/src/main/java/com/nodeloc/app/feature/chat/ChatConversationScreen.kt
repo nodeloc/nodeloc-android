@@ -1,5 +1,6 @@
 package com.nodeloc.app.feature.chat
 
+import com.nodeloc.app.core.network.ServerFeatures
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -483,7 +484,7 @@ fun ChatConversationScreen(
         }
         HairLine()
 
-        if (state.threads.isNotEmpty() && state.openThreadId == null) {
+        if (ServerFeatures.CHAT_THREADS && state.threads.isNotEmpty() && state.openThreadId == null) {
             LazyRow(
                 contentPadding = PaddingValues(horizontal = Space.page, vertical = Space.s2),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -1100,7 +1101,7 @@ private fun MessageBubble(
             message.uploads.orEmpty().forEach { upload ->
                 DiscourseConfig.absoluteUrl(upload.url)?.let { url ->
                 if (upload.isVideoUpload) {
-                    ChatVideoTile(url, upload.displayFilename) { onOpenVideo(url) }
+                    ChatVideoTile(url, upload.originalFilename ?: stringResource(R.string.common_play)) { onOpenVideo(url) }
                 } else {
                     // The upload knows its own size, so the bubble can be the
                     // right height before the bytes arrive. Without this the
@@ -1387,7 +1388,7 @@ private fun MessageActionSheet(
         Column(Modifier.fillMaxWidth().padding(bottom = Space.s6)) {
             // The handful of faces that carry most of what people mean, and
             // the whole picker behind them for everything else.
-            Row(
+            if (ServerFeatures.CHAT_REACTIONS) Row(
                 Modifier.fillMaxWidth().padding(horizontal = Space.page, vertical = Space.s2),
                 horizontalArrangement = Arrangement.spacedBy(Space.s3),
             ) {
@@ -1404,14 +1405,14 @@ private fun MessageActionSheet(
                     }
                 }
             }
-            ActionSheetRow(stringResource(R.string.chat_react), onPickReaction)
+            if (ServerFeatures.CHAT_REACTIONS) ActionSheetRow(stringResource(R.string.chat_react), onPickReaction)
             ActionSheetRow(stringResource(R.string.reader_reply), onReply)
             ActionSheetRow(stringResource(R.string.chat_copy), onCopy)
             if (isMine) {
-                ActionSheetRow(stringResource(R.string.chat_edit), onEdit)
+                if (ServerFeatures.CHAT_EDIT) ActionSheetRow(stringResource(R.string.chat_edit), onEdit)
                 ActionSheetRow(stringResource(R.string.common_delete), onDelete, danger = true)
             } else {
-                ActionSheetRow(stringResource(R.string.reader_report), onReport, danger = true)
+                if (ServerFeatures.CHAT_REPORT) ActionSheetRow(stringResource(R.string.reader_report), onReport, danger = true)
                 ActionSheetRow(stringResource(R.string.post_more_block_author), onBlock, danger = true)
             }
         }
@@ -1547,7 +1548,7 @@ private val ChatNotificationLevels = listOf(
  * and nothing else to tell it apart.
  */
 private val DiscourseUpload.isVideoUpload: Boolean
-    get() = fileExtension?.lowercase() in setOf("mp4", "mov", "m4v", "webm", "mkv", "avi", "3gp")
+    get() = fileExtension?.lowercase() in setOf("mp4", "mov", "m4v", "webm", "mkv", "avi", "3gp", "m3u8")
 
 /**
  * How large a picture or a clip is allowed to be in a bubble.

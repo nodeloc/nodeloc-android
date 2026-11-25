@@ -73,6 +73,9 @@ enum class PushCategory(
  * enabling **only sets the baseline** — otherwise turning push on would dump
  * the entire unread backlog into the shade at once.
  */
+/** The channel id the server puts on every FCM message (mobile-api.md, 推送内容). */
+const val SERVER_CHANNEL_ID = "notifications"
+
 class PushRepository(
     private val context: Context,
     private val client: DiscourseClient,
@@ -90,6 +93,15 @@ class PushRepository(
             ).apply { description = appContext.getString(category.detailRes) }
             manager.createNotificationChannel(channel)
         }
+        // The server's FCM messages name this channel; while the app is in the
+        // background the system shows them there without asking us.
+        manager.createNotificationChannel(
+            NotificationChannel(
+                SERVER_CHANNEL_ID,
+                appContext.getString(R.string.inbox_notifications),
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ),
+        )
     }
 
     fun hasSystemPermission(): Boolean =
@@ -202,7 +214,8 @@ class PushRepository(
      * banner the same event twice — and so a poll that runs afterwards does
      * not replay what was already shown.
      */
-    suspend fun onPushMessage(data: Map<String, String>) {
+    suspend fun onPushMessage(raw: Map<String, String>) {
+        val data = normalizePush(raw)
         val settings = preferences.pushSettings.first()
         if (!settings.enabled || !hasSystemPermission()) return
 
@@ -481,4 +494,39 @@ class NotificationPollWorker(context: Context, params: WorkerParameters) :
             PushRepository.PollResult.Failed -> Result.retry()
         }
     }
+}
+
+/**
+ * The 2.0 server's push keys onto the ones this repository reads.
+ *
+ * It may name the target by `path` rather than a full `url`, the notification
+ * kind (`reply`, `vote`, `message`, …) rather than a category, and a chat
+ * message by its conversation. Keys already in the old form win.
+ */
+internal fun normalizePush(data: Map<String, String>): Map<String, String> {
+    val out = data.toMutableMap()
+    if (out["url"].isNullOrBlank()) {
+        // `/t/{id}/{post}` is what the link router opens at a floor; `path`
+        // spells the post as a query it does not read.
+        data["topic_id"]?.takeIf { it.isNotBlank() }?.let { topic ->
+            val floor = data["post_number"]?.takeIf { it.isNotBlank() }?.let { "/$it" }.orEmpty()
+            out["url"] = "${DiscourseConfig.BASE_URL}/t/$topic$floor"
+        }
+    }
+    if (out["url"].isNullOrBlank()) {
+        data["path"]?.takeIf { it.isNotBlank() }?.let { out["url"] = DiscourseConfig.absoluteUrl(it) ?: it }
+    }
+    if (out["category"].isNullOrBlank()) {
+        out["category"] = when (data["kind"]) {
+            "reply", "mention", "watching", "followed_topic", "node_topic", "node_hot_topic", "repost" -> PushCategory.Replies.id
+            "vote" -> PushCategory.Likes.id
+            "message", "chat" -> PushCategory.PrivateMessages.id
+            else -> PushCategory.System.id
+        }
+    }
+    if (out["notification_id"].isNullOrBlank() && out["chat_message_id"].isNullOrBlank()) {
+        (data["message_id"] ?: data["chat_message"])?.let { out["chat_message_id"] = it }
+            ?: data["id"]?.let { out["notification_id"] = it }
+    }
+    return out
 }

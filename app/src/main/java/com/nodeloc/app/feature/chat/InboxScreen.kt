@@ -74,7 +74,7 @@ fun InboxScreen(
     val viewModel: InboxViewModel = viewModel()
     val state by viewModel.state.collectAsState()
     val isSignedIn by app.isSignedIn.collectAsState()
-    var segment by remember { mutableStateOf(InboxSegment.entries.first()) }
+    var segment by remember { mutableStateOf(InboxSegment.visible.first()) }
 
     // Loading only. Marking everything read here dropped the badge from four
     // to one the instant the tab was tapped — before the list had rendered,
@@ -164,7 +164,7 @@ private fun SegmentRow(
         Modifier.fillMaxWidth().padding(horizontal = Space.page, vertical = Space.s3),
         horizontalArrangement = Arrangement.spacedBy(Space.s3),
     ) {
-        InboxSegment.entries.forEach { option ->
+        InboxSegment.visible.forEach { option ->
             val selected = option == segment
             val badge = when (option) {
                 InboxSegment.Notifications -> notifications

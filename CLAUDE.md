@@ -63,7 +63,28 @@ updater or `REQUEST_INSTALL_PACKAGES` may move back into `src/main`).
 Lint is expected to stay at **zero errors**. The parser tests are the regression
 net for the riskiest component — extend them when you touch it.
 
-## Backend reality checks
+## 2.0 backend (native `/api/v1`)
+
+Since 2.0 the site is the Go rewrite, not Discourse. `NodelocApi` is the
+transport (bearer token, `NodeLoc/…` User-Agent — the server answers 410 to
+OkHttp's default agent on Discourse-style paths — and the
+`{"error":{"code","message"}}` envelope). `DiscourseClient` is kept as a
+compatibility facade: every method calls `/api/v1` and maps the answer onto the
+old `core.model` types through `Legacy` (LegacyMapping.kt), so ViewModels and
+screens did not change. `ApiModels.kt` holds the native shapes. Features the
+server lacks are switched off in `ServerFeatures`, which hides their entry
+points. The live layer (`MessageBusClient`) reads the SSE stream
+`/api/v1/notifications/stream` and fires the old channel names. Post HTML is the
+native renderer's markup; `PostHtmlParser` maps it onto the existing blocks.
+Sign-in follows docs/specs/mobile-api.md in the backend repo: the login,
+register and exchange answers carry `token` only when the request has no
+`Sec-Fetch-Mode` header (the interceptor strips any); social sign-in runs in a
+Custom Tab with PKCE and ends at `nodeloc://auth?code=…`, exchanged via
+`POST /api/v1/auth/app/exchange` — never in an in-app WebView.
+`BackendSmokeTest` runs the facade against a disposable local instance when
+`NODELOC_SMOKE_URL` is set.
+
+## Backend reality checks (1.x, Discourse era)
 
 Discourse's own documentation is not authoritative for this deployment. Before
 modelling a new endpoint, fetch the real response and check the field types:

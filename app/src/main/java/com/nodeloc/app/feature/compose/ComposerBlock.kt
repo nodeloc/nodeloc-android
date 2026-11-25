@@ -166,8 +166,18 @@ fun String.toComposerBlocks(): List<ComposerBlock> {
     }
 
     lines().forEach { line ->
+        val video = NATIVE_VIDEO.matchEntire(line.trim())
         val match = STANDALONE_IMAGE.matchEntire(line.trim())
-        if (match != null) {
+        if (video != null) {
+            // The 2.0 site's own video tag: back into the block it was written from.
+            flush()
+            blocks += ComposerBlock.Media(
+                url = "video:${video.groupValues[1]}",
+                displayUrl = "",
+                name = "video",
+                kind = ComposerBlock.MediaKind.Video,
+            )
+        } else if (match != null) {
             flush()
             val label = match.groupValues[1]
             val href = match.groupValues[2]
@@ -189,6 +199,8 @@ fun String.toComposerBlocks(): List<ComposerBlock> {
     flush()
     return blocks.ifEmpty { listOf(ComposerBlock.Text("")) }
 }
+
+private val NATIVE_VIDEO = Regex("""\[video id=([0-9a-fA-F]{40})]""")
 
 private val STANDALONE_IMAGE = Regex("""!\[([^]]*)]\(([^)]+)\)""")
 

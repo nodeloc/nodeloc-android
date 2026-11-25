@@ -1,5 +1,6 @@
 package com.nodeloc.app.feature.settings
 
+import com.nodeloc.app.core.network.ServerFeatures
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -138,8 +139,10 @@ fun SettingsScreen(app: AppViewModel, navigator: Navigator) {
                 SettingsRowDivider()
                 // Under preferences and next to privacy, which is what it is:
                 // a choice about how much of your phone your posts say.
-                SettingsNavRow(stringResource(R.string.post_source_title)) { navigator.openSettingsRoute(Route.SettingsPostSource) }
-                SettingsRowDivider()
+                if (ServerFeatures.POST_SOURCE) {
+                    SettingsNavRow(stringResource(R.string.post_source_title)) { navigator.openSettingsRoute(Route.SettingsPostSource) }
+                    SettingsRowDivider()
+                }
                 SettingsNavRow(stringResource(R.string.settings_web)) {
                     navigator.openBrowser("${com.nodeloc.app.core.network.DiscourseConfig.BASE_URL}/my/preferences")
                 }

@@ -1,5 +1,6 @@
 package com.nodeloc.app.feature.chat
 
+import com.nodeloc.app.core.network.ServerFeatures
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,6 +19,13 @@ enum class InboxSegment(@StringRes val labelRes: Int) {
     Chats(R.string.inbox_chats),
     Messages(R.string.inbox_messages),
     Notifications(R.string.inbox_notifications),
+    ;
+
+    companion object {
+        /** Topic-style private messages are gone; conversations are under Chats. */
+        val visible: List<InboxSegment>
+            get() = entries.filter { it != Messages || ServerFeatures.PRIVATE_MESSAGE_TOPICS }
+    }
 }
 
 /** Thin ViewModel over the shared inbox repository — the badge reads it too. */

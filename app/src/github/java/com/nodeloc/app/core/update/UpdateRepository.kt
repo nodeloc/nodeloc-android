@@ -78,7 +78,7 @@ class UpdateRepository(
     private suspend fun fromTopic(): AvailableUpdate? {
         if (DiscourseConfig.UPDATE_TOPIC_ID <= 0) return null
         val raw = runCatchingCancellable {
-            client.getRaw("raw/${DiscourseConfig.UPDATE_TOPIC_ID}/1")
+            client.api.getRaw("raw/${DiscourseConfig.UPDATE_TOPIC_ID}/1")
         }.getOrNull()
         return updateFor(parseUpdateManifest(raw), BuildConfig.VERSION_CODE)
     }

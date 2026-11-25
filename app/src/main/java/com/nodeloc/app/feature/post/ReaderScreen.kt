@@ -1,5 +1,6 @@
 package com.nodeloc.app.feature.post
 
+import com.nodeloc.app.core.network.ServerFeatures
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -558,7 +559,7 @@ fun ReaderScreen(
                     // refuses the rest, and an option that always fails is
                     // worse than one that is not there.
                     onTogglePin = { viewModel.togglePinned(comment.id) }
-                        .takeIf { isStaff && comment.nestingDepth == 0 },
+                        .takeIf { ServerFeatures.REPLY_PINNING && isStaff && comment.nestingDepth == 0 },
                     onEdit = { editingPost = comment.id },
                     onDelete = { viewModel.deletePost(comment.id) },
                     onRecover = { viewModel.recoverPost(comment.id) },

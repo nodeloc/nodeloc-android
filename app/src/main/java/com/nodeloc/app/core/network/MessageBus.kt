@@ -1,7 +1,6 @@
 package com.nodeloc.app.core.network
 
 import android.content.Context
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -9,19 +8,23 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import org.json.JSONArray
 import java.io.File
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Minimal client for Discourse's MessageBus long-poll endpoint — the transport
- * its own web client uses for live chat.
+ * The live layer: the server's event stream (`/api/v1/notifications/stream`),
+ * presented to the app as the channel-keyed signals its screens were written
+ * against.
  *
- * Deliberately signal-only: event payloads differ per channel, so parsing them
- * would mean a second, divergent mapping of every message shape. Instead an
- * event means "this channel changed" and the store refetches the latest page
- * through the mapper it already has. One cheap request buys permanent
- * consistency.
+ * Deliberately signal-only, as before: an event means "this changed" and the
+ * store refetches through the mapper it already has. The stream carries
+ * `unread` (the bell's count changed) and `chat` (`{type, conversation, …}`);
+ * both are translated onto the old channel names in [BusChannels], so the
+ * subscribers did not have to change.
  */
 class MessageBusClient(private val client: DiscourseClient) {
 
@@ -34,57 +37,27 @@ class MessageBusClient(private val client: DiscourseClient) {
 
     private val lock = Any()
     private val subscribers = linkedMapOf<Subscription, Entry>()
-    private val positions = linkedMapOf<String, Int>()
-    private var seq = 0
     private var foreground = true
     private var job: Job? = null
 
-    /**
-     * App-lifetime, not the caller's.
-     *
-     * There used to be one client per ChatViewModel, each with its own loop and
-     * all sharing this install's single MessageBus client id. Discourse cancels
-     * an existing long-poll when a second arrives with the same id and answers
-     * the loser `[]` immediately — so two conversations on the back stack made
-     * both loops spin, hammering the site until one was popped. One client with
-     * a merged channel set cannot do that to itself.
-     */
+    /** App-lifetime: one stream for every subscriber, whoever came first. */
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    /**
-     * Subscribes to a set of channels for as long as the returned handle lives.
-     *
-     * Takes no CoroutineScope on purpose: with the caller's, the loop would die
-     * when the first subscriber was cleared while a second was still listening.
-     */
     fun subscribe(channels: List<String>, onEvent: (String) -> Unit): Subscription {
         val handle = object : Subscription {
             override fun cancel() = release(this)
         }
-        synchronized(lock) {
-            subscribers[handle] = Entry(channels.toSet(), onEvent)
-            // A channel joining the union starts at -1, which is how the server
-            // is told "from now", not "replay what I missed".
-            channels.forEach { positions.getOrPut(it) { -1 } }
-        }
+        synchronized(lock) { subscribers[handle] = Entry(channels.toSet(), onEvent) }
         restart()
         return handle
     }
 
     private fun release(handle: Subscription) {
-        synchronized(lock) {
-            subscribers.remove(handle) ?: return
-            val live = subscribers.values.flatMapTo(mutableSetOf()) { it.channels }
-            positions.keys.retainAll(live)
-            // seq is deliberately not reset. The server's registration for this
-            // client id outlives a cancelled poll by ~25s, and it closes any
-            // poll arriving with a lower sequence — resubscribing inside that
-            // window would spin at the floor until the registration expired.
-        }
+        synchronized(lock) { subscribers.remove(handle) ?: return }
         restart()
     }
 
-    /** Backgrounding stops the poll: an open long-poll is not free to hold. */
+    /** Backgrounding closes the stream: an open connection is not free to hold. */
     fun setAppForeground(active: Boolean) {
         synchronized(lock) {
             if (foreground == active) return
@@ -95,93 +68,115 @@ class MessageBusClient(private val client: DiscourseClient) {
 
     private fun restart() {
         synchronized(lock) {
+            val wanted = subscribers.isNotEmpty() && foreground
+            if (wanted && job?.isActive == true) return
             job?.cancel()
-            job = if (positions.isEmpty() || !foreground) {
-                null
-            } else {
-                scope.launch {
-                    while (isActive) {
-                        pollOnce()
+            job = if (!wanted) null else scope.launch {
+                while (isActive) {
+                    if (!client.auth.isAuthenticated) {
+                        delay(BASE_BACKOFF_MILLIS)
+                        continue
                     }
+                    val started = System.nanoTime()
+                    val ok = runCatching { streamOnce() }.isSuccess
+                    if (!isActive) break
+                    val lived = (System.nanoTime() - started) / 1_000_000
+                    if (ok && lived > HEALTHY_MILLIS) failures.set(0)
+                    // Escalating: a stream that keeps failing at once (signed out,
+                    // server down) must not turn into a reconnect loop.
+                    val step = failures.updateAndGet { (it + 1).coerceAtMost(MAX_BACKOFF_STEPS) }
+                    delay(if (ok && lived > HEALTHY_MILLIS) MIN_RECONNECT_MILLIS else BASE_BACKOFF_MILLIS shl (step - 1))
                 }
             }
         }
-    }
-
-    private suspend fun pollOnce() {
-        val (snapshot, sequence) = synchronized(lock) {
-            if (positions.isEmpty()) return
-            positions.toMap() to seq++
-        }
-        val startedAt = System.nanoTime()
-        try {
-            dispatch(client.messageBusPoll(snapshot, sequence))
-            failures.set(0)
-        } catch (cancel: CancellationException) {
-            throw cancel
-        } catch (_: Throwable) {
-            // Escalating, because a flat retry meant a signed-out client whose
-            // poll 403s hammered the site every four seconds indefinitely.
-            val step = failures.updateAndGet { (it + 1).coerceAtMost(MAX_BACKOFF_STEPS) }
-            delay(BASE_BACKOFF_MILLIS shl (step - 1))
-            return
-        }
-        // The server holds a poll for ~25s, but answers instantly when it has
-        // nothing to say — or when it is cancelling a duplicate. Without a
-        // floor, either case is a hot loop.
-        val elapsed = (System.nanoTime() - startedAt) / 1_000_000
-        if (elapsed < MIN_POLL_INTERVAL_MILLIS) delay(MIN_POLL_INTERVAL_MILLIS - elapsed)
     }
 
     private val failures = AtomicInteger()
 
-    private fun dispatch(body: String) {
-        // Normally one JSON array. If something in front of the site strips the
-        // Dont-Chunk header, message_bus streams instead: several arrays with a
-        // `|` between them. That is not parseable as one document, and the
-        // throw used to land in the backoff below — so the live layer went
-        // quiet for half a minute at a time and nobody could see why.
-        body.split(CHUNK_SEPARATOR)
-            .map { it.trim() }
-            .filter { it.startsWith("[") }
-            .forEach { dispatchOne(JSONArray(it)) }
+    /** One connection, read until the server closes it (it does, every half hour). */
+    private suspend fun streamOnce() {
+        val api = client.api
+        val request = api.requestBuilder(api.url("api/v1/notifications/stream"))
+            .header("Accept", "text/event-stream")
+            .get()
+            .build()
+        val call = api.streamHttp.newCall(request)
+        val handle = kotlin.coroutines.coroutineContext[Job]?.invokeOnCompletion { runCatching { call.cancel() } }
+        try {
+            call.execute().use { response ->
+                if (!response.isSuccessful) throw java.io.IOException("stream ${response.code}")
+                // Something may have changed while disconnected.
+                fireAll()
+                val source = response.body.source()
+                var event = "message"
+                val data = StringBuilder()
+                while (true) {
+                    val line = source.readUtf8Line() ?: break
+                    when {
+                        line.isEmpty() -> {
+                            if (data.isNotEmpty() || event != "message") dispatch(event, data.toString())
+                            event = "message"
+                            data.setLength(0)
+                        }
+                        line.startsWith(":") -> Unit
+                        line.startsWith("event:") -> event = line.removePrefix("event:").trim()
+                        line.startsWith("data:") -> {
+                            if (data.isNotEmpty()) data.append('\n')
+                            data.append(line.removePrefix("data:").trim())
+                        }
+                    }
+                }
+            }
+        } finally {
+            handle?.dispose()
+        }
     }
 
-    private fun dispatchOne(events: JSONArray) {
-        val fired = linkedSetOf<String>()
-        synchronized(lock) {
-            for (index in 0 until events.length()) {
-                val event = events.optJSONObject(index) ?: continue
-                val channel = event.optString("channel").takeIf { it.isNotEmpty() } ?: continue
-                if (channel == "/__status") {
-                    // The server reports each channel's current position, which
-                    // is how a -1 subscription starts from "now" rather than
-                    // replaying history.
-                    val statuses = event.optJSONObject("data") ?: continue
-                    statuses.keys().forEach { name ->
-                        if (positions.containsKey(name)) positions[name] = statuses.optInt(name, -1)
-                    }
-                    continue
-                }
-                if (!positions.containsKey(channel)) continue
-                positions[channel] = event.optInt("message_id", positions[channel] ?: -1)
-                fired += channel
-            }
-        }
+    internal fun dispatch(event: String, data: String) {
+        val fired = channelsFor(event, data, synchronized(lock) { subscribers.values.flatMap { it.channels }.toSet() })
         if (fired.isEmpty()) return
-        // Outside the lock: a listener may subscribe or cancel in response.
         val listeners = synchronized(lock) { subscribers.values.toList() }
         fired.forEach { channel ->
             listeners.forEach { entry -> if (channel in entry.channels) entry.onEvent(channel) }
         }
     }
 
-    private companion object {
-        /** message_bus writes this between chunks when it streams a poll. */
-        const val CHUNK_SEPARATOR = "|"
-        const val MIN_POLL_INTERVAL_MILLIS = 500L
+    private fun fireAll() {
+        val listeners = synchronized(lock) { subscribers.values.toList() }
+        listeners.forEach { entry -> entry.channels.forEach(entry.onEvent) }
+    }
+
+    companion object {
+        const val MIN_RECONNECT_MILLIS = 1_000L
+        const val HEALTHY_MILLIS = 30_000L
         const val BASE_BACKOFF_MILLIS = 4_000L
         const val MAX_BACKOFF_STEPS = 4   // 4s, 8s, 16s, 32s
+
+        /**
+         * Which of the [subscribed] channels an event touches. Pure, so the
+         * translation is pinned by a JVM test.
+         */
+        fun channelsFor(event: String, data: String, subscribed: Set<String>): Set<String> {
+            val out = linkedSetOf<String>()
+            when (event) {
+                "unread" -> subscribed.filterTo(out) { it.startsWith(BusChannels.NOTIFICATIONS_PREFIX) }
+                "chat" -> {
+                    val payload = runCatching { NodelocApi.json.parseToJsonElement(data) as? JsonObject }.getOrNull()
+                        ?: return out
+                    val type = (payload["type"] as? JsonPrimitive)?.contentOrNull
+                    if (type == "resync") return subscribed
+                    val conversation = (payload["conversation"] as? JsonPrimitive)?.intOrNull ?: 0
+                    if (conversation != 0) {
+                        out += BusChannels.chat(conversation)
+                        if (type == "new") out += BusChannels.chatNewMessages(conversation)
+                    }
+                    // Any change moves the inbox's counts, including a conversation
+                    // it has not seen yet, which it can only learn of this way.
+                    subscribed.filterTo(out) { it.startsWith("/chat/user-tracking-state/") }
+                }
+            }
+            return out.filterTo(linkedSetOf()) { it in subscribed }
+        }
     }
 }
 

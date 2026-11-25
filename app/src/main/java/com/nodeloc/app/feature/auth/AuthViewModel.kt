@@ -149,10 +149,17 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    /** Website OAuth in a Custom Tab; the redirect comes back to MainActivity. */
-    fun startWebsiteAuth(context: Context) {
+    /**
+     * A social sign-in in a Custom Tab (providers refuse embedded WebViews). The
+     * browser comes back to `nodeloc://auth?code=…`, which MainActivity trades
+     * for a token; the login screen watches for the session to appear.
+     */
+    fun startSocialLogin(context: Context, provider: String) {
         runCatchingCancellable {
-            val url = authService.buildAuthorizationUrl()
+            val url = authService.buildAuthorizationUrl(
+                services.siteRepository.authProviders().firstOrNull { it.name == provider }?.providerUrl
+                    ?: "${com.nodeloc.app.core.network.DiscourseConfig.BASE_URL}/auth/$provider",
+            )
             CustomTabsIntent.Builder().setShowTitle(true).build().launchUrl(context, url.toUri())
         }.onFailure { ToastCenter.showError(it) }
     }

@@ -31,6 +31,13 @@ class LinkRouterTest {
     }
 
     @Test
+    fun `a bare node path is a node on the 2_0 site`() {
+        assertEquals(LinkDestination.Node("vps", null), LinkRouter.resolve("/n/vps"))
+        assertEquals(LinkDestination.Topic(12, null), LinkRouter.resolve("https://www.nodeloc.com/t/12"))
+        assertEquals(LinkDestination.Chat(7, null), LinkRouter.resolve("/chat/g/7"))
+    }
+
+    @Test
     fun `category links resolve to a node with its id`() {
         assertEquals(
             LinkDestination.Node("ai", 42),

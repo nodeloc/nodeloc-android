@@ -24,9 +24,9 @@ import javax.net.ssl.SSLException
  */
 data class ServerFault(
     val messages: List<String> = emptyList(),
-    /** Discourse's `error_type`, e.g. `not_logged_in`, `invalid_access`. */
+    /** The server's `error.code`, e.g. `unauthorized`, `second_factor_required`. */
     val type: String? = null,
-    /** From a 429's `extras.wait_seconds`. */
+    /** From a 429's `Retry-After`. */
     val waitSeconds: Int? = null,
 )
 
@@ -77,14 +77,18 @@ sealed class DiscourseError(message: String? = null, cause: Throwable? = null) :
      * `DiscourseClient.sessionIsGone`, which asks.
      */
     val isNotLoggedIn: Boolean
-        get() = this is BadResponse && (fault?.type == "not_logged_in" || fault?.type == "invalid_access")
+        get() = isSessionGone
 
-    /** No session at all, said outright: the one answer needing no second opinion. */
+    /**
+     * No session at all, said outright. The native API answers 401 only for a
+     * missing or dead credential — permission problems are 403 — so unlike the
+     * old site there is no second opinion to ask.
+     */
     val isSessionGone: Boolean
-        get() = this is BadResponse && fault?.type == "not_logged_in"
+        get() = this is BadResponse && code == 401 && (fault?.type == null || fault.type == "unauthorized")
 
     val isRateLimited: Boolean
-        get() = this is BadResponse && (code == 429 || fault?.type == "rate_limit")
+        get() = this is BadResponse && (code == 429 || fault?.type == "rate_limited")
 
     val retryAfterSeconds: Int? get() = (this as? BadResponse)?.fault?.waitSeconds
 
