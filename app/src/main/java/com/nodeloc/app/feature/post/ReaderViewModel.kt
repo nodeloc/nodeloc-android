@@ -22,6 +22,8 @@ import com.nodeloc.app.core.model.PostReaction
 import com.nodeloc.app.core.model.ReplySort
 import com.nodeloc.app.core.model.TopicPost
 import com.nodeloc.app.core.model.TopicResponse
+import com.nodeloc.app.core.model.NestedTopicResponse
+import com.nodeloc.app.core.network.servesSnapshot
 import com.nodeloc.app.core.model.TopicRedEnvelope
 import com.nodeloc.app.core.model.UserProfileTarget
 import com.nodeloc.app.core.model.VoteDirection
@@ -43,6 +45,8 @@ import kotlinx.coroutines.withContext
 
 data class ReaderState(
     val topicId: Int = 0,
+    /** Set when the thread on screen is the saved copy because the server was unreachable. */
+    val offlineSavedAt: Long? = null,
     val title: String = "",
     val categoryId: Int? = null,
     val nodeName: String = "",
@@ -198,6 +202,7 @@ class ReaderViewModel : ViewModel() {
     private val services = ServiceLocator.get
     private val client = services.client
     private val site = services.siteRepository
+    private val snapshots = services.snapshots
 
     private val _state = MutableStateFlow(ReaderState())
     val state: StateFlow<ReaderState> = _state.asStateFlow()
@@ -208,6 +213,13 @@ class ReaderViewModel : ViewModel() {
         viewModelScope.launch {
             services.blockedUsers.usernames.collect { names ->
                 if (names != _state.value.blocked) _state.value = _state.value.copy(blocked = names)
+            }
+        }
+        // The saved copy gives way to the live thread as soon as the network
+        // is back; reload() keeps it on screen until the new one lands.
+        viewModelScope.launch {
+            services.network.online.collect { online ->
+                if (online && _state.value.offlineSavedAt != null && !loadInFlight) reload()
             }
         }
     }
@@ -282,7 +294,25 @@ class ReaderViewModel : ViewModel() {
         loadInFlight = true
         try {
             try {
-                val topic = client.topic(topicId)
+                // The topic's first page as last opened, when the network has
+                // nothing to say: read-only, with a line saying so. Only the
+                // network failing earns the fallback — a 404 or 403 means the
+                // topic is gone or no longer ours, and a copy would contradict it.
+                var savedAt: Long? = null
+                val topic = try {
+                    client.topic(topicId).also { fresh ->
+                        snapshots.store(topicSnapshotKey(topicId), TopicResponse.serializer(), fresh)
+                        snapshots.prune(TOPIC_SNAPSHOT_PREFIX, keep = TOPIC_SNAPSHOTS_KEPT)
+                    }
+                } catch (error: Throwable) {
+                    error.rethrowIfCancellation()
+                    if (!error.servesSnapshot()) throw error
+                    val snapshot = snapshots.load(topicSnapshotKey(topicId), TopicResponse.serializer()) ?: throw error
+                    site.warmFromSnapshot()
+                    savedAt = snapshot.savedAt
+                    snapshot.value
+                }
+                _state.value = _state.value.copy(offlineSavedAt = savedAt)
                 val posts = topic.postStream.posts
                 streamPosts = posts
                 contentRestricted = !topic.canReadTopic
@@ -411,7 +441,19 @@ class ReaderViewModel : ViewModel() {
         // load-more skipped that page of replies permanently.
         val page = if (reset) 0 else nestedPage + 1
         try {
-            val response = client.nestedTopic(topicId, sort = _state.value.replySort.key, page = page)
+            val sort = _state.value.replySort.key
+            // The first page of replies is kept with the topic (per sort, since
+            // that is a different tree), and replayed when the topic itself came
+            // from disk — the network that failed it will fail this too.
+            val repliesKey = "${topicSnapshotKey(topicId)}-replies-$sort"
+            val saved = if (reset && _state.value.offlineSavedAt != null) {
+                snapshots.load(repliesKey, NestedTopicResponse.serializer())?.value
+            } else {
+                null
+            }
+            val response = saved ?: client.nestedTopic(topicId, sort = sort, page = page).also { fresh ->
+                if (reset) snapshots.store(repliesKey, NestedTopicResponse.serializer(), fresh)
+            }
             val roots = response.roots.orEmpty()
             if (reset && roots.isEmpty() && streamPosts.size > 1) {
                 fallBackToStream()
@@ -1925,3 +1967,11 @@ private const val RELATED_FETCH = RELATED_BATCH * 2 + 1
  * without `can_accept` reads it; the setting itself is not served to the app.
  */
 private const val HELP_TAG = "求助"
+
+/** Every saved topic and its replies share this prefix, which is what pruning counts by. */
+private const val TOPIC_SNAPSHOT_PREFIX = "topic-"
+
+/** About twenty topics with a reply tree or two each; older ones go first. */
+private const val TOPIC_SNAPSHOTS_KEPT = 60
+
+private fun topicSnapshotKey(topicId: Int) = "$TOPIC_SNAPSHOT_PREFIX$topicId"

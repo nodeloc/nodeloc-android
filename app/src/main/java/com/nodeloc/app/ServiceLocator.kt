@@ -45,6 +45,10 @@ class ServiceLocator private constructor(context: Context) {
     val authService = AuthService(appContext, client, secureStore)
     val chatDiskCache = ChatDiskCache(appContext)
 
+    /** The feed, a topic, the inbox and the node directory as last seen; see SnapshotStore. */
+    val snapshots = com.nodeloc.app.core.network.SnapshotStore(appContext)
+    val network = com.nodeloc.app.core.network.NetworkMonitor(appContext)
+
     /**
      * One bus for the app. Per-ViewModel instances shared this install's single
      * MessageBus client id, and Discourse cancels a poll when another arrives
@@ -62,10 +66,10 @@ class ServiceLocator private constructor(context: Context) {
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     val preferences = AppPreferences(appContext)
-    val siteRepository = SiteRepository(client)
+    val siteRepository = SiteRepository(client, snapshots)
     val session = SessionRepository(client, authService, preferences)
     val blockedUsers = com.nodeloc.app.core.store.BlockedUsers(client)
-    val messageCenter = MessageCenterRepository(appContext, client, session, messageBus)
+    val messageCenter = MessageCenterRepository(appContext, client, session, messageBus, snapshots)
     val userPreferences = UserPreferencesRepository(client, session)
     val pushRepository = PushRepository(appContext, client, preferences)
     val moderationApi = com.nodeloc.app.core.network.ModerationApi(client.api)
@@ -99,6 +103,7 @@ class ServiceLocator private constructor(context: Context) {
             object : AccountScoped {
                 override suspend fun resetForSignOut() {
                     chatDiskCache.clear()
+                    snapshots.clear()
                     // Avatars are the harmless half; the rest is private-message
                     // and attachment imagery belonging to whoever just left.
                     listOf("image_cache", "reply", "composer").forEach { name ->

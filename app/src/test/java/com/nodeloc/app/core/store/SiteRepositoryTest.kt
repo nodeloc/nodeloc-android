@@ -26,6 +26,9 @@ class SiteRepositoryTest {
     private lateinit var server: MockWebServer
     private lateinit var repository: SiteRepository
 
+    @get:org.junit.Rule
+    val snapshotDir = org.junit.rules.TemporaryFolder()
+
     /** Two nodes under one section — the shape `slugPath` exists to walk — as the native node list sends them. */
     private val nodesJson = """
         {
@@ -60,6 +63,7 @@ class SiteRepositoryTest {
                 cookieJar = PersistentCookieJar(InMemoryCookieStorage()),
                 baseUrl = server.url("/").toString().trimEnd('/'),
             ),
+            com.nodeloc.app.core.network.SnapshotStore(snapshotDir.newFolder()),
         )
     }
 

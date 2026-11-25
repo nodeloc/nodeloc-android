@@ -22,6 +22,7 @@ import com.nodeloc.app.core.network.ApiNotification
 import com.nodeloc.app.core.network.ApiNotificationList
 import com.nodeloc.app.core.network.Legacy
 import com.nodeloc.app.core.network.NodelocApi
+import com.nodeloc.app.core.network.servesSnapshot
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.buildJsonObject
@@ -309,6 +310,8 @@ data class MessageCenterState(
     val isLoadingGroup: Boolean = false,
     val needsLogin: Boolean = false,
     val error: Throwable? = null,
+    /** Set while the lists are the saved ones because the server was unreachable. */
+    val offlineSavedAt: Long? = null,
 ) {
     /** What the bottom Message tab badges. */
     val unreadTotal: Int get() = unreadNotifications + unreadPrivateMessages + unreadChat
@@ -326,6 +329,7 @@ class MessageCenterRepository(
     private val client: DiscourseClient,
     private val session: SessionRepository,
     private val bus: MessageBusClient,
+    private val snapshots: com.nodeloc.app.core.network.SnapshotStore,
 ) : AccountScoped {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var badgeSubscription: MessageBusClient.Subscription? = null
@@ -357,13 +361,36 @@ class MessageCenterRepository(
         if (loaded && !force) return@withLock
         _state.value = _state.value.copy(isLoading = true, needsLogin = false, error = null)
 
+        // Nothing on screen yet: the inbox as last seen, at once, while the
+        // network is asked. What the server answers replaces it wholesale.
+        val savedNotes = snapshots.loadRaw(NOTIFICATIONS_SNAPSHOT)
+        val savedChannels = snapshots.load(CHANNELS_SNAPSHOT, ChatChannelsResponse.serializer())
+        if (_state.value.notifications.isEmpty() && _state.value.channels.isEmpty()) {
+            val notes = savedNotes?.let { runCatching { notificationPage(it.value) }.getOrNull() }?.rows.orEmpty()
+            val chats = savedChannels?.let { runCatching { channels(it.value) }.getOrNull() }.orEmpty()
+            if (notes.isNotEmpty() || chats.isNotEmpty()) {
+                _state.value = _state.value.copy(
+                    notifications = notes.map { it.first },
+                    notificationMeta = notes.associate { it.first.id to it.second },
+                    channels = chats,
+                )
+            }
+        }
+
         var error: Throwable? = null
+        var offlineSince: Long? = null
         // force: the cached CurrentUser is whatever bootstrap fetched, so its
         // unread count never moved and the badge was frozen at launch value.
         val current = session.refresh(force = true)
         val groups = current?.groups.orEmpty().filter { it.hasMessages == true }.map { it.name }
 
         val page = runCatchingCancellable { fetchNotificationPage(filter = null) }
+            .recoverCatching { failure ->
+                // The network, not the request: the saved page stands in,
+                // and the screen says how old it is instead of failing.
+                val saved = savedNotes?.takeIf { failure.servesSnapshot() } ?: throw failure
+                notificationPage(saved.value).also { offlineSince = saved.savedAt }
+            }
             .onFailure { error = it }
             .getOrNull()
         val fetched = page?.rows.orEmpty()
@@ -379,7 +406,15 @@ class MessageCenterRepository(
             emptyList()
         }
 
-        val channels = runCatchingCancellable { channels(client.chatChannels()) }
+        val channels = runCatchingCancellable {
+            client.chatChannels().also { snapshots.store(CHANNELS_SNAPSHOT, ChatChannelsResponse.serializer(), it) }
+        }
+            .recoverCatching { failure ->
+                val saved = savedChannels?.takeIf { failure.servesSnapshot() } ?: throw failure
+                offlineSince = minOf(offlineSince ?: saved.savedAt, saved.savedAt)
+                saved.value
+            }
+            .map(::channels)
             .onFailure { if (error == null) error = it }
             .getOrDefault(emptyList())
 
@@ -409,10 +444,11 @@ class MessageCenterRepository(
             unreadChat = channels.sumOf { it.unreadCount },
             isLoading = false,
             error = error,
+            offlineSavedAt = offlineSince,
         )
         // Only a clean pass counts as loaded, or a failure caches itself until
-        // something calls reload().
-        loaded = error == null
+        // something calls reload(). A pass served from disk is not clean.
+        loaded = error == null && offlineSince == null
 
         // Not `current?.id`. That is this minute's `session/current.json`, and
         // one flaky answer to it used to leave the whole session with nothing
@@ -517,6 +553,13 @@ class MessageCenterRepository(
                 before?.let { add("before" to it.toString()) }
             },
         )
+        // The unfiltered first page is the inbox as it opens, and what a cold
+        // start without a network shows; kept as sent, since it is read twice.
+        if (filter == null && before == null) snapshots.storeRaw(NOTIFICATIONS_SNAPSHOT, raw)
+        return notificationPage(raw)
+    }
+
+    private fun notificationPage(raw: String): NotificationPage {
         val list = NodelocApi.json.decodeFromString<ApiNotificationList>(raw)
         val following = runCatching { NodelocApi.json.decodeFromString<FollowFlags>(raw) }.getOrNull()
             ?.notifications.orEmpty()
@@ -792,3 +835,6 @@ class MessageCenterRepository(
             )
     }
 }
+
+private const val NOTIFICATIONS_SNAPSHOT = "inbox-notifications"
+private const val CHANNELS_SNAPSHOT = "inbox-channels"

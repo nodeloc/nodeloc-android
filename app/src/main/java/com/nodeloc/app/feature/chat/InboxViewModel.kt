@@ -87,6 +87,15 @@ class InboxViewModel : ViewModel() {
     val filter: StateFlow<InboxFilterState> = _filter.asStateFlow()
     private var filterJob: Job? = null
 
+    init {
+        // The saved inbox is replaced the moment the network returns.
+        viewModelScope.launch {
+            ServiceLocator.get.network.online.collect { online ->
+                if (online && repository.state.value.offlineSavedAt != null) repository.reload()
+            }
+        }
+    }
+
     /** Follow-backs in flight or done this visit, by actor; wins over what the list was fetched with. */
     private val _followed = MutableStateFlow<Map<String, Boolean>>(emptyMap())
     val followed: StateFlow<Map<String, Boolean>> = _followed.asStateFlow()

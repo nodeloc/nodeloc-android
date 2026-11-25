@@ -206,6 +206,14 @@ fun InboxScreen(
                                     onSelect = viewModel::selectFilter,
                                 )
                             }
+                            state.offlineSavedAt?.let { savedAt ->
+                                item(key = "offline") {
+                                    com.nodeloc.app.core.design.OfflineBanner(
+                                        savedAt,
+                                        Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                                    )
+                                }
+                            }
                             if (modCard) {
                                 item(key = "mod") {
                                     ModerationCard(
@@ -237,6 +245,12 @@ fun InboxScreen(
                         onSettings = null,
                     )
                     HairLine()
+                    state.offlineSavedAt?.let { savedAt ->
+                        com.nodeloc.app.core.design.OfflineBanner(
+                            savedAt,
+                            Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
+                        )
+                    }
                     if (segment == InboxSegment.Messages) {
                         MessageList(state, viewModel, navigator, contentPadding)
                     } else {

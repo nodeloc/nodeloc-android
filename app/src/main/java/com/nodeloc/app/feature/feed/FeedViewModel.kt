@@ -9,6 +9,8 @@ import com.nodeloc.app.core.model.NodeSort
 import com.nodeloc.app.core.model.DiscourseUser
 import com.nodeloc.app.core.model.NodeReadingMode
 import com.nodeloc.app.core.model.Post
+import com.nodeloc.app.core.model.LatestResponse
+import com.nodeloc.app.core.network.servesSnapshot
 import com.nodeloc.app.core.model.VoteDirection
 import com.nodeloc.app.core.util.FeedMapper
 import com.nodeloc.app.core.util.TopicVoting
@@ -34,6 +36,11 @@ data class FeedUiState(
     /** The last next-page request failed; the foot of the list offers a retry. */
     val loadMoreFailed: Boolean = false,
     val error: Throwable? = null,
+    /**
+     * Set while the list on screen is the saved one and the server could not
+     * be reached: when it was saved, for the "离线 · 上次更新" line above it.
+     */
+    val offlineSavedAt: Long? = null,
 ) {
     val showSkeleton: Boolean get() = isLoading && posts.isEmpty()
     val showEmptyState: Boolean get() = !isLoading && posts.isEmpty()
@@ -51,6 +58,7 @@ class FeedViewModel : ViewModel() {
     private val client = services.client
     private val site = services.siteRepository
     private val preferences = services.preferences
+    private val snapshots = services.snapshots
 
     private val _state = MutableStateFlow(FeedUiState())
     val state: StateFlow<FeedUiState> = _state.asStateFlow()
@@ -85,6 +93,13 @@ class FeedViewModel : ViewModel() {
         viewModelScope.launch {
             preferences.readTopics.collect { locallyRead.addAll(it) }
         }
+        // A saved list up because the network was gone is replaced as soon
+        // as it is back, not when the reader thinks to pull.
+        viewModelScope.launch {
+            services.network.online.collect { online ->
+                if (online && _state.value.offlineSavedAt != null && !_state.value.isLoading) load()
+            }
+        }
         viewModelScope.launch {
             preferences.defaultHome.collect { key ->
                 val stored = NodeSort.entries.firstOrNull { it.key == key } ?: NodeSort.Hot
@@ -102,7 +117,7 @@ class FeedViewModel : ViewModel() {
                     // Switching list empties the old one: they are not the
                     // same topics.
                     chosen != _state.value.sort -> {
-                        _state.value = _state.value.copy(sort = chosen, posts = emptyList(), hasMore = false)
+                        _state.value = _state.value.copy(sort = chosen, posts = emptyList(), hasMore = false, offlineSavedAt = null)
                         load()
                     }
                 }
@@ -127,14 +142,33 @@ class FeedViewModel : ViewModel() {
 
     fun load() {
         viewModelScope.launch {
+            val sort = _state.value.sort
+            // Still the saved list if this is a retry over it; the line stays
+            // until something fresh replaces what is under it.
+            val showingSaved = _state.value.offlineSavedAt
             _state.value = _state.value.copy(isLoading = true, error = null)
             page = 0
+            // An empty list starts from the one saved last time, and the
+            // network only reconciles it — the skeleton is for a first run.
+            // The saved first page has no "more": paging it would mix two
+            // moments of the same list.
+            var saved: Long? = showingSaved
+            if (_state.value.posts.isEmpty()) {
+                snapshots.load(snapshotKey(sort), LatestResponse.serializer())?.let { snapshot ->
+                    site.warmFromSnapshot()
+                    usersById.clear()
+                    snapshot.value.users.orEmpty().forEach { usersById[it.id] = it }
+                    saved = snapshot.savedAt
+                    _state.value = _state.value.copy(posts = snapshot.value.topicList.topics.map { map(it) }, hasMore = false)
+                }
+            }
             // The category map and the topic list are independent; the feed
             // needs both before a row can name its node.
             val siteJob = async { site.siteResponse() }
             try {
-                val latest = client.topics(_state.value.sort.key)
+                val latest = client.topics(sort.key)
                 siteJob.await()
+                snapshots.store(snapshotKey(sort), LatestResponse.serializer(), latest)
                 usersById.clear()
                 latest.users.orEmpty().forEach { usersById[it.id] = it }
                 _state.value = FeedUiState(
@@ -146,10 +180,21 @@ class FeedViewModel : ViewModel() {
             } catch (error: Throwable) {
                 error.rethrowIfCancellation()
                 siteJob.cancel()
-                _state.value = _state.value.copy(isLoading = false, hasMore = false, error = error)
+                // With the saved list up, a dead connection is a line above
+                // it, not an error page in its place.
+                val offline = saved != null && _state.value.posts.isNotEmpty() && error.servesSnapshot()
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    hasMore = false,
+                    error = if (offline) null else error,
+                    offlineSavedAt = if (offline) saved else null,
+                )
             }
         }
     }
+
+    /** One saved first page per list: 热门 and 最新 are different topics. */
+    private fun snapshotKey(sort: NodeSort) = "feed-${sort.key}"
 
     suspend fun refresh() {
         page = 0
@@ -157,6 +202,7 @@ class FeedViewModel : ViewModel() {
         try {
             val latest = client.topics(_state.value.sort.key)
             siteRefresh.await()
+            snapshots.store(snapshotKey(_state.value.sort), LatestResponse.serializer(), latest)
             usersById.clear()
             latest.users.orEmpty().forEach { usersById[it.id] = it }
             _state.value = FeedUiState(

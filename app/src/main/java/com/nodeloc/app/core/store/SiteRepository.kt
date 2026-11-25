@@ -21,7 +21,10 @@ import kotlinx.coroutines.sync.withLock
  * otherwise be fetched dozens of times on a cold feed. The mutex collapses
  * concurrent first calls into one request rather than racing.
  */
-class SiteRepository(private val client: DiscourseClient) : AccountScoped {
+class SiteRepository(
+    private val client: DiscourseClient,
+    private val snapshots: com.nodeloc.app.core.network.SnapshotStore,
+) : AccountScoped {
     private val mutex = Mutex()
 
     @Volatile private var site: SiteResponse? = null
@@ -96,8 +99,26 @@ class SiteRepository(private val client: DiscourseClient) : AccountScoped {
             site ?: runCatching { client.site() }.getOrNull()?.also { response ->
                 site = response
                 categoriesById = flatten(response.categories.orEmpty()).associateBy { it.id }
+                snapshots.store(CATEGORIES_SNAPSHOT, categoriesSerializer, response.categories.orEmpty())
+            } ?: run {
+                // Offline: the nodes as last seen, so a row or a topic replayed
+                // from a snapshot can still say where it was posted. `site`
+                // stays null, so the next call asks the server again.
+                warmFromSnapshot()
+                null
             }
         }
+    }
+
+    /**
+     * Fills the category map from disk when nothing has filled it yet. For
+     * screens drawing a snapshot before the network has answered: a node name
+     * is part of every row, and the directory changes rarely.
+     */
+    fun warmFromSnapshot() {
+        if (categoriesById.isNotEmpty()) return
+        val stored = snapshots.load(CATEGORIES_SNAPSHOT, categoriesSerializer)?.value ?: return
+        categoriesById = flatten(stored).associateBy { it.id }
     }
 
     /**
@@ -116,6 +137,7 @@ class SiteRepository(private val client: DiscourseClient) : AccountScoped {
             site = response
             categoriesById = flatten(response.categories.orEmpty()).associateBy { it.id }
         }
+        snapshots.store(CATEGORIES_SNAPSHOT, categoriesSerializer, response.categories.orEmpty())
     }
 
     /**
@@ -200,3 +222,6 @@ class SiteRepository(private val client: DiscourseClient) : AccountScoped {
         }
     }
 }
+
+private const val CATEGORIES_SNAPSHOT = "site-categories"
+private val categoriesSerializer = kotlinx.serialization.builtins.ListSerializer(DiscourseCategory.serializer())

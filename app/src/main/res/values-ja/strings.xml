@@ -2004,4 +2004,5 @@
     <string name="sort_rising">急上昇</string>
     <string name="sort_rising_detail">今まさに注目を集めているトピック</string>
     <string name="me4_node_owner_of">n/%1$s 管理人</string>
+    <string name="offline_saved_at">オフライン · 最終更新 %1$s</string>
 </resources>

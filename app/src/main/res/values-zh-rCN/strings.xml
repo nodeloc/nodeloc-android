@@ -2005,4 +2005,5 @@
     <string name="sort_rising">上升中</string>
     <string name="sort_rising_detail">热度正在上升的主题</string>
     <string name="me4_node_owner_of">n/%1$s 主理人</string>
+    <string name="offline_saved_at">离线 · 上次更新于 %1$s</string>
 </resources>

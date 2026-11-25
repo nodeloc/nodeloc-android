@@ -379,6 +379,14 @@ fun ReaderScreen(
             // and collapse from answering at all; see rememberTapSafeOverscroll.
             overscrollEffect = rememberTapSafeOverscroll(),
         ) {
+            state.offlineSavedAt?.let { savedAt ->
+                item(key = "offline") {
+                    com.nodeloc.app.core.design.OfflineBanner(
+                        savedAt,
+                        Modifier.padding(start = Space.page, end = Space.page, bottom = Space.s4),
+                    )
+                }
+            }
             item {
                 Column(
                     Modifier.padding(horizontal = Space.page),

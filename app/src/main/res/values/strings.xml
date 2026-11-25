@@ -2016,4 +2016,5 @@
     <string name="sort_rising">Rising</string>
     <string name="sort_rising_detail">Topics gaining momentum right now</string>
     <string name="me4_node_owner_of">n/%1$s owner</string>
+    <string name="offline_saved_at">Offline · last updated %1$s</string>
 </resources>

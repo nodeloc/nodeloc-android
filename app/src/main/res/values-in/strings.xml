@@ -2006,4 +2006,5 @@
     <string name="sort_rising">Naik daun</string>
     <string name="sort_rising_detail">Topik yang sedang naik</string>
     <string name="me4_node_owner_of">Pemilik n/%1$s</string>
+    <string name="offline_saved_at">Offline · terakhir diperbarui %1$s</string>
 </resources>

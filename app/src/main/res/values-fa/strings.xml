@@ -2015,4 +2015,5 @@
     <string name="sort_rising">رو به رشد</string>
     <string name="sort_rising_detail">موضوع‌هایی که الان داغ‌تر می‌شوند</string>
     <string name="me4_node_owner_of">مالک n/%1$s</string>
+    <string name="offline_saved_at">آفلاین · آخرین به‌روزرسانی %1$s</string>
 </resources>

@@ -2056,4 +2056,5 @@
     <string name="sort_rising">الصاعدة</string>
     <string name="sort_rising_detail">مواضيع يتزايد الاهتمام بها الآن</string>
     <string name="me4_node_owner_of">مالك n/%1$s</string>
+    <string name="offline_saved_at">غير متصل · آخر تحديث %1$s</string>
 </resources>

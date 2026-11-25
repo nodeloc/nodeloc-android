@@ -46,6 +46,7 @@ import com.nodeloc.app.core.design.Nocturne
 import com.nodeloc.app.core.design.NodelocLoader
 import com.nodeloc.app.core.design.NodelocLogo
 import com.nodeloc.app.core.design.OnReachedEnd
+import com.nodeloc.app.core.design.OfflineBanner
 import com.nodeloc.app.core.design.PullToRefreshBox
 import com.nodeloc.app.core.design.floatingHeaderInset
 import com.nodeloc.app.core.design.isScrolledPastTop
@@ -133,6 +134,11 @@ fun FeedScreen(
                 ),
             ) {
                 item(key = "sorts") { sortChips() }
+                state.offlineSavedAt?.let { savedAt ->
+                    item(key = "offline") {
+                        OfflineBanner(savedAt, Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp))
+                    }
+                }
                 if (state.showSkeleton) {
                     item(key = "skeleton") { FeedSkeleton(mode) }
                 } else if (state.showEmptyState) {
