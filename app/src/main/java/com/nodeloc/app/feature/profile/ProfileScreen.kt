@@ -43,6 +43,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -198,7 +200,7 @@ fun ProfileScreen(
                 }
             },
             trailing = {
-                HeaderIconButton(Lucide.Settings, stringResource(R.string.common_settings), onClick = { navigator.openSettings() })
+                HeaderIconButton(ImageVector.vectorResource(R.drawable.ic_me_settings), stringResource(R.string.common_settings), onClick = { navigator.openSettings() })
             },
         )
     }
@@ -838,20 +840,27 @@ private fun AchievementDisc(item: ApiAchItem, size: androidx.compose.ui.unit.Dp)
     }
 }
 
-private data class Shortcut(val icon: ImageVector, val label: Int, val tone: PillTone, val open: () -> Unit)
+/** One tile: the design's own glyph (res/drawable ic_me_*) on its own coloured ground. */
+private class Shortcut(
+    @androidx.annotation.DrawableRes val icon: Int,
+    val label: Int,
+    val ground: Color,
+    val ink: Color,
+    val open: () -> Unit,
+)
 
-/** The eight ways out of 我的, four to a row on one grey tray. */
+/** The eight ways out of 我的, four to a row on one grey tray — icons and colours as on the board. */
 @Composable
 private fun Shortcuts(navigator: Navigator, username: String) {
     val items = listOf(
-        Shortcut(Lucide.TrendingUp, R.string.me2_sc_upgrade, PillTone.Info) { navigator.openUpgradeProgress(username) },
-        Shortcut(Lucide.Award, R.string.me2_sc_achievements, PillTone.Warning) { navigator.openAchievements() },
-        Shortcut(Lucide.Zap, R.string.me2_sc_energy, PillTone.Warning) { navigator.openEnergyHistory() },
-        Shortcut(Lucide.Trophy, R.string.me2_sc_rank, PillTone.Info) { navigator.openWealthRank() },
-        Shortcut(Lucide.UserPlus, R.string.me2_sc_invite, PillTone.Accent) { navigator.openInvite() },
-        Shortcut(Lucide.FilePen, R.string.me2_sc_drafts, PillTone.Neutral) { navigator.openDrafts() },
-        Shortcut(Lucide.LayoutGrid, R.string.me2_sc_apps, PillTone.Danger) { navigator.openApps() },
-        Shortcut(Lucide.Settings, R.string.me2_sc_settings, PillTone.Neutral) { navigator.openSettings() },
+        Shortcut(R.drawable.ic_me_upgrade, R.string.me2_sc_upgrade, Nocturne.infoBg, Nocturne.info) { navigator.openUpgradeProgress(username) },
+        Shortcut(R.drawable.ic_me_achievements, R.string.me2_sc_achievements, Nocturne.goldBg, Nocturne.gold) { navigator.openAchievements() },
+        Shortcut(R.drawable.ic_me_energy, R.string.me2_sc_energy, Nocturne.goldBg, Nocturne.gold) { navigator.openEnergyHistory() },
+        Shortcut(R.drawable.ic_me_rank, R.string.me2_sc_rank, Nocturne.violetBg, Nocturne.violet) { navigator.openWealthRank() },
+        Shortcut(R.drawable.ic_me_invite, R.string.me2_sc_invite, Nocturne.accent100, Nocturne.accent700) { navigator.openInvite() },
+        Shortcut(R.drawable.ic_me_drafts, R.string.me2_sc_drafts, Nocturne.neutral300, Nocturne.text) { navigator.openDrafts() },
+        Shortcut(R.drawable.ic_me_apps, R.string.me2_sc_apps, Nocturne.dangerBg, Nocturne.danger) { navigator.openApps() },
+        Shortcut(R.drawable.ic_me_settings, R.string.me2_sc_settings, Nocturne.neutral300, Nocturne.text) { navigator.openSettings() },
     )
     Column(
         Modifier
@@ -864,7 +873,8 @@ private fun Shortcuts(navigator: Navigator, username: String) {
         items.chunked(4).forEach { row ->
             Row(Modifier.fillMaxWidth()) {
                 row.forEach { item ->
-                    val (ground, ink) = item.tone.colorsForShortcut()
+                    val ground = item.ground
+                    val ink = item.ink
                     val press = rememberPressSource()
                     Column(
                         Modifier
@@ -880,7 +890,7 @@ private fun Shortcuts(navigator: Navigator, username: String) {
                             Modifier.size(44.dp).clip(RoundedCornerShape(16.dp)).background(ground),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Icon(item.icon, null, tint = ink, modifier = Modifier.size(20.dp))
+                            Icon(androidx.compose.ui.res.painterResource(item.icon), null, tint = ink, modifier = Modifier.size(22.dp))
                         }
                         Text(
                             stringResource(item.label),
@@ -894,16 +904,6 @@ private fun Shortcuts(navigator: Navigator, username: String) {
             }
         }
     }
-}
-
-/** The tiles sit on the grey tray, so the neutral one steps up to the page's white. */
-@Composable
-private fun PillTone.colorsForShortcut() = when (this) {
-    PillTone.Neutral -> Nocturne.bg to Nocturne.text
-    PillTone.Accent -> Nocturne.accent100 to Nocturne.accent700
-    PillTone.Warning -> Nocturne.warningBg to Nocturne.warning
-    PillTone.Danger -> Nocturne.dangerBg to Nocturne.danger
-    PillTone.Info -> Nocturne.infoBg to Nocturne.info
 }
 
 // ------------------------------------------------------------------ tabs

@@ -1,13 +1,6 @@
 package com.nodeloc.app.feature.nav
 
 import androidx.annotation.StringRes
-import androidx.compose.ui.graphics.vector.ImageVector
-import com.composables.icons.lucide.House
-import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.User
-import com.composables.icons.lucide.Search
-import com.composables.icons.lucide.Rows3
-import com.composables.icons.lucide.MessageCircle
 import com.nodeloc.app.R
 import kotlinx.serialization.Serializable
 
@@ -106,14 +99,23 @@ object Route {
     @Serializable data object Drafts
 }
 
+/**
+ * The bottom tabs. Icons are the 2026-11 design's own glyphs (res/drawable
+ * ic_tab_*), not a library set: 节点 is the nodeloc mark, which no icon font has.
+ */
 enum class TabItem(
     @StringRes val labelRes: Int,
-    val selectedIcon: ImageVector,
-    val icon: ImageVector,
+    @androidx.annotation.DrawableRes val icon: Int,
+    @androidx.annotation.DrawableRes val selectedIcon: Int = icon,
+    /**
+     * The selected 节点 mark is two-coloured (green petals, orange dots), so it
+     * is drawn as it is; every other icon is one colour and takes the tab's tint.
+     */
+    val selectedKeepsColors: Boolean = false,
 ) {
-    Home(R.string.tab_home, Lucide.House, Lucide.House),
-    Nodes(R.string.tab_nodes, Lucide.Rows3, Lucide.Rows3),
-    Inbox(R.string.tab_inbox, Lucide.MessageCircle, Lucide.MessageCircle),
-    Search(R.string.tab_search, Lucide.Search, Lucide.Search),
-    Profile(R.string.tab_profile, Lucide.User, Lucide.User),
+    Home(R.string.tab_home, R.drawable.ic_tab_home),
+    Nodes(R.string.tab_nodes, R.drawable.ic_tab_nodes, R.drawable.ic_tab_nodes_selected, selectedKeepsColors = true),
+    Inbox(R.string.tab_inbox, R.drawable.ic_tab_inbox),
+    Search(R.string.tab_search, R.drawable.ic_tab_search),
+    Profile(R.string.tab_profile, R.drawable.ic_tab_me),
 }

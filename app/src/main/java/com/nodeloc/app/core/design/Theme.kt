@@ -74,6 +74,11 @@ data class NocturneColors(
     val warningBg: Color,
     val info: Color,
     val infoBg: Color,
+    /** Gold (成就, 能量) and violet (财富榜): the 我的 page's shortcut tiles. */
+    val gold: Color,
+    val goldBg: Color,
+    val violet: Color,
+    val violetBg: Color,
 ) {
     /** Secondary body text is always the main text colour at a fixed opacity. */
     fun muted(pct: Float): Color = text.copy(alpha = pct)
@@ -113,6 +118,7 @@ val LightNocturne = NocturneColors(
     textSecondary = hex(0x576F76), textTertiary = hex(0x8BA2AD),
     dangerBg = hex(0xFFE4D1), warning = hex(0x8A5200), warningBg = hex(0xFFEFD6),
     info = hex(0x1F5FBF), infoBg = hex(0xE4EEFF),
+    gold = hex(0xA87A00), goldBg = hex(0xFFF1C2), violet = hex(0x5F3DC4), violetBg = hex(0xECE5FF),
 )
 
 // The design has no dark page; these keep the existing dark ground and move
@@ -135,6 +141,7 @@ val DarkNocturne = NocturneColors(
     textSecondary = hex(0x9DB0B6), textTertiary = hex(0x6F858D),
     dangerBg = hex(0x3D1E10), warning = hex(0xFFC56B), warningBg = hex(0x3A2A0E),
     info = hex(0x8AB4FF), infoBg = hex(0x152640),
+    gold = hex(0xF2C94C), goldBg = hex(0x3A3110), violet = hex(0xB9A5FF), violetBg = hex(0x2A2147),
 )
 
 /** Spacing scale, verbatim from iOS (odd values are intentional). */

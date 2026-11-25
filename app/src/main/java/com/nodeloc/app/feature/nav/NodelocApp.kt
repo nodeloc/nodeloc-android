@@ -11,6 +11,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DrawerValue
@@ -179,15 +182,29 @@ private fun BottomTabBar(navController: NavHostController, unread: Int) {
                     }
                 },
                 icon = {
+                    val glyph = @Composable {
+                        Icon(
+                            androidx.compose.ui.res.painterResource(if (selected) tab.selectedIcon else tab.icon),
+                            stringResource(tab.labelRes),
+                            modifier = Modifier.size(24.dp),
+                            // Unspecified keeps the two-coloured 节点 mark as drawn.
+                            tint = if (selected && tab.selectedKeepsColors) Color.Unspecified
+                            else androidx.compose.material3.LocalContentColor.current,
+                        )
+                    }
                     if (tab == TabItem.Inbox && unread > 0) {
-                        BadgedBox(badge = { Badge { Text(if (unread > 99) "99+" else unread.toString()) } }) {
-                            Icon(if (selected) tab.selectedIcon else tab.icon, stringResource(tab.labelRes))
-                        }
+                        BadgedBox(badge = { Badge { Text(if (unread > 99) "99+" else unread.toString()) } }) { glyph() }
                     } else {
-                        Icon(if (selected) tab.selectedIcon else tab.icon, stringResource(tab.labelRes))
+                        glyph()
                     }
                 },
-                label = { Text(stringResource(tab.labelRes), style = Type.body(11)) },
+                // The design: 11sp, 600 when selected, 500 otherwise.
+                label = {
+                    Text(
+                        stringResource(tab.labelRes),
+                        style = Type.body(11, if (selected) FontWeight.SemiBold else FontWeight.Medium),
+                    )
+                },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Nocturne.accent,
                     selectedTextColor = Nocturne.accent,
