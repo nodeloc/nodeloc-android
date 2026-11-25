@@ -322,7 +322,7 @@ private fun androidx.compose.foundation.layout.RowScope.SegmentHalf(
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Text(label, style = Type.body(14, FontWeight.Medium), color = if (selected) Nocturne.accent800 else Nocturne.text)
+        Text(label, style = Type.body(14, FontWeight.Medium), color = if (selected) Nocturne.accent700 else Nocturne.text)
     }
 }
 

@@ -33,8 +33,11 @@ class ModerationApi(private val api: NodelocApi) {
             add("limit" to limit.toString())
         })
 
-    suspend fun siteItem(id: Long): ApiReviewItem? =
-        api.get<ApiReviewPage>("api/v1/admin/review", listOf("item" to id.toString())).items.firstOrNull()
+    suspend fun siteItem(id: Long): ApiReviewItem? = siteItemPage(id).items.firstOrNull()
+
+    /** One item as a page, for the page's reputation_penalty_max. */
+    suspend fun siteItemPage(id: Long): ApiReviewPage =
+        api.get("api/v1/admin/review", listOf("item" to id.toString()))
 
     /** One node's queue: post items only, no counts, no kind filter. */
     suspend fun nodeQueue(slug: String, status: String = "pending", before: Long? = null, limit: Int = 30): ApiReviewPage =
@@ -49,14 +52,27 @@ class ModerationApi(private val api: NodelocApi) {
      * [note] reaches the author as the notification body for delete/hide.
      * A node moderator resolves through the node route, which takes no reason/days.
      */
-    suspend fun resolve(itemId: Long, action: String, note: String?, nodeSlug: String? = null) {
+    suspend fun resolve(itemId: Long, action: String, note: String?, nodeSlug: String? = null, reputationPenalty: Int = 0) {
         val body = buildJsonObject {
             put("action", action)
             if (!note.isNullOrBlank()) put("note", note.trim())
+            // Only delete_post / hide_post / confirm take one; anything else with a non-zero value is a 422.
+            if (reputationPenalty > 0) put("reputation_penalty", reputationPenalty)
         }
         val path = if (nodeSlug != null) "api/v1/nodes/${nodeSlug.enc()}/review/$itemId/resolve"
         else "api/v1/admin/review/$itemId/resolve"
         api.sendRaw("POST", path, body)
+    }
+
+    /**
+     * Gives back what resolving this item took from the author, and nothing
+     * else: the verdict and the post stay as they are. 409 nothing_to_refund
+     * when nothing was taken or it was already returned.
+     */
+    suspend fun refundReputation(itemId: Long, nodeSlug: String? = null) {
+        val path = if (nodeSlug != null) "api/v1/nodes/${nodeSlug.enc()}/review/$itemId/refund-reputation"
+        else "api/v1/admin/review/$itemId/refund-reputation"
+        api.sendRaw("POST", path, buildJsonObject {})
     }
 
     /** Status only: a deleted post stays deleted. Site staff only. */

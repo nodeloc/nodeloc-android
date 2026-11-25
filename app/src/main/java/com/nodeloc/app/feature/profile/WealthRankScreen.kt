@@ -324,7 +324,7 @@ private fun Standing(me: String, state: WealthRankState, onProfile: () -> Unit) 
             .padding(top = 16.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Nocturne.accent100.copy(alpha = if (Nocturne.isDark) 0.14f else 0.6f))
+            .background(if (Nocturne.isDark) Nocturne.accent100 else Nocturne.accent100.copy(alpha = 0.6f))
             .border(BorderStroke(1.dp, Nocturne.accent300), RoundedCornerShape(16.dp))
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,

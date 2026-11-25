@@ -1986,4 +1986,17 @@
     <string name="lot2_participants_empty">Belum ada peserta</string>
     <string name="lot2_participants_failed">Gagal memuat peserta.</string>
     <string name="reader_login_required">Masuk untuk membaca topik ini</string>
+    <string name="settings_language">Bahasa</string>
+    <string name="settings_language_system">Ikuti sistem</string>
+    <string name="mod_rep_penalty_label">Sekaligus kurangi reputasi penulis</string>
+    <string name="mod_rep_penalty_none">Tidak</string>
+    <string name="mod_rep_penalty_custom">Kustom</string>
+    <string name="mod_rep_penalty_custom_hint">Jumlah, maksimal %1$d</string>
+    <string name="mod_rep_penalty_too_big">Maksimal %1$d per tindakan</string>
+    <string name="mod_rep_penalty_note">Penulis melihatnya di pemberitahuan. Dibuka ulang, dipulihkan, atau banding diterima akan mengembalikannya.</string>
+    <string name="mod_rep_penalty_confirm">%1$s · −%2$d</string>
+    <string name="mod_rep_refund">Kembalikan reputasi</string>
+    <string name="mod_rep_refunded">Reputasi dikembalikan</string>
+    <string name="mod_rep_deducted">−%1$d reputasi</string>
+    <string name="mod_rep_deducted_refunded">%1$d reputasi dikembalikan</string>
 </resources>

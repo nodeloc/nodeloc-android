@@ -89,6 +89,8 @@ data class ApiReviewPage(
     val counts: Map<String, Int> = emptyMap(),
     /** Site queue only: per kind, for the requested status. */
     val kindCounts: Map<String, Int> = emptyMap(),
+    /** How much reputation this reader may take in one resolution: 1000 with admin.review, 20 for node moderators. */
+    val reputationPenaltyMax: Int? = null,
 )
 
 // ------------------------------------------------------------------ users

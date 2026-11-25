@@ -1984,4 +1984,17 @@
     <string name="lot2_participants_empty">まだ参加者はいません</string>
     <string name="lot2_participants_failed">参加者を読み込めませんでした。</string>
     <string name="reader_login_required">このトピックを読むにはログインしてください</string>
+    <string name="settings_language">言語</string>
+    <string name="settings_language_system">システムに従う</string>
+    <string name="mod_rep_penalty_label">投稿者の評価も差し引く</string>
+    <string name="mod_rep_penalty_none">なし</string>
+    <string name="mod_rep_penalty_custom">カスタム</string>
+    <string name="mod_rep_penalty_custom_hint">差し引く量（最大 %1$d）</string>
+    <string name="mod_rep_penalty_too_big">一度に差し引けるのは最大 %1$d です</string>
+    <string name="mod_rep_penalty_note">投稿者には処理の通知で伝わります。再開・復元・異議申し立ての承認で返還されます。</string>
+    <string name="mod_rep_penalty_confirm">%1$s · −%2$d</string>
+    <string name="mod_rep_refund">評価のみ返還</string>
+    <string name="mod_rep_refunded">評価を返還しました</string>
+    <string name="mod_rep_deducted">評価 −%1$d</string>
+    <string name="mod_rep_deducted_refunded">評価 %1$d を返還済み</string>
 </resources>

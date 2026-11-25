@@ -602,7 +602,7 @@ private fun NotificationRow(
 ) {
     val systemLike = info?.category in setOf(NoteCategory.Moderation, NoteCategory.Points, NoteCategory.System) ||
         info?.actor == null
-    val ground by animatedColor(if (notification.read) Nocturne.bg else Nocturne.accent100.copy(alpha = 0.6f), "noteGround")
+    val ground by animatedColor(if (notification.read) Nocturne.bg else if (Nocturne.isDark) Nocturne.accent100 else Nocturne.accent100.copy(alpha = 0.6f), "noteGround")
     val press = rememberPressSource()
     Row(
         Modifier
@@ -764,14 +764,14 @@ private fun SegmentRow(
                 Text(
                     stringResource(option.labelRes),
                     style = Type.body(14, FontWeight.Medium),
-                    color = if (selected) Nocturne.accent800 else Nocturne.text,
+                    color = if (selected) Nocturne.accent700 else Nocturne.text,
                     maxLines = 1,
                 )
                 if (badge > 0) {
                     Text(
                         if (badge > 99) "99+" else "$badge",
                         style = Type.body(14, FontWeight.Medium),
-                        color = if (selected) Nocturne.accent800 else Nocturne.text,
+                        color = if (selected) Nocturne.accent700 else Nocturne.text,
                     )
                 }
             }

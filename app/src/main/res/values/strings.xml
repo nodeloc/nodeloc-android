@@ -1996,4 +1996,17 @@
     <string name="lot2_participants_empty">No one has entered yet</string>
     <string name="lot2_participants_failed">Couldn\'t load the entrants.</string>
     <string name="reader_login_required">Sign in to read this topic</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_system">Follow system</string>
+    <string name="mod_rep_penalty_label">Also deduct the author\'s reputation</string>
+    <string name="mod_rep_penalty_none">None</string>
+    <string name="mod_rep_penalty_custom">Custom</string>
+    <string name="mod_rep_penalty_custom_hint">Amount, up to %1$d</string>
+    <string name="mod_rep_penalty_too_big">You can deduct at most %1$d at a time</string>
+    <string name="mod_rep_penalty_note">The author is told in the removal notice. Reopening, restoring or a successful appeal gives it back.</string>
+    <string name="mod_rep_penalty_confirm">%1$s · −%2$d</string>
+    <string name="mod_rep_refund">Refund reputation</string>
+    <string name="mod_rep_refunded">Reputation refunded</string>
+    <string name="mod_rep_deducted">−%1$d reputation</string>
+    <string name="mod_rep_deducted_refunded">%1$d reputation refunded</string>
 </resources>

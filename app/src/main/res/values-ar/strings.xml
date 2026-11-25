@@ -2036,4 +2036,17 @@
     <string name="lot2_participants_empty">لم يشارك أحد بعد</string>
     <string name="lot2_participants_failed">تعذر تحميل المشاركين.</string>
     <string name="reader_login_required">سجّل الدخول لقراءة هذا الموضوع</string>
+    <string name="settings_language">اللغة</string>
+    <string name="settings_language_system">حسب النظام</string>
+    <string name="mod_rep_penalty_label">خصم سمعة الكاتب أيضًا</string>
+    <string name="mod_rep_penalty_none">لا شيء</string>
+    <string name="mod_rep_penalty_custom">مخصص</string>
+    <string name="mod_rep_penalty_custom_hint">المقدار، حتى %1$d</string>
+    <string name="mod_rep_penalty_too_big">يمكنك خصم %1$d كحد أقصى في المرة الواحدة</string>
+    <string name="mod_rep_penalty_note">سيرى الكاتب ذلك في إشعار الإزالة. تُعاد السمعة عند إعادة الفتح أو الاستعادة أو قبول الاستئناف.</string>
+    <string name="mod_rep_penalty_confirm">%1$s · −%2$d</string>
+    <string name="mod_rep_refund">إعادة السمعة فقط</string>
+    <string name="mod_rep_refunded">أُعيدت السمعة</string>
+    <string name="mod_rep_deducted">−%1$d سمعة</string>
+    <string name="mod_rep_deducted_refunded">أُعيدت %1$d سمعة</string>
 </resources>

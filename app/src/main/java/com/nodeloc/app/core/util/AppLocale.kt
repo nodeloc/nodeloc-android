@@ -12,10 +12,9 @@ import kotlinx.coroutines.flow.asStateFlow
 /**
  * Which language the app speaks.
  *
- * Two sources, in this order: the system, and — once signed in — the interface
- * language chosen on the site. The account wins because a member who set the
- * forum to Vietnamese meant it, and the phone underneath may well be somebody
- * else's hand-me-down; signing out gives the system its say back.
+ * The system's, unless one was picked in Settings → 偏好 → 语言. (1.x also
+ * adopted the account's forum language; the 2.0 site has none to give, so
+ * the pick is the only override and it outlives sign-out.)
  *
  * Done by hand rather than through AppCompatDelegate.setApplicationLocales:
  * the backport of that is an AppCompat concern, these are ComponentActivities,
@@ -83,8 +82,12 @@ object AppLocale {
         set(fromDiscourse(discourseCode))
     }
 
-    /** Hands the system its say back. Called on sign-out. */
-    fun followSystem() = set(null)
+    /**
+     * The choice made in Settings → 偏好 → 语言; null follows the system again.
+     * Survives sign-out: the site no longer has an account language to hand
+     * back to, so the only thing stored here is what the user picked.
+     */
+    fun choose(newTag: String?) = set(newTag?.takeIf { it in supported })
 
     private fun set(newTag: String?) {
         val context = appContext ?: return
@@ -93,7 +96,29 @@ object AppLocale {
             if (newTag == null) remove(KEY_TAG) else putString(KEY_TAG, newTag)
         }
         _tag.value = newTag
+        // wrap() only touches the default when there is an override, so going
+        // back to the system has to undo the last one itself — or dates and
+        // Accept-Language keep the old language until the process dies.
+        if (newTag == null) Locale.setDefault(android.content.res.Resources.getSystem().configuration.locales[0])
     }
+
+    /**
+     * Each language in its own name. Not string resources: an endonym is the
+     * same in every locale, which is the point — a reader stuck in a language
+     * they cannot read still finds their own.
+     */
+    val endonyms: Map<String, String> = linkedMapOf(
+        "zh-CN" to "简体中文",
+        "zh-TW" to "繁體中文",
+        "en" to "English",
+        "ja" to "日本語",
+        "vi" to "Tiếng Việt",
+        "id" to "Bahasa Indonesia",
+        "ru" to "Русский",
+        "uk" to "Українська",
+        "ar" to "العربية",
+        "fa" to "فارسی",
+    )
 
     private fun stored(context: Context): String? =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

@@ -1995,4 +1995,17 @@
     <string name="lot2_participants_empty">هنوز کسی شرکت نکرده است</string>
     <string name="lot2_participants_failed">بارگیری شرکت‌کنندگان ممکن نشد.</string>
     <string name="reader_login_required">برای خواندن این موضوع وارد شوید</string>
+    <string name="settings_language">زبان</string>
+    <string name="settings_language_system">مطابق سیستم</string>
+    <string name="mod_rep_penalty_label">کسر اعتبار نویسنده نیز</string>
+    <string name="mod_rep_penalty_none">هیچ</string>
+    <string name="mod_rep_penalty_custom">سفارشی</string>
+    <string name="mod_rep_penalty_custom_hint">مقدار، حداکثر %1$d</string>
+    <string name="mod_rep_penalty_too_big">هر بار حداکثر %1$d قابل کسر است</string>
+    <string name="mod_rep_penalty_note">نویسنده آن را در اعلان می‌بیند. با بازگشایی، بازیابی یا پذیرش اعتراض بازگردانده می‌شود.</string>
+    <string name="mod_rep_penalty_confirm">%1$s · −%2$d</string>
+    <string name="mod_rep_refund">فقط بازگرداندن اعتبار</string>
+    <string name="mod_rep_refunded">اعتبار بازگردانده شد</string>
+    <string name="mod_rep_deducted">−%1$d اعتبار</string>
+    <string name="mod_rep_deducted_refunded">%1$d اعتبار بازگردانده شد</string>
 </resources>

@@ -63,6 +63,7 @@ import com.nodeloc.app.core.design.rememberPressSource
 import com.nodeloc.app.core.model.NodeReadingMode
 import com.nodeloc.app.core.network.DiscourseConfig
 import com.nodeloc.app.core.network.ServerFeatures
+import com.nodeloc.app.core.util.AppLocale
 import com.nodeloc.app.core.util.DiscourseFormat
 import com.nodeloc.app.feature.feed.RowsSkeleton
 import com.nodeloc.app.feature.moderation.ModTopBar
@@ -591,6 +592,15 @@ private fun PrefsRows(top: Int) {
             colorMode,
         ) { value -> scope.launch { preferences.setColorMode(value) } }
     }
+    val language by AppLocale.tag.collectAsState()
+    val languageTitle = stringResource(R.string.settings_language)
+    SetRow(languageTitle) {
+        SetChoiceButton(
+            languageTitle,
+            listOf(LANGUAGE_SYSTEM to stringResource(R.string.settings_language_system)) + AppLocale.endonyms.toList(),
+            language ?: LANGUAGE_SYSTEM,
+        ) { value -> AppLocale.choose(value.takeUnless { it == LANGUAGE_SYSTEM }) }
+    }
     val listTitle = stringResource(R.string.settings2_list_view)
     SetRow(listTitle, desc = stringResource(R.string.settings2_list_view_d)) {
         SetChoiceButton(listTitle, NodeReadingMode.entries.map { it to stringResource(it.labelRes) }, readingMode) { mode ->
@@ -606,6 +616,8 @@ private fun PrefsRows(top: Int) {
         ) { value -> scope.launch { preferences.setDefaultHome(value) } }
     }
 }
+
+private const val LANGUAGE_SYSTEM = "system"
 
 @androidx.annotation.StringRes
 private fun homeLabel(value: String): Int = when (value) {

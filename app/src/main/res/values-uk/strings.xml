@@ -2015,4 +2015,17 @@
     <string name="lot2_participants_empty">Поки ніхто не бере участі</string>
     <string name="lot2_participants_failed">Не вдалося завантажити учасників.</string>
     <string name="reader_login_required">Увійдіть, щоб прочитати цю тему</string>
+    <string name="settings_language">Мова</string>
+    <string name="settings_language_system">Як у системі</string>
+    <string name="mod_rep_penalty_label">Також зняти репутацію автора</string>
+    <string name="mod_rep_penalty_none">Ні</string>
+    <string name="mod_rep_penalty_custom">Власне</string>
+    <string name="mod_rep_penalty_custom_hint">Скільки зняти, не більше %1$d</string>
+    <string name="mod_rep_penalty_too_big">За раз можна зняти не більше %1$d</string>
+    <string name="mod_rep_penalty_note">Автор побачить це в сповіщенні. Під час повторного відкриття, відновлення або задоволеної апеляції репутацію буде повернуто.</string>
+    <string name="mod_rep_penalty_confirm">%1$s · −%2$d</string>
+    <string name="mod_rep_refund">Повернути репутацію</string>
+    <string name="mod_rep_refunded">Репутацію повернуто</string>
+    <string name="mod_rep_deducted">−%1$d репутації</string>
+    <string name="mod_rep_deducted_refunded">%1$d репутації повернуто</string>
 </resources>

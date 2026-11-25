@@ -85,7 +85,8 @@ data class NocturneColors(
 
     /** Two-variant avatar palette used across posts, chats, nodes. */
     fun avatarColors(variant: Int): Pair<Color, Color> =
-        if (variant == 0) accent800 to accent100 else neutral800 to neutral200
+        // In the dark accent100 is a ground, not an ink, so the letter takes accent300.
+        if (variant == 0) accent800 to (if (isDark) accent300 else accent100) else neutral800 to neutral200
 }
 
 private fun hex(value: Long, alpha: Float = 1f): Color =
@@ -133,7 +134,10 @@ val DarkNocturne = NocturneColors(
     neutral100 = hex(0xF7FAFA), neutral200 = hex(0xEEF2F3), neutral300 = hex(0x1F2A2E),
     neutral400 = hex(0x2E3B40), neutral500 = hex(0x6F858D), neutral600 = hex(0x8BA2AD),
     neutral700 = hex(0xB5C4C9), neutral800 = hex(0x1A2427), neutral900 = hex(0x05090A),
-    accent100 = hex(0xD7FFF2), accent200 = hex(0x9FF5D9), accent300 = hex(0x6FE9C5),
+    // 100 and 200 are grounds everywhere they are used — pinned cards, unread
+    // rows, pills under accent700 ink — so in the dark they are deep washes, not
+    // the pale mint that sat under white text. The ramp is not monotonic here.
+    accent100 = hex(0x133A2E), accent200 = hex(0x1C4D3D), accent300 = hex(0x6FE9C5),
     accent400 = hex(0x42DDB1), accent500 = hex(0x2BD49A), accent600 = hex(0x55E2B0),
     accent700 = hex(0x7BEBC5), accent800 = hex(0x064B38), accent900 = hex(0x033326),
     accent2100 = hex(0xFFE4BF), accent2500 = hex(0xFFB15C), accent2600 = hex(0xFFC078),

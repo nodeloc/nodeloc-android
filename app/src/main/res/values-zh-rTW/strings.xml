@@ -1985,4 +1985,17 @@
     <string name="lot2_participants_empty">還沒有人參與</string>
     <string name="lot2_participants_failed">參與者載入失敗。</string>
     <string name="reader_login_required">登入後才能閱讀這個主題</string>
+    <string name="settings_language">語言</string>
+    <string name="settings_language_system">跟隨系統</string>
+    <string name="mod_rep_penalty_label">同時扣除作者聲望</string>
+    <string name="mod_rep_penalty_none">不扣</string>
+    <string name="mod_rep_penalty_custom">自訂</string>
+    <string name="mod_rep_penalty_custom_hint">扣除數量，最多 %1$d</string>
+    <string name="mod_rep_penalty_too_big">一次最多扣 %1$d 聲望</string>
+    <string name="mod_rep_penalty_note">作者會在處理通知裡看到。重新開啟、恢復貼文或申訴成立時原數返還。</string>
+    <string name="mod_rep_penalty_confirm">%1$s · 扣 %2$d</string>
+    <string name="mod_rep_refund">只返還聲望</string>
+    <string name="mod_rep_refunded">聲望已返還</string>
+    <string name="mod_rep_deducted">扣 %1$d 聲望</string>
+    <string name="mod_rep_deducted_refunded">%1$d 聲望已返還</string>
 </resources>

@@ -163,6 +163,10 @@ private fun heldPill(reason: String?) {
 
 private fun ApiReviewItem.payloadString(key: String): String? = (payload?.get(key) as? JsonPrimitive)?.contentOrNull
 
+/** What resolving this item took from the author (payload, set by the server); 0 when nothing. */
+private val ApiReviewItem.reputationDeducted: Int get() = payloadString("reputation_penalty")?.toIntOrNull() ?: 0
+private val ApiReviewItem.reputationRefunded: Boolean get() = payloadString("reputation_refunded") == "true"
+
 /** What a card or the detail page shows as the body. */
 private fun ApiReviewItem.bodyText(): String = when (kind) {
     "link_report" -> payloadString("url") ?: payloadString("host").orEmpty()
@@ -728,6 +732,8 @@ data class ReviewItemState(
     val loading: Boolean = true,
     val failed: Throwable? = null,
     val busy: Boolean = false,
+    /** The most this reader may deduct; null when the server did not say, which hides the choice. */
+    val penaltyMax: Int? = null,
 )
 
 class ReviewItemViewModel(private val itemId: Long, private val nodeSlug: String?) : ViewModel() {
@@ -748,9 +754,9 @@ class ReviewItemViewModel(private val itemId: Long, private val nodeSlug: String
         viewModelScope.launch {
             _state.update { it.copy(loading = it.item == null, failed = null) }
             runCatchingCancellable { fetch() }
-                .onSuccess { item ->
+                .onSuccess { (item, penaltyMax) ->
                     if (item != null) ReviewItemStore.put(listOf(item))
-                    _state.update { it.copy(item = item ?: it.item, loading = false) }
+                    _state.update { it.copy(item = item ?: it.item, loading = false, penaltyMax = penaltyMax ?: it.penaltyMax) }
                     val userId = item?.targetUserId
                     if (userId != null && privileges.managesUsers && _state.value.author == null) {
                         runCatchingCancellable { api.userDetail(userId) }
@@ -765,20 +771,26 @@ class ReviewItemViewModel(private val itemId: Long, private val nodeSlug: String
      * The node queue has no `item` filter. Its order is id-descending, so a
      * one-item page with `before = id + 1` is this item when it has that status.
      */
-    private suspend fun fetch(): ApiReviewItem? {
-        if (nodeSlug == null) return api.siteItem(itemId)
-        for ((status, _) in STATUSES) {
-            val hit = api.nodeQueue(nodeSlug, status, before = itemId + 1, limit = 1).items.firstOrNull()
-            if (hit?.id == itemId) return hit
+    private suspend fun fetch(): Pair<ApiReviewItem?, Int?> {
+        if (nodeSlug == null) {
+            val page = api.siteItemPage(itemId)
+            return page.items.firstOrNull() to page.reputationPenaltyMax
         }
-        return null
+        var max: Int? = null
+        for ((status, _) in STATUSES) {
+            val page = api.nodeQueue(nodeSlug, status, before = itemId + 1, limit = 1)
+            max = page.reputationPenaltyMax ?: max
+            val hit = page.items.firstOrNull()
+            if (hit?.id == itemId) return hit to max
+        }
+        return null to max
     }
 
-    fun resolve(action: String, note: String?, onDone: () -> Unit = {}) {
+    fun resolve(action: String, note: String?, reputationPenalty: Int = 0, onDone: () -> Unit = {}) {
         val item = _state.value.item ?: return
         _state.update { it.copy(busy = true) }
         viewModelScope.launch {
-            runCatchingCancellable { api.resolve(item.id, action, note, nodeSlug) }
+            runCatchingCancellable { api.resolve(item.id, action, note, nodeSlug, reputationPenalty) }
                 .onSuccess {
                     ReviewItemStore.markResolved(item.id)
                     ServiceLocator.get.moderation.noteResolved(item.nodeSlug ?: nodeSlug)
@@ -801,6 +813,11 @@ class ReviewItemViewModel(private val itemId: Long, private val nodeSlug: String
             else -> { { api.restorePost(item.targetId) } }
         }
         ModUndo.offer(R.string.mod_review_deleted, afterUndo = { load() }, undo = undo)
+    }
+
+    /** Gives the deducted reputation back; the verdict and the post stay. */
+    fun refundReputation() = write(R.string.mod_rep_refunded) {
+        api.refundReputation(itemId, nodeSlug)
     }
 
     fun reopen() = write(R.string.mod_review_reopened) {
@@ -877,17 +894,18 @@ fun ReviewItemScreen(itemId: Long, nodeSlug: String?, navigator: Navigator) {
                 subtitle = subtitle,
                 confirmLabel = stringResource(R.string.common_delete),
                 onDismiss = { sheet = ItemSheet.None },
-            ) { reason ->
+                penaltyMax = state.penaltyMax?.takeIf { item.targetUserId != null },
+            ) { reason, reputationPenalty ->
                 val thenPenalty = sheet == ItemSheet.DeleteThenPenalty
                 sheet = ItemSheet.None
-                viewModel.resolve("delete_post", reason) { if (thenPenalty) sheet = ItemSheet.Penalty }
+                viewModel.resolve("delete_post", reason, reputationPenalty) { if (thenPenalty) sheet = ItemSheet.Penalty }
             }
             ItemSheet.Reject -> DeleteContentSheet(
                 title = stringResource(R.string.mod_review_reject_title),
                 subtitle = subtitle,
                 confirmLabel = stringResource(R.string.mod_review_reject),
                 onDismiss = { sheet = ItemSheet.None },
-            ) { reason ->
+            ) { reason, _ ->
                 sheet = ItemSheet.None
                 viewModel.resolve("delete_post", reason)
             }
@@ -929,6 +947,9 @@ private fun ItemActions(
             Spacer(Modifier.weight(1f))
             if (siteTools && item.kind in setOf("report", QUEUE_HELD_KIND, "node_report")) {
                 ModButton(stringResource(R.string.mod_review_reopen), ModButtonStyle.Outlined, enabled = !busy, onClick = viewModel::reopen)
+            }
+            if (item.reputationDeducted > 0 && !item.reputationRefunded) {
+                ModButton(stringResource(R.string.mod_rep_refund), ModButtonStyle.Outlined, enabled = !busy, onClick = viewModel::refundReputation)
             }
             if (item.isPost && (item.postDeleted || item.postHidden)) {
                 ModButton(stringResource(R.string.mod_review_restore), ModButtonStyle.Filled, enabled = !busy, onClick = viewModel::restore)
@@ -989,7 +1010,12 @@ private fun ItemBody(item: ApiReviewItem, author: ApiAdminUserDetail?, canManage
     ) {
         if (item.status != "pending") {
             val who = item.resolvedBy?.let { stringResource(R.string.mod_review_resolved_by, it) }.orEmpty()
-            val text = listOf(stringResource(resolutionLabel(item.resolution)), who, DiscourseFormat.dayAndTime(item.resolvedAt))
+            val deducted = when {
+                item.reputationDeducted <= 0 -> ""
+                item.reputationRefunded -> stringResource(R.string.mod_rep_deducted_refunded, item.reputationDeducted)
+                else -> stringResource(R.string.mod_rep_deducted, item.reputationDeducted)
+            }
+            val text = listOf(stringResource(resolutionLabel(item.resolution)), who, deducted, DiscourseFormat.dayAndTime(item.resolvedAt))
                 .filter { it.isNotBlank() }.joinToString(" · ")
             Box(
                 Modifier.padding(horizontal = 12.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp))

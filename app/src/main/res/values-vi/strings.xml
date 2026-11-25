@@ -1985,4 +1985,17 @@
     <string name="lot2_participants_empty">Chưa có ai tham gia</string>
     <string name="lot2_participants_failed">Không tải được danh sách người tham gia.</string>
     <string name="reader_login_required">Đăng nhập để đọc chủ đề này</string>
+    <string name="settings_language">Ngôn ngữ</string>
+    <string name="settings_language_system">Theo hệ thống</string>
+    <string name="mod_rep_penalty_label">Đồng thời trừ uy tín của tác giả</string>
+    <string name="mod_rep_penalty_none">Không trừ</string>
+    <string name="mod_rep_penalty_custom">Tùy chỉnh</string>
+    <string name="mod_rep_penalty_custom_hint">Số lượng, tối đa %1$d</string>
+    <string name="mod_rep_penalty_too_big">Mỗi lần chỉ được trừ tối đa %1$d</string>
+    <string name="mod_rep_penalty_note">Tác giả sẽ thấy trong thông báo xử lý. Mở lại, khôi phục bài hoặc kháng nghị thành công sẽ hoàn trả.</string>
+    <string name="mod_rep_penalty_confirm">%1$s · −%2$d</string>
+    <string name="mod_rep_refund">Chỉ hoàn uy tín</string>
+    <string name="mod_rep_refunded">Đã hoàn uy tín</string>
+    <string name="mod_rep_deducted">−%1$d uy tín</string>
+    <string name="mod_rep_deducted_refunded">Đã hoàn %1$d uy tín</string>
 </resources>

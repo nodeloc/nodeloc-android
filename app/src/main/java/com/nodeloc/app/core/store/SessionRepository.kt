@@ -183,9 +183,8 @@ class SessionRepository(
         authService.clearCredentials()
         _currentUser.value = null
         _isSignedIn.value = false
-        // The account borrowed the language; the phone gets it back.
+        // The language stays: it is the one picked in Settings, not the account's.
         languageAdopted = false
-        AppLocale.followSystem()
         purgeJob = scope.launch {
             purgeAccountState()
             // After the purge, which unregisters push with the same token.

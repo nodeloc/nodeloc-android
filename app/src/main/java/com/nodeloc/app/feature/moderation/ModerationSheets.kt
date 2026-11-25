@@ -115,11 +115,20 @@ fun DeleteContentSheet(
     subtitle: String?,
     confirmLabel: String,
     onDismiss: () -> Unit,
-    onConfirm: (reason: String) -> Unit,
+    penaltyMax: Int? = null,
+    onConfirm: (reason: String, reputationPenalty: Int) -> Unit,
 ) {
     var reason by rememberSaveable { mutableStateOf(RemovalReason.Promotion) }
     var note by rememberSaveable { mutableStateOf("") }
+    // 0 is 不扣; CUSTOM_PENALTY opens the number field.
+    var penaltyChoice by rememberSaveable { mutableIntStateOf(0) }
+    var customPenalty by rememberSaveable { mutableStateOf("") }
     val label = stringResource(reason.labelRes)
+    val penalty = when (penaltyChoice) {
+        CUSTOM_PENALTY -> customPenalty.toIntOrNull() ?: 0
+        else -> penaltyChoice
+    }
+    val penaltyTooBig = penaltyMax != null && penalty > penaltyMax
     SanctionSheet(title, onDismiss, subtitle) {
         SanctionLabel(stringResource(R.string.mod_sheet_delete_reason_label))
         RemovalReason.entries.forEach { option ->
@@ -132,16 +141,53 @@ fun DeleteContentSheet(
             stringResource(R.string.mod_sheet_delete_note),
             Modifier.padding(horizontal = 24.dp),
         )
+        if (penaltyMax != null && penaltyMax > 0) {
+            // The server's presets (5 / 10 / 20 / 50 / 100) as the website shows
+            // them, cut at what this moderator may take — a node moderator's 20.
+            SanctionLabel(stringResource(R.string.mod_rep_penalty_label), Modifier.padding(top = 12.dp))
+            FlowRow(
+                Modifier.padding(horizontal = 24.dp).padding(top = 4.dp, bottom = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                FilterPill(stringResource(R.string.mod_rep_penalty_none), penaltyChoice == 0) { penaltyChoice = 0 }
+                REPUTATION_PRESETS.filter { it <= penaltyMax }.forEach { value ->
+                    FilterPill("−$value", penaltyChoice == value) { penaltyChoice = value }
+                }
+                FilterPill(stringResource(R.string.mod_rep_penalty_custom), penaltyChoice == CUSTOM_PENALTY) {
+                    penaltyChoice = CUSTOM_PENALTY
+                }
+            }
+            if (penaltyChoice == CUSTOM_PENALTY) {
+                SanctionField(
+                    customPenalty,
+                    { customPenalty = it.filter(Char::isDigit).take(4) },
+                    stringResource(R.string.mod_rep_penalty_custom_hint, penaltyMax),
+                    Modifier.padding(horizontal = 24.dp).padding(top = 4.dp),
+                    singleLine = true,
+                )
+            }
+            Text(
+                if (penaltyTooBig) stringResource(R.string.mod_rep_penalty_too_big, penaltyMax)
+                else stringResource(R.string.mod_rep_penalty_note),
+                style = Type.body(12),
+                color = if (penaltyTooBig) Nocturne.danger else Nocturne.textSecondary,
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp),
+            )
+        }
         SanctionFooter(
             cancel = stringResource(R.string.common_cancel),
-            confirm = confirmLabel,
+            confirm = if (penalty > 0 && !penaltyTooBig) stringResource(R.string.mod_rep_penalty_confirm, confirmLabel, penalty) else confirmLabel,
             confirmStyle = ModButtonStyle.Danger,
-            enabled = true,
+            enabled = !penaltyTooBig,
             onCancel = onDismiss,
-            onConfirm = { onConfirm(removalText(label, note)) },
+            onConfirm = { onConfirm(removalText(label, note), if (penaltyMax != null) penalty.coerceAtLeast(0) else 0) },
         )
     }
 }
+
+private val REPUTATION_PRESETS = listOf(5, 10, 20, 50, 100)
+private const val CUSTOM_PENALTY = -1
 
 // ------------------------------------------------------------------ penalty sheet
 
@@ -627,7 +673,7 @@ fun ReplyModerationSheet(post: ModPostRef, navigator: Navigator, onDismiss: () -
             subtitle = subtitle,
             confirmLabel = stringResource(R.string.common_delete),
             onDismiss = onDismiss,
-        ) { reason ->
+        ) { reason, _ ->
             // The reason shows on the placeholder; the author gets no notice from this route.
             vm.run({ deletePost(post.postId, reason) }) { ok ->
                 if (ok) {
