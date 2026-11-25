@@ -226,7 +226,7 @@ data class ApiEnergyEntry(
 data class ApiEnergyPage(val entries: List<ApiEnergyEntry> = emptyList(), val total: Long? = null, val nextBefore: Long? = null)
 
 @Serializable
-data class ApiLeaderRow(val rank: Int = 0, val username: String = "", val balance: Long = 0)
+data class ApiLeaderRow(val rank: Int = 0, val username: String = "", val balance: Long = 0, val avatarUrl: String? = null)
 
 @Serializable
 data class ApiLeaderboard(val users: List<ApiLeaderRow> = emptyList())

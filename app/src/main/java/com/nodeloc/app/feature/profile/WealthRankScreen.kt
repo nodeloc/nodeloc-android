@@ -52,6 +52,7 @@ import com.composables.icons.lucide.Zap
 import com.nodeloc.app.R
 import com.nodeloc.app.ServiceLocator
 import com.nodeloc.app.core.design.Avatar
+import com.nodeloc.app.core.design.RemoteAvatar
 import com.nodeloc.app.core.design.EmptyStateView
 import com.nodeloc.app.core.design.HeaderIconButton
 import com.nodeloc.app.core.design.Nocturne
@@ -287,7 +288,7 @@ private fun PodiumCard(row: ApiLeaderRow, modifier: Modifier, onClick: () -> Uni
             Modifier.padding(top = 8.dp).size(avatar).border(BorderStroke(3.dp, ring), CircleShape).padding(3.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Avatar(row.username, variant = row.username.hashCode(), size = avatar - 6.dp)
+            RemoteAvatar(row.avatarUrl, row.username, variant = row.username.hashCode(), size = avatar - 6.dp)
         }
         Text(
             row.username,
@@ -319,6 +320,7 @@ private fun PodiumCard(row: ApiLeaderRow, modifier: Modifier, onClick: () -> Uni
 private fun Standing(me: String, state: WealthRankState, onProfile: () -> Unit) {
     val row = state.myRow
     val balance = row?.balance ?: state.myBalance
+    val account by ServiceLocator.get.session.currentUser.collectAsState()
     Row(
         Modifier
             .padding(top = 16.dp)
@@ -330,7 +332,12 @@ private fun Standing(me: String, state: WealthRankState, onProfile: () -> Unit) 
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Avatar(me, size = 40.dp, bg = Nocturne.accent, fg = Nocturne.neutral100)
+        // Off the board there is no row to carry a picture; the signed-in
+        // account always has its own.
+        val ownAvatar = row?.avatarUrl
+            ?: account?.avatarTemplate?.let { DiscourseConfig.avatarUrl(it, 120) }
+        if (ownAvatar != null) RemoteAvatar(ownAvatar, me, size = 40.dp)
+        else Avatar(me, size = 40.dp, bg = Nocturne.accent, fg = Nocturne.neutral100)
         Column(Modifier.weight(1f)) {
             Text(
                 if (row != null) stringResource(R.string.rank_you_are, row.rank)
@@ -371,7 +378,7 @@ private fun RankRow(row: ApiLeaderRow, isMe: Boolean, onClick: () -> Unit) {
                 textAlign = TextAlign.Center,
                 modifier = Modifier.width(32.dp),
             )
-            Avatar(row.username, variant = row.username.hashCode(), size = 36.dp)
+            RemoteAvatar(row.avatarUrl, row.username, variant = row.username.hashCode(), size = 36.dp)
             Text(
                 if (isMe) stringResource(R.string.rank_me, row.username) else row.username,
                 style = Type.body(15, FontWeight.Bold),

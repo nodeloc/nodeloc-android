@@ -120,71 +120,64 @@ fun FeedScreen(
                 listState.requestScrollToTop()
             },
         ) {
-            when {
-                state.showSkeleton -> {
-                    Column(Modifier.padding(contentPadding).padding(top = headerInset)) {
-                        sortChips()
-                        FeedSkeleton(mode)
-                    }
-                }
-
-                state.showEmptyState -> {
+            // One list for all three states. The skeleton and the empty state used
+            // to be Columns of their own, padded differently from the list, so on
+            // every chip tap the chips and rows dropped down and sprang back when
+            // the new list arrived. Inside the list the chips never move.
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    top = headerInset,
+                    bottom = contentPadding.calculateBottomPadding() + 24.dp,
+                ),
+            ) {
+                item(key = "sorts") { sortChips() }
+                if (state.showSkeleton) {
+                    item(key = "skeleton") { FeedSkeleton(mode) }
+                } else if (state.showEmptyState) {
                     // The chips stay above an empty list: "关注" with no nodes
                     // joined is empty, and the way out is another chip.
-                    Column(Modifier.fillMaxSize().padding(contentPadding).padding(top = headerInset)) {
-                    sortChips()
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        val offline = state.error?.isOfflineError() == true
-                        EmptyStateView(
-                            icon = if (offline) Lucide.WifiOff else Lucide.Inbox,
-                            title = stringResource(if (offline) R.string.error_offline else R.string.common_empty),
-                            detail = if (offline) null else stringResource(R.string.common_empty_hint),
-                            retryLabel = if (state.error != null) stringResource(R.string.common_retry) else null,
-                            onRetry = { viewModel.load() },
-                        )
-                    }
+                    item(key = "empty") {
+                        Box(Modifier.fillParentMaxHeight(0.75f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            val offline = state.error?.isOfflineError() == true
+                            EmptyStateView(
+                                icon = if (offline) Lucide.WifiOff else Lucide.Inbox,
+                                title = stringResource(if (offline) R.string.error_offline else R.string.common_empty),
+                                detail = if (offline) null else stringResource(R.string.common_empty_hint),
+                                retryLabel = if (state.error != null) stringResource(R.string.common_retry) else null,
+                                onRetry = { viewModel.load() },
+                            )
+                        }
                     }
                 }
-
-                else -> {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(
-                            top = headerInset,
-                            bottom = contentPadding.calculateBottomPadding() + 24.dp,
-                        ),
-                    ) {
-                        item(key = "sorts") { sortChips() }
-                        itemsIndexed(posts, key = { _, post -> post.id }) { _, post ->
-                            PostRow(
-                                post = post,
-                                more = menu.actionsFor(post),
-                                mode = mode,
-                                onOpen = {
-                                    viewModel.markRead(post.id)
-                                    navigator.openTopic(post.id)
-                                },
-                                onOpenAuthor = { navigator.openProfile(it) },
-                                onShare = {
-                                    navigator.share(context, "${DiscourseConfig.BASE_URL}/t/${post.id}", post.title)
-                                },
-                                onVote = { direction, face -> viewModel.vote(post.id, direction, face) },
-                                onOpenImage = { index -> viewer = post.imageViewerAt(index) },
-                            )
-                        }
-                        item(key = "footer") {
-                            TopicListFooter(
-                                count = posts.size,
-                                hasMore = state.hasMore,
-                                isLoadingMore = state.isLoadingMore,
-                                failed = state.loadMoreFailed,
-                                onLoadMore = { viewModel.loadMore(retry = true) },
-                                onBackToTop = { listState.requestScrollToTop() },
-                                modifier = Modifier.padding(top = 8.dp),
-                            )
-                        }
-                    }
+                itemsIndexed(posts, key = { _, post -> post.id }) { _, post ->
+                    PostRow(
+                        post = post,
+                        more = menu.actionsFor(post),
+                        mode = mode,
+                        onOpen = {
+                            viewModel.markRead(post.id)
+                            navigator.openTopic(post.id)
+                        },
+                        onOpenAuthor = { navigator.openProfile(it) },
+                        onShare = {
+                            navigator.share(context, "${DiscourseConfig.BASE_URL}/t/${post.id}", post.title)
+                        },
+                        onVote = { direction, face -> viewModel.vote(post.id, direction, face) },
+                        onOpenImage = { index -> viewer = post.imageViewerAt(index) },
+                    )
+                }
+                if (posts.isNotEmpty()) item(key = "footer") {
+                    TopicListFooter(
+                        count = posts.size,
+                        hasMore = state.hasMore,
+                        isLoadingMore = state.isLoadingMore,
+                        failed = state.loadMoreFailed,
+                        onLoadMore = { viewModel.loadMore(retry = true) },
+                        onBackToTop = { listState.requestScrollToTop() },
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
                 }
             }
         }

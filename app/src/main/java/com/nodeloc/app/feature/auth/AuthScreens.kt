@@ -139,7 +139,11 @@ fun AuthNavHost(app: AppViewModel, navigator: Navigator, startAtSignup: Boolean 
             }
         }
         composable<Route.SignupEmail> {
-            SignupEmailScreen(viewModel, controller)
+            // Opened from 注册 the email step is the root of this stack, and
+            // popping the root does nothing: back has to leave the flow instead.
+            SignupEmailScreen(viewModel, controller) {
+                if (controller.previousBackStackEntry != null) controller.popBackStack() else navigator.back()
+            }
         }
         composable<Route.SignupUsername> {
             SignupUsernameScreen(viewModel, controller)
@@ -468,14 +472,14 @@ private fun LoginScreen(
 }
 
 @Composable
-private fun SignupEmailScreen(viewModel: AuthViewModel, controller: NavHostController) {
+private fun SignupEmailScreen(viewModel: AuthViewModel, controller: NavHostController, onBack: () -> Unit) {
     val state by viewModel.signup.collectAsState()
     val check = state.emailCheck
     val ready = state.email.isNotBlank() && check.settled
     val next = { controller.navigate(Route.SignupUsername) }
     AuthScaffold(
         stringResource(R.string.auth_email_step),
-        onBack = { controller.popBackStack() },
+        onBack = onBack,
         action = {
             FilledAccentButton(
                 stringResource(R.string.common_continue),
@@ -554,19 +558,23 @@ private val MARK_SIZE = 22.dp
  */
 @Composable
 private fun ProviderMark(provider: AuthProvider) {
-    val icon = provider.iconOverride
+    // The 2.0 server's names and hints are bare ("google", "apple", "x");
+    // the Discourse-era ones ("google_oauth2", "fab-google") still match.
+    val icon = provider.iconOverride?.removePrefix("fab-")
     when {
-        provider.name == "google_oauth2" || icon == "fab-google" ->
+        provider.name in setOf("google", "google_oauth2") || icon == "google" ->
             Image(painterResource(R.drawable.ic_provider_google), null, Modifier.size(MARK_SIZE))
-        provider.name == "telegram" || icon == "fab-telegram" ->
+        provider.name == "telegram" || icon == "telegram" ->
             Image(painterResource(R.drawable.ic_provider_telegram), null, Modifier.size(MARK_SIZE))
-        // GitHub's and X's marks are one colour by design, and the colour they
-        // take is the one the page is written in — black on white, white on
-        // black. Tinted rather than shipped twice.
-        provider.name == "github" || icon == "fab-github" ->
+        // GitHub's, X's and Apple's marks are one colour by design, and the
+        // colour they take is the one the page is written in — black on white,
+        // white on black. Tinted rather than shipped twice.
+        provider.name == "github" || icon == "github" ->
             Icon(painterResource(R.drawable.ic_provider_github), null, Modifier.size(MARK_SIZE), tint = Nocturne.text)
-        provider.name == "twitter" || icon == "fab-x-twitter" ->
+        provider.name == "twitter" || icon == "x" || icon == "x-twitter" ->
             Icon(painterResource(R.drawable.ic_provider_x), null, Modifier.size(MARK_SIZE), tint = Nocturne.text)
+        provider.name == "apple" || icon == "apple" ->
+            Icon(painterResource(R.drawable.ic_provider_apple), null, Modifier.size(MARK_SIZE), tint = Nocturne.text)
         else -> Spacer(Modifier.size(MARK_SIZE))
     }
 }
