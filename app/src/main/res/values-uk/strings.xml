@@ -2036,4 +2036,15 @@
     <string name="sort_rising_detail">Теми, що зараз набирають обертів</string>
     <string name="me4_node_owner_of">Власник n/%1$s</string>
     <string name="offline_saved_at">Немає мережі · оновлено %1$s</string>
+    <string name="sidebar_custom_feeds">Власні стрічки</string>
+    <string name="sidebar_feed_new">Створити</string>
+    <string name="sidebar_feed_nodes">\u0020· вузлів: %1$d</string>
+    <string name="feed_create_title">Нова стрічка</string>
+    <string name="feed_create_name">Назва</string>
+    <string name="feed_create_name_hint">наприклад: інді-розробка</string>
+    <string name="feed_create_public">Публічна — читати може будь-хто за посиланням</string>
+    <string name="feed_create_nodes">Вузли (вибрано: %1$d)</string>
+    <string name="feed_create_search">Пошук вузлів</string>
+    <string name="feed_create_save">Створити</string>
+    <string name="feed_empty">У цій стрічці ще немає тем</string>
 </resources>

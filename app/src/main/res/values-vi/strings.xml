@@ -2006,4 +2006,15 @@
     <string name="sort_rising_detail">Chủ đề đang nóng dần lên</string>
     <string name="me4_node_owner_of">Chủ n/%1$s</string>
     <string name="offline_saved_at">Ngoại tuyến · cập nhật lần cuối %1$s</string>
+    <string name="sidebar_custom_feeds">Bảng tin tùy chỉnh</string>
+    <string name="sidebar_feed_new">Tạo mới</string>
+    <string name="sidebar_feed_nodes">\u0020· %1$d node</string>
+    <string name="feed_create_title">Bảng tin mới</string>
+    <string name="feed_create_name">Tên</string>
+    <string name="feed_create_name_hint">ví dụ: Lập trình độc lập</string>
+    <string name="feed_create_public">Công khai — ai có liên kết đều xem được</string>
+    <string name="feed_create_nodes">Node (đã chọn %1$d)</string>
+    <string name="feed_create_search">Tìm node</string>
+    <string name="feed_create_save">Tạo</string>
+    <string name="feed_empty">Bảng tin này chưa có chủ đề</string>
 </resources>

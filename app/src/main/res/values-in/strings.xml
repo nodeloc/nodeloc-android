@@ -2007,4 +2007,15 @@
     <string name="sort_rising_detail">Topik yang sedang naik</string>
     <string name="me4_node_owner_of">Pemilik n/%1$s</string>
     <string name="offline_saved_at">Offline · terakhir diperbarui %1$s</string>
+    <string name="sidebar_custom_feeds">Feed kustom</string>
+    <string name="sidebar_feed_new">Baru</string>
+    <string name="sidebar_feed_nodes">\u0020· %1$d node</string>
+    <string name="feed_create_title">Feed baru</string>
+    <string name="feed_create_name">Nama</string>
+    <string name="feed_create_name_hint">misal: Dev indie</string>
+    <string name="feed_create_public">Publik — siapa pun dengan tautan bisa membaca</string>
+    <string name="feed_create_nodes">Node (%1$d dipilih)</string>
+    <string name="feed_create_search">Cari node</string>
+    <string name="feed_create_save">Buat</string>
+    <string name="feed_empty">Belum ada topik di feed ini</string>
 </resources>

@@ -46,6 +46,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.composables.icons.lucide.CirclePlus
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.LayoutGrid
+import com.composables.icons.lucide.Layers
 import com.composables.icons.lucide.Settings
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
@@ -87,6 +88,10 @@ fun SidebarDrawer(
     onOpenModDashboard: (String?) -> Unit,
     onOpenNodeAdmin: (String) -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenFeed: (Long, String) -> Unit,
+    onCreateFeed: () -> Unit,
+    /** Whether the drawer is open: the parts that change between openings are asked for again then. */
+    visible: Boolean,
 ) {
     val catalog: NodeCatalogViewModel = viewModel()
     val state by catalog.sidebarState.collectAsState()
@@ -96,13 +101,15 @@ fun SidebarDrawer(
     val nodePending by services.moderation.nodePending.collectAsState()
 
     LaunchedEffect(Unit) { catalog.loadSidebar() }
+    LaunchedEffect(visible, user?.id) { if (visible) catalog.refreshPersonal() }
     // A node moderator has no pushed count; the drawer is where they look, so
     // opening it is when the per-node numbers are worth a fetch.
     LaunchedEffect(privileges.nodes) { services.moderation.refreshNodeCounts() }
     var showAllManaged by remember { mutableStateOf(false) }
+    var showAllJoined by remember { mutableStateOf(false) }
     // `/me/nodes` carries no logos; the directory the drawer already holds does.
-    val logos = remember(state.nodes, state.recent) {
-        (state.nodes + state.recent).filter { it.logoUrl != null }.associate { it.slug to it.logoUrl }
+    val logos = remember(state.nodes, state.recent, state.joined) {
+        (state.joined + state.nodes + state.recent).filter { it.logoUrl != null }.associate { it.slug to it.logoUrl }
     }
 
     ModalDrawerSheet(
@@ -156,6 +163,40 @@ fun SidebarDrawer(
                     }
                 }
 
+                // 自定义信息流 and 常去节点, after the nodes this account runs:
+                // the board's order, and the drawer's shortcuts into reading.
+                if (user != null) {
+                    item(key = "feeds-header") {
+                        SidebarSectionHeader(
+                            stringResource(R.string.sidebar_custom_feeds),
+                            action = stringResource(R.string.sidebar_feed_new),
+                            onAction = onCreateFeed,
+                        )
+                    }
+                    items(state.feeds, key = { "feed-${it.id}" }) { feed ->
+                        SidebarFeedRow(feed) { onOpenFeed(feed.id, feed.name) }
+                    }
+                }
+
+                if (state.joined.isNotEmpty()) {
+                    item(key = "joined-header") { SidebarSectionHeader(stringResource(R.string.me4_frequent_nodes)) }
+                    // Someone in eighty nodes would otherwise scroll past all of them to
+                    // reach anything below; the first few, the rest on request.
+                    val joinedShown = if (showAllJoined) state.joined else state.joined.take(JOINED_PREVIEW)
+                    items(joinedShown, key = { "joined-${it.id}" }) { node ->
+                        SidebarNodeRow(node) { onOpenNode(node) }
+                    }
+                    if (state.joined.size > JOINED_PREVIEW) {
+                        item(key = "joined-more") {
+                            SidebarAction(
+                                if (showAllJoined) Lucide.ChevronUp else Lucide.ChevronDown,
+                                if (showAllJoined) stringResource(R.string.mod_entry_show_less)
+                                else stringResource(R.string.mod_entry_show_all, state.joined.size),
+                            ) { showAllJoined = !showAllJoined }
+                        }
+                    }
+                }
+
                 item {
                     Spacer(Modifier.height(Space.s4))
                     SidebarAction(Lucide.LayoutGrid, stringResource(R.string.node_browse)) { onBrowseNodes() }
@@ -189,7 +230,9 @@ fun SidebarDrawer(
                     item { Spacer(Modifier.height(Space.s4)) }
                 }
 
-                if (state.nodes.isNotEmpty()) {
+                // Offered only to someone who has joined nothing yet: beside
+                // their own nodes, twenty strangers' would bury them.
+                if (state.nodes.isNotEmpty() && state.joined.isEmpty()) {
                     item {
                         SectionKicker(
                             stringResource(R.string.tab_nodes),
@@ -387,3 +430,45 @@ private fun SidebarAppRow(app: SidebarDiscourseApp, onClick: () -> Unit) {
 
 /** How many managed nodes the drawer lists before "show all". */
 private const val MANAGED_PREVIEW = 5
+
+/** 常去节点 before "展开全部". */
+private const val JOINED_PREVIEW = 8
+
+/**
+ * One custom feed: its colour square (the server hands every feed one of its
+ * palette's bare `rrggbb`s), its name and how many nodes it reads.
+ */
+@Composable
+private fun SidebarFeedRow(feed: com.nodeloc.app.core.network.ApiCustomFeedSummary, onClick: () -> Unit) {
+    val ground = feed.color?.removePrefix("#")?.takeIf { it.length == 6 }?.toLongOrNull(16)
+        ?.let { androidx.compose.ui.graphics.Color(0xFF000000 or it) }
+        ?: Nocturne.accent700
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = Space.page, vertical = 9.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Space.s4),
+    ) {
+        Box(
+            Modifier.size(26.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp)).background(ground),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Lucide.Layers, null, tint = Nocturne.neutral100, modifier = Modifier.size(15.dp))
+        }
+        Text(
+            buildAnnotatedString {
+                append(feed.name)
+                withStyle(SpanStyle(fontSize = Type.body(13).fontSize, color = Nocturne.textSecondary)) {
+                    append(stringResource(R.string.sidebar_feed_nodes, feed.nodeCount))
+                }
+            },
+            style = Type.body(14, FontWeight.Medium),
+            color = Nocturne.text,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}

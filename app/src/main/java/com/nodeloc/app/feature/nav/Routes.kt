@@ -20,6 +20,8 @@ object Route {
     @Serializable data class NodeDetail(val categoryId: Int, val slug: String? = null)
     @Serializable data class NodeGroup(val categoryId: Int, val name: String)
     @Serializable data object CreateNode
+    @Serializable data class CustomFeed(val id: Long, val name: String)
+    @Serializable data object CreateCustomFeed
     @Serializable data class Compose(
         val categoryId: Int? = null,
         val repostTopicId: Int? = null,

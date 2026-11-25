@@ -2016,4 +2016,15 @@
     <string name="sort_rising_detail">موضوع‌هایی که الان داغ‌تر می‌شوند</string>
     <string name="me4_node_owner_of">مالک n/%1$s</string>
     <string name="offline_saved_at">آفلاین · آخرین به‌روزرسانی %1$s</string>
+    <string name="sidebar_custom_feeds">فیدهای سفارشی</string>
+    <string name="sidebar_feed_new">جدید</string>
+    <string name="sidebar_feed_nodes">\u0020· %1$d گره</string>
+    <string name="feed_create_title">فید جدید</string>
+    <string name="feed_create_name">نام</string>
+    <string name="feed_create_name_hint">مثلاً: توسعه مستقل</string>
+    <string name="feed_create_public">عمومی — هر کس پیوند را داشته باشد می‌تواند بخواند</string>
+    <string name="feed_create_nodes">گره‌ها (%1$d انتخاب شده)</string>
+    <string name="feed_create_search">جستجوی گره‌ها</string>
+    <string name="feed_create_save">ایجاد</string>
+    <string name="feed_empty">هنوز موضوعی در این فید نیست</string>
 </resources>

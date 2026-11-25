@@ -2005,4 +2005,15 @@
     <string name="sort_rising_detail">今まさに注目を集めているトピック</string>
     <string name="me4_node_owner_of">n/%1$s 管理人</string>
     <string name="offline_saved_at">オフライン · 最終更新 %1$s</string>
+    <string name="sidebar_custom_feeds">カスタムフィード</string>
+    <string name="sidebar_feed_new">新規</string>
+    <string name="sidebar_feed_nodes">\u0020· %1$d ノード</string>
+    <string name="feed_create_title">新しいフィード</string>
+    <string name="feed_create_name">名前</string>
+    <string name="feed_create_name_hint">例：個人開発まとめ</string>
+    <string name="feed_create_public">公開（リンクを知っている人は誰でも閲覧可）</string>
+    <string name="feed_create_nodes">ノード（%1$d 件選択）</string>
+    <string name="feed_create_search">ノードを検索</string>
+    <string name="feed_create_save">作成</string>
+    <string name="feed_empty">このフィードにはまだトピックがありません</string>
 </resources>

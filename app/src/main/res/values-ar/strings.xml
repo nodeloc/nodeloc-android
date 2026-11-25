@@ -2057,4 +2057,15 @@
     <string name="sort_rising_detail">مواضيع يتزايد الاهتمام بها الآن</string>
     <string name="me4_node_owner_of">مالك n/%1$s</string>
     <string name="offline_saved_at">غير متصل · آخر تحديث %1$s</string>
+    <string name="sidebar_custom_feeds">الخلاصات المخصصة</string>
+    <string name="sidebar_feed_new">جديد</string>
+    <string name="sidebar_feed_nodes">\u0020· العقد: %1$d</string>
+    <string name="feed_create_title">خلاصة جديدة</string>
+    <string name="feed_create_name">الاسم</string>
+    <string name="feed_create_name_hint">مثلًا: التطوير المستقل</string>
+    <string name="feed_create_public">عامة — يمكن لأي شخص لديه الرابط قراءتها</string>
+    <string name="feed_create_nodes">العقد (المحدد: %1$d)</string>
+    <string name="feed_create_search">ابحث عن العقد</string>
+    <string name="feed_create_save">إنشاء</string>
+    <string name="feed_empty">لا توجد مواضيع في هذه الخلاصة بعد</string>
 </resources>

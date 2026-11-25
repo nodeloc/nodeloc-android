@@ -57,6 +57,16 @@ class Navigator(private val controller: NavHostController) {
 
     fun openCreateNode() = push(Route.CreateNode)
 
+    fun openCustomFeed(id: Long, name: String) = push(Route.CustomFeed(id, name))
+
+    fun openCreateCustomFeed() = push(Route.CreateCustomFeed)
+
+    /** After creating a feed: the form gives way to the feed, so back leads to where the form was opened. */
+    fun replaceWithCustomFeed(id: Long, name: String) {
+        controller.popBackStack()
+        push(Route.CustomFeed(id, name))
+    }
+
     fun openCompose(
         categoryId: Int? = null,
         repostTopicId: Int? = null,

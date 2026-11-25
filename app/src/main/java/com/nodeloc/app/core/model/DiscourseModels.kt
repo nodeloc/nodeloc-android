@@ -369,21 +369,6 @@ data class SidebarDiscourseApp(
     val url: String? = null,
 )
 
-@Serializable
-data class SidebarCustomFeed(
-    val id: Int,
-    val name: String = "",
-    val slug: String = "",
-    val description: String? = null,
-    val color: String? = null,
-    val url: String? = null,
-    val username: String? = null,
-    val nodeCount: Int? = null,
-)
-
-@Serializable
-data class SidebarCustomFeedsResponse(val customFeeds: List<SidebarCustomFeed> = emptyList())
-
 // ------------------------------------------------------------------ Uploads
 
 @Serializable

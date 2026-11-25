@@ -2006,4 +2006,15 @@
     <string name="sort_rising_detail">热度正在上升的主题</string>
     <string name="me4_node_owner_of">n/%1$s 主理人</string>
     <string name="offline_saved_at">离线 · 上次更新于 %1$s</string>
+    <string name="sidebar_custom_feeds">自定义信息流</string>
+    <string name="sidebar_feed_new">新建</string>
+    <string name="sidebar_feed_nodes">\u0020· %1$d 个节点</string>
+    <string name="feed_create_title">新建信息流</string>
+    <string name="feed_create_name">名称</string>
+    <string name="feed_create_name_hint">比如：独立开发全家桶</string>
+    <string name="feed_create_public">公开，拿到链接的人都能看</string>
+    <string name="feed_create_nodes">节点（已选 %1$d 个）</string>
+    <string name="feed_create_search">搜索节点</string>
+    <string name="feed_create_save">创建</string>
+    <string name="feed_empty">这个信息流里还没有主题</string>
 </resources>

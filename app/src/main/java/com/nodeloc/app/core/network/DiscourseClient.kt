@@ -274,6 +274,10 @@ class DiscourseClient(
 
     suspend fun latest(page: Int = 0): LatestResponse = topics("latest", page)
 
+    /** A custom feed's topics, newest activity first, cursor paged like 最新. */
+    suspend fun customFeedTopics(feedId: Long, page: Int = 0): LatestResponse =
+        latestResponse(topicPage("feed-$feedId", "api/v1/custom-feeds/$feedId/topics", emptyList(), page, offsetPaging = false))
+
     suspend fun top(@Suppress("UNUSED_PARAMETER") period: String? = null): LatestResponse = topics("hot", 0)
 
     suspend fun site(): SiteResponse {
@@ -357,7 +361,6 @@ class DiscourseClient(
     /** The native API keeps no visit history; the shelf stays empty and is hidden. */
     suspend fun recentlyVisitedNodes(): SidebarCommunitiesResponse = SidebarCommunitiesResponse()
 
-    suspend fun customFeeds(): SidebarCustomFeedsResponse = SidebarCustomFeedsResponse()
 
     suspend fun checkNodeSlug(slug: String): NodeSlugAvailabilityResponse {
         val body = get<JsonObject>("api/v1/nodes/slug-available", listOf("slug" to slug))

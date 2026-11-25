@@ -133,6 +133,9 @@ fun NodelocApp(startDestination: Any = Route.Home) {
                 onOpenModDashboard = { navigator.openModDashboard(it); scope.launch { drawerState.close() } },
                 onOpenNodeAdmin = { navigator.openNodeAdmin(it); scope.launch { drawerState.close() } },
                 onOpenSettings = { navigator.openSettings(); scope.launch { drawerState.close() } },
+                onOpenFeed = { id, name -> navigator.openCustomFeed(id, name); scope.launch { drawerState.close() } },
+                onCreateFeed = { navigator.openCreateCustomFeed(); scope.launch { drawerState.close() } },
+                visible = drawerState.targetValue == DrawerValue.Open,
             )
         },
     ) {
@@ -293,6 +296,11 @@ private fun NodelocNavHost(
             NodeGroupScreen(route.categoryId, route.name, app, navigator)
         }
         composable<Route.CreateNode> { CreateNodeScreen(navigator) }
+        composable<Route.CustomFeed> { entry ->
+            val route = entry.toRoute<Route.CustomFeed>()
+            com.nodeloc.app.feature.feed.CustomFeedScreen(route.id, route.name, navigator)
+        }
+        composable<Route.CreateCustomFeed> { com.nodeloc.app.feature.feed.CreateCustomFeedScreen(navigator) }
         composable<Route.Compose> { entry ->
             val route = entry.toRoute<Route.Compose>()
             ComposeScreen(route, navigator)

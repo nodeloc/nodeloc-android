@@ -2017,4 +2017,15 @@
     <string name="sort_rising_detail">Topics gaining momentum right now</string>
     <string name="me4_node_owner_of">n/%1$s owner</string>
     <string name="offline_saved_at">Offline · last updated %1$s</string>
+    <string name="sidebar_custom_feeds">Custom feeds</string>
+    <string name="sidebar_feed_new">New</string>
+    <string name="sidebar_feed_nodes">\u0020· nodes: %1$d</string>
+    <string name="feed_create_title">New custom feed</string>
+    <string name="feed_create_name">Name</string>
+    <string name="feed_create_name_hint">e.g. Indie dev</string>
+    <string name="feed_create_public">Public — anyone with the link can read it</string>
+    <string name="feed_create_nodes">Nodes (%1$d selected)</string>
+    <string name="feed_create_search">Search nodes</string>
+    <string name="feed_create_save">Create</string>
+    <string name="feed_empty">No topics in this feed yet</string>
 </resources>

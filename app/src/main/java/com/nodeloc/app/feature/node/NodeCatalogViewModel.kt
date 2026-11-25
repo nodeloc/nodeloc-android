@@ -21,11 +21,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 data class SidebarState(
+    /** 常去节点: the nodes this account has joined. */
+    val joined: List<NodeSummary> = emptyList(),
+    /** The most-joined nodes this account is not in; what a guest, or anyone new, is offered instead. */
     val nodes: List<NodeSummary> = emptyList(),
     val recent: List<NodeSummary> = emptyList(),
     val apps: List<SidebarDiscourseApp> = emptyList(),
     /** Signed in only: how many drafts wait in 草稿箱, for the count beside it. */
     val drafts: Int? = null,
+    /** Signed in only: 自定义信息流, the reader's own named sets of nodes. */
+    val feeds: List<com.nodeloc.app.core.network.ApiCustomFeedSummary> = emptyList(),
 )
 
 /** A section of the directory, offered as a chip on the node square. */
@@ -125,12 +130,34 @@ class NodeCatalogViewModel : ViewModel() {
             val nodes = nodesCall.await()
             val recent = recentCall.await()
             _sidebarState.value = SidebarState(
-                nodes = (nodes?.communities.orEmpty() + nodes?.recommended.orEmpty())
-                    .distinctBy { it.id }
+                joined = nodes?.communities.orEmpty().map(NodeSummaryFactory::summary),
+                nodes = nodes?.recommended.orEmpty()
+                    .filterNot { node -> nodes?.communities.orEmpty().any { it.id == node.id } }
                     .map(NodeSummaryFactory::summary),
                 recent = recent?.communities.orEmpty().map(NodeSummaryFactory::summary),
                 apps = sidebarApps(siteCall.await()),
                 drafts = draftsCall.await(),
+                feeds = _sidebarState.value.feeds,
+            )
+        }
+    }
+
+    /**
+     * The two parts of the drawer that change from one opening to the next —
+     * the custom feeds (one may just have been made) and the drafts count —
+     * asked for again each time it opens. The rest is loaded once.
+     */
+    fun refreshPersonal() {
+        if (!client.auth.isAuthenticated) {
+            _sidebarState.value = _sidebarState.value.copy(feeds = emptyList(), drafts = null)
+            return
+        }
+        viewModelScope.launch {
+            val feeds = async { runCatchingCancellable { com.nodeloc.app.core.network.CustomFeedApi(client.api).mine().feeds }.getOrNull() }
+            val drafts = async { runCatchingCancellable { com.nodeloc.app.core.network.PersonalApi(client.api).drafts().drafts.size }.getOrNull() }
+            _sidebarState.value = _sidebarState.value.copy(
+                feeds = feeds.await() ?: _sidebarState.value.feeds,
+                drafts = drafts.await() ?: _sidebarState.value.drafts,
             )
         }
     }
