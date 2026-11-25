@@ -54,8 +54,6 @@ import com.nodeloc.app.core.design.Radius
 import com.nodeloc.app.core.design.RemoteAvatar
 import com.nodeloc.app.core.design.RemoteImage
 import com.nodeloc.app.core.design.Space
-import com.nodeloc.app.core.design.TagChip
-import com.nodeloc.app.core.design.TagStyle
 import com.nodeloc.app.core.design.Type
 import com.nodeloc.app.core.design.VoteControl
 import com.nodeloc.app.core.design.pressScale
@@ -219,17 +217,11 @@ private fun ExpandedRow(
             Modifier.padding(horizontal = Space.page, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            RowHeader(post, byline, onOpenAuthor, attributeToAuthor)
+            RowHeader(post, byline, onOpenAuthor)
             Row(horizontalArrangement = Arrangement.spacedBy(Space.s4)) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     RowTitle(post, maxLines = 3)
                     RowExcerpt(post)
-                    // Inside a node the header already carries the first tag.
-                    if (post.tags.isNotEmpty() && !attributeToAuthor) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            post.tags.take(3).forEach { TagChip(it, style = TagStyle.Outline) }
-                        }
-                    }
                 }
                 if (post.imageUrl != null) {
                     RemoteImage(
@@ -265,7 +257,7 @@ private fun CardRow(
         // The v3 board's rhythm: 6 under the byline, 4 under the title, 8
         // before the picture and 10 before the actions.
         Column(Modifier.padding(horizontal = Space.page, vertical = 12.dp)) {
-            RowHeader(post, byline, onOpenAuthor, attributeToAuthor)
+            RowHeader(post, byline, onOpenAuthor)
             Spacer(Modifier.height(6.dp))
             RowTitle(post, maxLines = 4)
             if (post.excerpt.isNotEmpty()) {
@@ -428,9 +420,9 @@ private fun PagerArrow(
 }
 
 /**
- * "n/slug · time", led by the node's logo. Inside a node it is "u/name · time"
- * and the topic's first tag, which is how the v3 node board tells its rows
- * apart when every one of them lives in the same place.
+ * "n/slug · time", led by the node's logo. Inside a node it is "u/name · time":
+ * every row there lives in the same place, so the author is what tells them
+ * apart. Tags are not shown in lists.
  *
  * The menu moved from here to the end of the action row in v3, where it shares
  * one button with 分享.
@@ -440,7 +432,6 @@ private fun RowHeader(
     post: Post,
     byline: Byline,
     onOpenAuthor: (String) -> Unit,
-    showTag: Boolean,
 ) {
     Row(
         Modifier.fillMaxWidth().heightIn(min = 28.dp),
@@ -457,20 +448,6 @@ private fun RowHeader(
             modifier = Modifier.weight(1f, fill = false),
         )
         Text("· ${post.time}", style = Type.body(12), color = Nocturne.textSecondary, maxLines = 1)
-        if (showTag) {
-            post.tags.firstOrNull()?.let { tag ->
-                Text(
-                    tag,
-                    style = Type.body(12, FontWeight.Medium),
-                    color = Nocturne.text,
-                    maxLines = 1,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(Nocturne.neutral400)
-                        .padding(horizontal = 8.dp),
-                )
-            }
-        }
         if (post.isUnread) UnreadDot()
         if (post.pinned) {
             Icon(

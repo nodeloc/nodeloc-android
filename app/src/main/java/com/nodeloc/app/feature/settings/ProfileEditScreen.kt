@@ -85,8 +85,12 @@ data class ProfileEditState(
     val availableTitles: List<String> = emptyList(),
     val avatarUrl: String? = null,
     val backgroundUrl: String? = null,
-    /** `profile_background_allowed_groups` decides this; without it the server
-     *  silently drops the field, so the row is hidden rather than lying. */
+    /**
+     * On 2.0 every signed-in member may set a cover (`PUT /api/v1/me/cover`
+     * has no group rule), so this is true once the profile loads. It used to
+     * follow Discourse's `can_upload_profile_header`, which the 2.0 mapping
+     * never fills — the cover buttons were hidden from everyone.
+     */
     val canEditBackground: Boolean = false,
     /** Starts true: the screen opens before the profile has been fetched. */
     val isLoading: Boolean = true,
@@ -148,7 +152,7 @@ class ProfileEditViewModel : ViewModel() {
                 backgroundUrl = DiscourseConfig.absoluteUrl(
                     profile.profileBackgroundUploadUrl ?: profile.cardBackgroundUploadUrl,
                 ),
-                canEditBackground = profile.canUploadProfileHeader == true,
+                canEditBackground = true,
                 isLoading = false,
             )
             loaded = true
@@ -156,16 +160,17 @@ class ProfileEditViewModel : ViewModel() {
     }
 
     /**
-     * Upload, then point the profile at the resulting URL — Discourse resolves
-     * the upload by URL here, not by id the way [uploadAvatar] does.
+     * Upload, then point the cover at the upload by id, as [uploadAvatar] does.
+     * It used to go through `updateProfile`, which only knows the text fields
+     * and returned without a request — so the toast said 已更新 and nothing was.
      */
     fun uploadBackground(bytes: ByteArray, fileName: String, mimeType: String) {
-        val username = session.username ?: return
+        session.username ?: return
         viewModelScope.launch {
             _state.value = _state.value.copy(isSaving = true)
             runCatchingCancellable {
                 val upload = client.uploadUserImage(bytes, fileName, mimeType, "profile_background")
-                client.updateProfile(username, listOf("profile_background_upload_url" to upload.url.orEmpty()))
+                client.setCover(upload.id)
                 upload
             }
                 .onSuccess {
@@ -178,12 +183,11 @@ class ProfileEditViewModel : ViewModel() {
         }
     }
 
-    /** An empty URL is how Discourse is told to drop the background. */
     fun removeBackground() {
-        val username = session.username ?: return
+        session.username ?: return
         viewModelScope.launch {
             _state.value = _state.value.copy(isSaving = true)
-            runCatchingCancellable { client.updateProfile(username, listOf("profile_background_upload_url" to "")) }
+            runCatchingCancellable { client.removeCover() }
                 .onSuccess {
                     _state.value = _state.value.copy(backgroundUrl = null)
                     ToastCenter.show(R.string.profile_background_updated)

@@ -1312,6 +1312,15 @@ class DiscourseClient(
         call("PUT", path, buildJsonObject { put("upload_id", uploadId) })
     }
 
+    /** The profile cover: an upload made first, then pointed at by id. */
+    suspend fun setCover(uploadId: Int) {
+        call("PUT", "api/v1/me/cover", buildJsonObject { put("upload_id", uploadId) })
+    }
+
+    suspend fun removeCover() {
+        call("DELETE", "api/v1/me/cover")
+    }
+
     suspend fun revokeAssociatedAccount(username: String, provider: String) {
         call("DELETE", "api/v1/me/identities/$provider")
     }
