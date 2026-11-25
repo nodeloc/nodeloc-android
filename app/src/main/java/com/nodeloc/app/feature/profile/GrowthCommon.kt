@@ -49,6 +49,17 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
@@ -165,6 +176,13 @@ object GrowthArt {
 
     /** The near-black the hero's scene is shaded with, so the white type stays legible over any tier. */
     val shade = rgb(0x06080E)
+
+    // The track's rungs (board `.ac-dot`). They are opaque so the rail behind them stops at their rims.
+    val rungReached = rgb(0x3A3D47)
+    val rungReachedRim = rgb(0x7A7F8C)
+    val rungAhead = rgb(0x1C1E26)
+    val rungAheadRim = rgb(0x3E424D)
+    val rungAheadInk = rgb(0x8A8F9C)
 
     fun tierMetal(level: Int): Metal = tierMetals[level.coerceIn(0, tierMetals.lastIndex)]
     fun tierNight(level: Int): Color = tierNights[level.coerceIn(0, tierNights.lastIndex)]
@@ -400,9 +418,8 @@ private fun currentLine(rep: ApiRepSummary, tiers: List<ApiTierInfo>): String {
  * in its own colour, where you stand, and the nine tiers as a track you can
  * tap through to read each one's requirement.
  *
- * The board also floats a per-tier illustration top right and paints a full
- * scene behind each tier; that artwork is not in the app, so the card keeps
- * the tier's night and one drifting silk band in the tier's metal.
+ * Behind it, the tier's scene from the board, and top right its emblem,
+ * floating; both cross-fade as the track previews another tier.
  */
 @Composable
 fun GrowthHero(rep: ApiRepSummary, tiers: List<ApiTierInfo>, modifier: Modifier = Modifier) {
@@ -412,7 +429,7 @@ fun GrowthHero(rep: ApiRepSummary, tiers: List<ApiTierInfo>, modifier: Modifier 
     val steps = rep.tiers.sortedBy { it.level }
     val step = steps.firstOrNull { it.level == shown }
     val night by animatedColor(GrowthArt.tierNight(shown), "heroNight")
-    val metal = GrowthArt.tierMetal(shown)
+    val reduce = LocalReduceMotion.current
 
     val stateLabel = when {
         shown == current -> stringResource(R.string.upgrade2_current)
@@ -456,9 +473,24 @@ fun GrowthHero(rep: ApiRepSummary, tiers: List<ApiTierInfo>, modifier: Modifier 
         modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(night)
-            .drawBehind { drawSilk(metal) },
+            .background(night),
     ) {
+        Crossfade(shown, Modifier.matchParentSize(), animationSpec = tween(if (reduce) 0 else 500), label = "heroScene") { level ->
+            Image(
+                painterResource(tierSceneRes(level)),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize().drawWithContent {
+                    drawContent()
+                    drawShade()
+                },
+            )
+        }
+        TierEmblem(
+            shown,
+            reduce,
+            Modifier.align(Alignment.TopEnd).padding(top = 4.dp, end = 2.dp).size(width = 132.dp, height = 122.dp),
+        )
         Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 16.dp)) {
             Text(
                 stringResource(R.string.upgrade2_kicker),
@@ -564,40 +596,36 @@ fun GrowthHero(rep: ApiRepSummary, tiers: List<ApiTierInfo>, modifier: Modifier 
     }
 }
 
-// The board's silk band (its 钻石 scene, `di-env`), on the scene's own
-// 688×292 grid, fitted like `xMidYMid slice`.
-private val SILK_FILLS = listOf(
-    "M-75 128.91 C50 40.89 137 216.57 246 144.83 334 89.44 418 151.68 511 77.96 596 70.36 655 -3.43 758 -29.51 L758 -39.11 C655 -3.14 596 57.17 511 69.62 418 118.31 334 115.07 246 147.24 137 210.68 50 38.32 -75 135.52Z",
-    "M-75 130.89 C50 30.99 137 218.99 246 152.09 334 105.28 418 129.68 511 65.64 596 63.32 655 -12.45 758 -41.17 L758 -50.77 C655 -12.16 596 50.13 511 57.3 418 96.31 334 130.91 246 154.5 137 213.1 50 28.42 -75 137.5Z",
-)
-private val SILK_RIMS = listOf(
-    "M-75 128.91 C50 40.89 137 216.57 246 144.83 334 89.44 418 151.68 511 77.96 596 70.36 655 -3.43 758 -29.51",
-    "M-75 130.89 C50 30.99 137 218.99 246 152.09 334 105.28 418 129.68 511 65.64 596 63.32 655 -12.45 758 -41.17",
-)
-private val silkFills: List<Path> by lazy { SILK_FILLS.map { PathParser().parsePathString(it).toPath() } }
-private val silkRims: List<Path> by lazy { SILK_RIMS.map { PathParser().parsePathString(it).toPath() } }
+/** The board's per-tier scenes and emblems (res/drawable-nodpi), in track order. */
+@DrawableRes
+private fun tierSceneRes(level: Int): Int = when (level.coerceIn(0, 8)) {
+    0 -> R.drawable.tier_scene_bronze
+    1 -> R.drawable.tier_scene_silver
+    2 -> R.drawable.tier_scene_gold
+    3 -> R.drawable.tier_scene_platinum
+    4 -> R.drawable.tier_scene_diamond
+    5 -> R.drawable.tier_scene_master
+    6 -> R.drawable.tier_scene_unrivaled
+    7 -> R.drawable.tier_scene_glory
+    else -> R.drawable.tier_scene_legend
+}
 
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawSilk(metal: Metal) {
-    val k = max(size.width / 688f, size.height / 292f)
-    val dx = (size.width - 688f * k) / 2f
-    val dy = (size.height - 292f * k) / 2f
-    // The scene's metal for a dark tier (传奇) is dark itself; its ink is the light end there.
-    val glow = if (metal.light.luminance() < 0.3f) metal.ink else metal.light
-    val silk = Brush.linearGradient(
-        0f to metal.deep.copy(alpha = 0.12f),
-        0.3f to glow.copy(alpha = 0.65f),
-        0.6f to glow,
-        1f to metal.deep.copy(alpha = 0.18f),
-        start = Offset(15f, 179f),
-        end = Offset(700f, -15f),
-    )
-    translate(dx, dy) {
-        scale(k, k, pivot = Offset.Zero) {
-            silkFills.forEachIndexed { i, path -> drawPath(path, silk, alpha = if (i == 0) 0.17f else 0.135f) }
-            silkRims.forEach { drawPath(it, silk, alpha = 0.4f, style = Stroke(width = 1.15f)) }
-        }
-    }
-    // The board's two shades: darker on the left where the type sits, and up from the bottom under the track.
+@DrawableRes
+private fun tierEmblemRes(level: Int): Int = when (level.coerceIn(0, 8)) {
+    0 -> R.drawable.tier_emblem_bronze
+    1 -> R.drawable.tier_emblem_silver
+    2 -> R.drawable.tier_emblem_gold
+    3 -> R.drawable.tier_emblem_platinum
+    4 -> R.drawable.tier_emblem_diamond
+    5 -> R.drawable.tier_emblem_master
+    6 -> R.drawable.tier_emblem_unrivaled
+    7 -> R.drawable.tier_emblem_glory
+    else -> R.drawable.tier_emblem_legend
+}
+
+// The board's two shades over the scene: darker on the left where the type
+// sits, and up from the bottom under the track.
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawShade() {
     drawRect(
         Brush.horizontalGradient(
             0f to GrowthArt.shade.copy(alpha = 0.62f),
@@ -613,7 +641,45 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawSilk(metal: Met
     )
 }
 
-private fun Color.luminance(): Float = 0.2126f * red + 0.7152f * green + 0.0722f * blue
+/**
+ * The tier's emblem, top right: it grows in from 0.86 as it fades in (the
+ * board's switch) and bobs 6dp on a 5s loop, which reduce-motion stills.
+ */
+@Composable
+private fun TierEmblem(level: Int, reduce: Boolean, modifier: Modifier) {
+    val bob = if (reduce) {
+        0f
+    } else {
+        val transition = rememberInfiniteTransition(label = "emblemFloat")
+        val t by transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(2500, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+            label = "emblemFloatT",
+        )
+        t
+    }
+    AnimatedContent(
+        targetState = level,
+        modifier = modifier.graphicsLayer { translationY = -6.dp.toPx() * bob },
+        transitionSpec = {
+            if (reduce) {
+                fadeIn(tween(0)) togetherWith fadeOut(tween(0))
+            } else {
+                (fadeIn(tween(400)) + scaleIn(tween(500), initialScale = 0.86f)) togetherWith
+                    (fadeOut(tween(400)) + scaleOut(tween(500), targetScale = 0.86f))
+            }
+        },
+        label = "emblem",
+    ) { shownLevel ->
+        Image(
+            painterResource(tierEmblemRes(shownLevel)),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
+}
 
 @Composable
 private fun HeroPill(text: String, icon: ImageVector?, ground: Color) {
@@ -722,13 +788,13 @@ private fun TierNode(
             }
             val ground = when {
                 isCurrent -> Brush.linearGradient(listOf(metal.light, metal.deep))
-                reached -> Brush.linearGradient(listOf(heroInk(0.2f), heroInk(0.2f)))
-                else -> Brush.linearGradient(listOf(GrowthArt.shade.copy(alpha = 0.45f), GrowthArt.shade.copy(alpha = 0.45f)))
+                reached -> SolidColor(GrowthArt.rungReached)
+                else -> SolidColor(GrowthArt.rungAhead)
             }
             val ring = when {
                 big -> heroInk()
-                reached -> heroInk(0.42f)
-                else -> heroInk(0.16f)
+                reached -> GrowthArt.rungReachedRim
+                else -> GrowthArt.rungAheadRim
             }
             Box(
                 Modifier
@@ -744,7 +810,7 @@ private fun TierNode(
                     tint = when {
                         isCurrent -> metal.ink
                         reached || isSelected -> heroInk()
-                        else -> heroInk(0.5f)
+                        else -> GrowthArt.rungAheadInk
                     },
                     modifier = Modifier.size(if (big) 18.dp else 14.dp),
                 )
