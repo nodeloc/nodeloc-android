@@ -574,6 +574,8 @@ data class TopicResponse(
     /** Nobody may reply to a closed topic; staff can reopen it. */
     val closed: Boolean = false,
     val archived: Boolean = false,
+    val pinned: Boolean = false,
+    val featured: Boolean = false,
     val postStream: PostStream = PostStream(),
     /** Serialized onto topic_view, not onto any individual post. */
     val redEnvelope: TopicRedEnvelope? = null,

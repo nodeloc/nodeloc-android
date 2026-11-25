@@ -73,6 +73,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -249,6 +250,7 @@ fun ComposeScreen(route: Route.Compose, navigator: Navigator) {
             route.pmRecipient,
             route.repostTopicId,
             route.editPostId,
+            route.draftKey,
         )
     }
 
@@ -257,32 +259,32 @@ fun ComposeScreen(route: Route.Compose, navigator: Navigator) {
             Modifier
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.statusBars)
-                .padding(horizontal = Space.page, vertical = 8.dp),
+                .height(64.dp)
+                .padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Space.s3),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            // Flat, not the floating HeaderIconButton: this bar is a solid
-            // surface, and a shadow on one of three equal controls makes that
-            // one read as taller than the others.
-            HeaderPillButton(Lucide.X, stringResource(R.string.common_close), onClick = { closeComposer() })
-            // The node is the one choice that gates publishing, so it takes the
-            // centre — a screen title would only repeat what the button says.
-            // A private message is already addressed, so the pill names the
-            // recipient and has nothing to open.
-            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                val recipient = state.pmRecipient
-                when {
-                    // An edit does not choose a node: the topic is already in
-                    // one, and `posts#update` could not move it if it wanted to.
-                    editPostId != null -> Unit
-                    recipient != null -> NodePill(label = "u/$recipient", selected = true, onClick = {})
-                    else -> NodePill(
-                        label = state.node?.name ?: stringResource(R.string.compose_select_node),
-                        selected = state.node != null,
-                        onClick = { nodePickerOpen = true },
-                    )
-                }
+            Box(
+                Modifier.size(48.dp).clip(CircleShape).clickable { closeComposer() },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Lucide.X, stringResource(R.string.common_close), tint = Nocturne.text, modifier = Modifier.size(24.dp))
             }
+            Text(
+                stringResource(
+                    when {
+                        editPostId != null -> R.string.compose2_title_edit
+                        route.repostTopicId != null -> R.string.reader_repost
+                        state.pmRecipient != null -> R.string.compose2_title_message
+                        else -> R.string.compose2_title_new
+                    },
+                ),
+                style = Type.heading(22, FontWeight.Normal),
+                color = Nocturne.text,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f).padding(start = 4.dp),
+            )
             PublishPill(
                 text = stringResource(
                     when {
@@ -308,6 +310,7 @@ fun ComposeScreen(route: Route.Compose, navigator: Navigator) {
                     }
                 }
             }
+            Spacer(Modifier.width(8.dp))
         }
 
         // An edit has no draft behind it — nothing here was ever written to
@@ -377,23 +380,26 @@ fun ComposeScreen(route: Route.Compose, navigator: Navigator) {
                 .padding(horizontal = Space.page),
             verticalArrangement = Arrangement.spacedBy(Space.s3),
         ) {
-            // Only the attachments that exist claim a row; an empty one would
-            // push the title down for nothing.
-            if (state.redEnvelope != null || state.lottery != null) {
+            // The node is the one choice that gates publishing, so it leads the
+            // page. A private message is already addressed, so the pill names
+            // the recipient and has nothing to open; an edit does not choose a
+            // node at all — `posts#update` could not move the topic if it tried.
+            val recipient = state.pmRecipient
+            if (editPostId == null) {
                 Row(
-                    Modifier.padding(top = Space.s3),
+                    Modifier.padding(top = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    state.redEnvelope?.let {
-                        Box(Modifier.clickable { viewModel.setRedEnvelope(null) }) {
-                            TagChip(stringResource(R.string.envelope_chip, it.totalPoints, it.totalCount), style = TagStyle.Accent2)
-                        }
-                    }
-                    state.lottery?.let {
-                        Box(Modifier.clickable { viewModel.setLottery(null) }) {
-                            TagChip(stringResource(R.string.compose_lottery_chip), style = TagStyle.Accent2)
-                        }
+                    if (recipient != null) {
+                        NodePill(node = null, label = "u/$recipient", selected = true, onClick = {})
+                    } else {
+                        NodePill(
+                            node = state.node,
+                            label = state.node?.handle ?: stringResource(R.string.compose_select_node),
+                            selected = state.node != null,
+                            onClick = { nodePickerOpen = true },
+                        )
                     }
                 }
             }
@@ -401,7 +407,7 @@ fun ComposeScreen(route: Route.Compose, navigator: Navigator) {
             OwnedTextField(
                 external = state.title,
                 onChange = viewModel::updateTitle,
-                textStyle = Type.heading(20, FontWeight.SemiBold).copy(color = Nocturne.text),
+                textStyle = Type.heading(24, FontWeight.SemiBold).copy(color = Nocturne.text),
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 56.dp)
@@ -410,7 +416,7 @@ fun ComposeScreen(route: Route.Compose, navigator: Navigator) {
                     .onFocusChanged { titleFocused = it.isFocused },
                 decorationBox = { inner ->
                     if (state.title.isEmpty()) {
-                        Text(stringResource(R.string.compose_title_hint), style = Type.heading(20, FontWeight.SemiBold), color = Nocturne.muted(0.28f))
+                        Text(stringResource(R.string.compose_title_hint), style = Type.heading(24, FontWeight.SemiBold), color = Nocturne.muted(0.28f))
                     }
                     inner()
                 },
@@ -487,6 +493,24 @@ fun ComposeScreen(route: Route.Compose, navigator: Navigator) {
                     is ComposerBlock.Media -> Unit // handled by the strip above
                 }
             }
+            // Only the attachments that exist claim a row. Tapping one takes it
+            // off again, as the chip it replaced did.
+            state.redEnvelope?.let {
+                AttachmentCard(
+                    icon = Lucide.Mail,
+                    title = stringResource(R.string.envelope_chip, it.totalPoints, it.totalCount),
+                    detail = stringResource(R.string.compose2_attach_after_publish),
+                    onRemove = { viewModel.setRedEnvelope(null) },
+                )
+            }
+            state.lottery?.let {
+                AttachmentCard(
+                    icon = Lucide.Gift,
+                    title = stringResource(R.string.compose_lottery_chip),
+                    detail = stringResource(R.string.compose2_attach_after_publish),
+                    onRemove = { viewModel.setLottery(null) },
+                )
+            }
             Spacer(Modifier.height(Space.s6))
         }
 
@@ -496,13 +520,17 @@ fun ComposeScreen(route: Route.Compose, navigator: Navigator) {
             exit = shrinkVertically() + fadeOut(),
         ) {
             Column {
-                HairLine()
+                // A floating capsule above the keyboard rather than a ruled-off
+                // strip: the tools belong to the writing, not to the page edge.
                 Row(
                     Modifier
+                        .padding(start = 12.dp, end = 12.dp, bottom = 8.dp)
                         .fillMaxWidth()
-                        .padding(horizontal = Space.page, vertical = 10.dp),
+                        .height(48.dp)
+                        .clip(CircleShape)
+                        .background(Nocturne.surface)
+                        .padding(horizontal = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Space.s6),
                 ) {
                     // The first upload decides the kind: a post carries
                     // pictures, or a clip, or a GIF. The other two stay visible
@@ -770,16 +798,23 @@ private fun ToolbarIcon(
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
-    Icon(
-        icon,
-        label,
-        tint = Nocturne.muted(if (enabled) 0.55f else 0.22f),
-        // A dimmed icon that does nothing on tap reads as a broken button; the
-        // toast is the only place the rule can be said.
-        modifier = Modifier.size(22.dp).clickable {
-            if (enabled) onClick() else ToastCenter.show(R.string.compose_media_one_kind)
-        },
-    )
+    Box(
+        Modifier
+            .width(38.dp)
+            .height(44.dp)
+            .clip(CircleShape)
+            // A dimmed icon that does nothing on tap reads as a broken button;
+            // the toast is the only place the rule can be said.
+            .clickable { if (enabled) onClick() else ToastCenter.show(R.string.compose_media_one_kind) },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            icon,
+            label,
+            tint = if (enabled) Nocturne.text else Nocturne.textTertiary.copy(alpha = 0.5f),
+            modifier = Modifier.size(22.dp),
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1028,46 +1063,49 @@ private fun OneboxBlock(block: ComposerBlock.Onebox) {
 }
 
 /**
- * The publishing target, as a pill in the header.
- *
- * It sits where a screen title would because it is the more useful thing to
- * know: which node this is going to is the one decision that blocks publishing,
- * and the button on the right already names the action.
+ * The publishing target, as a pill at the head of the page: the node's mark,
+ * its `n/slug` handle, and a caret saying it opens a choice.
  */
 @Composable
-private fun NodePill(label: String, selected: Boolean, onClick: () -> Unit) {
+private fun NodePill(node: NodeSummary?, label: String, selected: Boolean, onClick: () -> Unit) {
     Row(
         Modifier
-            .height(FloatingHeader.touchHeight)
+            .height(40.dp)
             .clip(CircleShape)
-            .background(if (selected) Nocturne.selected else Nocturne.surface)
+            .background(Nocturne.neutral300)
             .clickable(onClick = onClick)
-            .padding(start = 16.dp, end = 12.dp),
+            .padding(start = if (node != null) 6.dp else 14.dp, end = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        if (node != null) {
+            if (node.logoUrl != null) {
+                RemoteAvatar(node.logoUrl, node.letter, size = 28.dp)
+            } else {
+                Avatar(node.letter, variant = node.id % 2, size = 28.dp)
+            }
+        }
         Text(
             label,
-            style = Type.body(14, FontWeight.Medium),
-            color = if (selected) Nocturne.accent else Nocturne.muted(0.6f),
+            style = Type.body(15, FontWeight.SemiBold),
+            color = if (selected) Nocturne.text else Nocturne.textSecondary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
         Icon(
             Lucide.ChevronDown,
             null,
-            tint = if (selected) Nocturne.accent else Nocturne.muted(0.45f),
+            tint = Nocturne.textSecondary,
             modifier = Modifier.size(16.dp),
         )
     }
 }
 
 /**
- * Publish, as a pill the same height as the controls beside it.
+ * Publish, the one filled control in the top bar.
  *
- * Not [FilledAccentButton]: that one is the full-width button every form ends
- * with, and stretching it into a header slot is what made this one look like a
- * misplaced form control.
+ * While the post is in flight the label stays beside the spinner: a pill that
+ * empties itself reads as a button that broke, not one that is working.
  */
 @Composable
 private fun PublishPill(
@@ -1076,23 +1114,56 @@ private fun PublishPill(
     loading: Boolean,
     onClick: () -> Unit,
 ) {
-    Box(
+    val ink = if (Nocturne.isDark) Nocturne.neutral900 else Nocturne.neutral100
+    Row(
         Modifier
-            .height(FloatingHeader.touchHeight)
+            .height(44.dp)
             .clip(CircleShape)
-            .background(Nocturne.accent.copy(alpha = if (enabled && !loading) 1f else 0.3f))
+            .background(Nocturne.accent.copy(alpha = if (enabled || loading) 1f else 0.3f))
             .clickable(enabled = enabled && !loading, onClick = onClick)
-            .padding(horizontal = 20.dp),
-        contentAlignment = Alignment.Center,
+            .padding(horizontal = 18.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(7.dp),
     ) {
         if (loading) {
-            NodelocLoader(height = 18.dp, tint = Nocturne.bg)
-        } else {
-            Text(
-                text,
-                style = Type.body(15, FontWeight.SemiBold),
-                color = if (Nocturne.isDark) Nocturne.neutral900 else Color.White,
-            )
+            CircularProgressIndicator(color = ink, strokeWidth = 2.dp, modifier = Modifier.size(16.dp))
+        }
+        Text(text, style = Type.body(15, FontWeight.SemiBold), color = ink)
+    }
+}
+
+/** A staged red envelope or lottery: posted after the topic, removable until then. */
+@Composable
+private fun AttachmentCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    detail: String,
+    onRemove: () -> Unit,
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Nocturne.warningBg)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Box(
+            Modifier.size(30.dp).clip(CircleShape).background(Nocturne.bg.copy(alpha = 0.6f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(icon, null, tint = Nocturne.warning, modifier = Modifier.size(16.dp))
+        }
+        Column(Modifier.weight(1f)) {
+            Text(title, style = Type.body(14, FontWeight.Bold), color = Nocturne.warning)
+            Text(detail, style = Type.body(12), color = Nocturne.warning)
+        }
+        Box(
+            Modifier.size(32.dp).clip(CircleShape).clickable(onClick = onRemove),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Lucide.X, stringResource(R.string.common_delete), tint = Nocturne.warning, modifier = Modifier.size(18.dp))
         }
     }
 }
@@ -1149,25 +1220,6 @@ private fun NodePickerRow(node: NodeSummary, onClick: () -> Unit) {
                 )
             }
         }
-    }
-}
-
-/** A circular control the same height as the pills beside it, and as flat. */
-@Composable
-private fun HeaderPillButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    onClick: () -> Unit,
-) {
-    Box(
-        Modifier
-            .size(FloatingHeader.touchHeight)
-            .clip(CircleShape)
-            .background(Nocturne.surface)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(icon, label, tint = Nocturne.text, modifier = Modifier.size(18.dp))
     }
 }
 

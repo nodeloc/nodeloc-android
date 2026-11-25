@@ -158,6 +158,8 @@ object Legacy {
             categoryId = nodeId,
             createdAt = topic.createdAt,
             closed = topic.closed,
+            pinned = topic.pinned,
+            featured = topic.featured,
             postStream = PostStream(posts = posts, stream = posts.map { it.id }),
         )
     }

@@ -147,7 +147,7 @@ fun InterfaceSettingsScreen(navigator: Navigator) {
             SettingsRowDivider()
             SettingsPickerRow(
                 title = stringResource(R.string.settings_default_home),
-                options = listOf("best", "latest", "hot", "top"),
+                options = listOf("hot", "latest", "featured", "following", "best"),
                 selected = defaultHome,
                 label = { home -> stringResource(homeLabel(home)) },
                 onSelect = viewModel::setDefaultHome,
@@ -185,6 +185,8 @@ private fun homeLabel(value: String): Int = when (value) {
     "best" -> R.string.sort_best
     "top" -> R.string.sort_top
     "hot" -> R.string.sort_hot
+    "featured" -> R.string.sort_featured
+    "following" -> R.string.sort_following
     else -> R.string.sort_latest
 }
 

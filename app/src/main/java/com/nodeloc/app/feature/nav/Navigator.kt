@@ -63,7 +63,8 @@ class Navigator(private val controller: NavHostController) {
         prefillTitle: String? = null,
         pmRecipient: String? = null,
         editPostId: Int? = null,
-    ) = push(Route.Compose(categoryId, repostTopicId, prefillTitle, pmRecipient, editPostId))
+        draftKey: String? = null,
+    ) = push(Route.Compose(categoryId, repostTopicId, prefillTitle, pmRecipient, editPostId, draftKey))
 
     fun openProfile(username: String) = push(Route.PublicProfile(username))
 
@@ -75,6 +76,21 @@ class Navigator(private val controller: NavHostController) {
     fun openNodeSearch(slug: String) = push(Route.NodeSearch(slug))
 
     fun openUpgradeProgress(username: String) = push(Route.UpgradeProgress(username))
+
+    fun openModDashboard(nodeSlug: String? = null) = push(Route.ModDashboard(nodeSlug))
+    fun openReviewQueue(nodeSlug: String? = null) = push(Route.ReviewQueue(nodeSlug))
+    fun openReviewItem(itemId: Long, nodeSlug: String? = null) = push(Route.ReviewItem(itemId, nodeSlug))
+    fun openModUsers() = push(Route.ModUsers)
+    fun openModUser(userId: Long, username: String, nodeSlug: String? = null) = push(Route.ModUser(userId, username, nodeSlug))
+    fun openAuditLog(nodeSlug: String? = null) = push(Route.AuditLog(nodeSlug))
+    fun openNodeAdmin(slug: String) = push(Route.NodeAdmin(slug))
+    fun openNodeChannels(slug: String) = push(Route.NodeChannels(slug))
+
+    fun openAchievements(username: String? = null) = push(Route.Achievements(username))
+    fun openEnergyHistory() = push(Route.EnergyHistory)
+    fun openWealthRank() = push(Route.WealthRank)
+    fun openInvite() = push(Route.Invite)
+    fun openDrafts() = push(Route.Drafts)
 
     fun openApps() = push(Route.Apps)
 

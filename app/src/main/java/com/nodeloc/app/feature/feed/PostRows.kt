@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,8 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -22,44 +21,48 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.ArrowBigUp
 import com.composables.icons.lucide.ChevronLeft
 import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.ArrowBigUp
-import com.composables.icons.lucide.ThumbsUp
-import com.composables.icons.lucide.Share2
-import com.composables.icons.lucide.Pin
 import com.composables.icons.lucide.MessageCircle
+import com.composables.icons.lucide.Pin
+import com.composables.icons.lucide.Share2
+import com.composables.icons.lucide.ThumbsUp
 import com.nodeloc.app.R
-import com.nodeloc.app.core.html.breakingLongTokens
-import com.nodeloc.app.core.design.ActionPill
+import com.nodeloc.app.ServiceLocator
+import com.nodeloc.app.core.design.BlurredMediaBackdrop
 import com.nodeloc.app.core.design.FeedMedia
 import com.nodeloc.app.core.design.HairLine
 import com.nodeloc.app.core.design.Nocturne
+import com.nodeloc.app.core.design.Radius
 import com.nodeloc.app.core.design.RemoteAvatar
-import com.nodeloc.app.core.design.BlurredMediaBackdrop
 import com.nodeloc.app.core.design.RemoteImage
 import com.nodeloc.app.core.design.Space
 import com.nodeloc.app.core.design.TagChip
 import com.nodeloc.app.core.design.TagStyle
 import com.nodeloc.app.core.design.Type
 import com.nodeloc.app.core.design.VoteControl
+import com.nodeloc.app.core.html.breakingLongTokens
 import com.nodeloc.app.core.model.NodeReadingMode
 import com.nodeloc.app.core.model.Post
 import com.nodeloc.app.core.model.VoteDirection
+import com.nodeloc.app.core.network.DiscourseConfig
 import com.nodeloc.app.core.util.DiscourseFormat
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
 import com.nodeloc.app.feature.media.InlineVideoPlayer
+import kotlinx.coroutines.launch
 
 /**
  * The three feed row shapes. One entry point so the feed, node pages and search
@@ -89,21 +92,74 @@ fun PostRow(
      */
     more: PostRowActions? = null,
 ) {
-    val label = if (attributeToAuthor) post.authorHandle ?: post.node else post.node
+    val byline = rememberByline(post, attributeToAuthor)
     when (mode) {
-        NodeReadingMode.Compact -> CompactRow(post, label, modifier, onOpen, more)
-        NodeReadingMode.Expand -> ExpandedRow(post, label, modifier, onOpen, onShare, onVote, onOpenImage, more)
+        NodeReadingMode.Compact -> CompactRow(post, byline, modifier, onOpen, onOpenAuthor, more)
+        NodeReadingMode.Expand ->
+            ExpandedRow(post, byline, modifier, onOpen, onOpenAuthor, onShare, onVote, onOpenImage, more)
         NodeReadingMode.Card ->
-            CardRow(post, label, modifier, onOpen, onOpenAuthor, onShare, onVote, onOpenImage, more)
+            CardRow(post, byline, modifier, onOpen, onOpenAuthor, onShare, onVote, onOpenImage, more)
+    }
+}
+
+/** Who or where a row is credited to: the label, and the picture beside it. */
+private data class Byline(
+    val label: String,
+    val imageUrl: String?,
+    val letter: String,
+    val variant: Int,
+    /** Set when the picture is a person's, so tapping it can open their profile. */
+    val username: String?,
+)
+
+/**
+ * The design leads every row with its node, not its author: on a page of
+ * mixed nodes, where a topic lives says more about it than who started it.
+ * The node's logo is looked up in the site's directory rather than carried on
+ * the row, because the topic list only names the node; a node the directory
+ * has not loaded yet falls back to its initial, which is what a logo-less node
+ * shows anyway.
+ */
+@Composable
+private fun rememberByline(post: Post, attributeToAuthor: Boolean): Byline {
+    val author = if (attributeToAuthor) post.authorHandle else null
+    return remember(post.id, post.categoryId, post.avatarUrl, post.node, author) {
+        if (author != null) {
+            Byline(author, post.avatarUrl, post.avatarLetter, post.variant, post.authorUsername)
+        } else {
+            val node = ServiceLocator.get.siteRepository.category(post.categoryId)
+            Byline(
+                label = post.node,
+                imageUrl = DiscourseConfig.absoluteUrl(node?.uploadedLogo?.url),
+                letter = (node?.name?.takeIf { it.isNotBlank() } ?: post.node.removePrefix("n/")).take(1).uppercase(),
+                variant = (post.categoryId ?: 0) % 2,
+                username = null,
+            )
+        }
     }
 }
 
 @Composable
+private fun BylineAvatar(byline: Byline, size: androidx.compose.ui.unit.Dp, onOpenAuthor: (String) -> Unit) {
+    RemoteAvatar(
+        byline.imageUrl,
+        byline.letter,
+        variant = byline.variant,
+        size = size,
+        modifier = Modifier.clickable(enabled = byline.username != null) {
+            byline.username?.let(onOpenAuthor)
+        },
+    )
+}
+
+/** The dense variant: still node-first, but one line of meta and no actions. */
+@Composable
 private fun CompactRow(
     post: Post,
-    label: String,
+    byline: Byline,
     modifier: Modifier,
     onOpen: () -> Unit,
+    onOpenAuthor: (String) -> Unit,
     more: PostRowActions?,
 ) {
     Column(modifier.fillMaxWidth().clickable(onClick = onOpen)) {
@@ -111,16 +167,16 @@ private fun CompactRow(
             Modifier.padding(horizontal = Space.page, vertical = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(Space.s4),
         ) {
-            RemoteAvatar(post.avatarUrl, post.avatarLetter, variant = post.variant, size = 30.dp)
+            BylineAvatar(byline, 28.dp, onOpenAuthor)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Text(
                     post.title.breakingLongTokens(),
-                    style = Type.body(15, FontWeight.Medium),
+                    style = Type.body(15, FontWeight.SemiBold),
                     color = Nocturne.text,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                MetaLine(post, label)
+                MetaLine(post, byline.label)
             }
             Column(horizontalAlignment = Alignment.End) {
                 // Above the count rather than over it: this column is the only
@@ -132,7 +188,7 @@ private fun CompactRow(
                 Text(
                     DiscourseFormat.count(post.comments),
                     style = Type.body(12),
-                    color = Nocturne.muted(0.45f),
+                    color = Nocturne.textTertiary,
                 )
             }
         }
@@ -143,9 +199,10 @@ private fun CompactRow(
 @Composable
 private fun ExpandedRow(
     post: Post,
-    label: String,
+    byline: Byline,
     modifier: Modifier,
     onOpen: () -> Unit,
+    onOpenAuthor: (String) -> Unit,
     onShare: () -> Unit,
     onVote: ((VoteDirection, String?) -> Unit)?,
     onOpenImage: (Int) -> Unit,
@@ -153,19 +210,14 @@ private fun ExpandedRow(
 ) {
     Column(modifier.fillMaxWidth().clickable(onClick = onOpen)) {
         Column(
-            Modifier.padding(horizontal = Space.page, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(Space.s3),
+            Modifier.padding(horizontal = Space.page, vertical = Space.card),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            AuthorLine(post, label, more = more)
+            RowHeader(post, byline, onOpenAuthor, more)
             Row(horizontalArrangement = Arrangement.spacedBy(Space.s4)) {
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Space.s2)) {
-                    Text(
-                        post.title.breakingLongTokens(),
-                        style = Type.body(16, FontWeight.Medium),
-                        color = Nocturne.text,
-                        maxLines = 3,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    RowTitle(post, maxLines = 3)
+                    RowExcerpt(post)
                     if (post.tags.isNotEmpty()) {
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             post.tags.take(3).forEach { TagChip(it, style = TagStyle.Outline) }
@@ -177,7 +229,7 @@ private fun ExpandedRow(
                         post.media.firstOrNull()?.bestUrl(240) ?: post.imageUrl,
                         modifier = Modifier
                             .size(78.dp)
-                            .clip(RoundedCornerShape(com.nodeloc.app.core.design.Radius.md))
+                            .clip(RoundedCornerShape(Radius.lg))
                             .clickable { onOpenImage(0) },
                         contentScale = ContentScale.Crop,
                     )
@@ -192,7 +244,7 @@ private fun ExpandedRow(
 @Composable
 private fun CardRow(
     post: Post,
-    label: String,
+    byline: Byline,
     modifier: Modifier,
     onOpen: () -> Unit,
     onOpenAuthor: (String) -> Unit,
@@ -203,31 +255,40 @@ private fun CardRow(
 ) {
     Column(modifier.fillMaxWidth().clickable(onClick = onOpen)) {
         Column(
-            Modifier.padding(horizontal = Space.card, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(Space.s3),
+            Modifier.padding(horizontal = Space.page, vertical = Space.card),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            AuthorLine(post, label, onOpenAuthor = onOpenAuthor, more = more)
-            Text(
-                post.title.breakingLongTokens(),
-                style = Type.body(17, FontWeight.Medium),
-                color = Nocturne.text,
-                maxLines = 4,
-                overflow = TextOverflow.Ellipsis,
-            )
-            if (post.excerpt.isNotEmpty() && post.media.isEmpty()) {
-                Text(
-                    post.excerpt,
-                    style = Type.body(14),
-                    color = Nocturne.muted(0.62f),
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            RowHeader(post, byline, onOpenAuthor, more)
+            RowTitle(post, maxLines = 4)
+            RowExcerpt(post)
             if (post.media.isNotEmpty() || post.videoUrl != null) CardMedia(post, onOpen, onOpenImage)
             ActionRow(post, onShare, onVote)
         }
         HairLine()
     }
+}
+
+@Composable
+private fun RowTitle(post: Post, maxLines: Int) {
+    Text(
+        post.title.breakingLongTokens(),
+        style = Type.body(18, FontWeight.SemiBold).copy(lineHeight = Type.lineHeight(18, 7)),
+        color = Nocturne.text,
+        maxLines = maxLines,
+        overflow = TextOverflow.Ellipsis,
+    )
+}
+
+@Composable
+private fun RowExcerpt(post: Post) {
+    if (post.excerpt.isEmpty()) return
+    Text(
+        post.excerpt,
+        style = Type.body(15).copy(lineHeight = Type.lineHeight(15, 7)),
+        color = Nocturne.textSecondary,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+    )
 }
 
 /**
@@ -239,7 +300,7 @@ private fun CardRow(
  */
 @Composable
 private fun CardMedia(post: Post, onOpen: () -> Unit, onOpenImage: (Int) -> Unit) {
-    val shape = RoundedCornerShape(com.nodeloc.app.core.design.Radius.md)
+    val shape = RoundedCornerShape(Radius.lg)
     val first = post.media.firstOrNull()
     val ratio = 1f / FeedMedia.heightRatio(first?.width, first?.height)
 
@@ -323,7 +384,7 @@ private fun CardMedia(post: Post, onOpen: () -> Unit, onOpenImage: (Int) -> Unit
 
 @Composable
 private fun PagerArrow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     label: String,
     modifier: Modifier,
     onClick: () -> Unit,
@@ -341,27 +402,26 @@ private fun PagerArrow(
     }
 }
 
+/** "n/slug · time", led by the node's logo; the overflow menu at the far end. */
 @Composable
-private fun AuthorLine(
+private fun RowHeader(
     post: Post,
-    label: String,
-    onOpenAuthor: (String) -> Unit = {},
-    more: PostRowActions? = null,
+    byline: Byline,
+    onOpenAuthor: (String) -> Unit,
+    more: PostRowActions?,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.s3)) {
-        RemoteAvatar(
-            post.avatarUrl,
-            post.avatarLetter,
-            variant = post.variant,
-            size = 26.dp,
-            modifier = Modifier.clickable(enabled = post.authorUsername != null) {
-                post.authorUsername?.let(onOpenAuthor)
-            },
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        BylineAvatar(byline, 28.dp, onOpenAuthor)
+        Text(
+            byline.label,
+            style = Type.body(14, FontWeight.SemiBold),
+            color = Nocturne.text,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f, fill = false),
         )
+        Text("· ${post.time}", style = Type.body(14), color = Nocturne.textSecondary, maxLines = 1)
         if (post.isUnread) UnreadDot()
-        Text(label, style = Type.body(12, FontWeight.Medium), color = Nocturne.accent)
-        Text("·", style = Type.body(12), color = Nocturne.muted(0.35f))
-        Text(post.time, style = Type.body(12), color = Nocturne.muted(0.45f))
         if (post.pinned) {
             Icon(
                 Lucide.Pin,
@@ -384,14 +444,13 @@ private fun MetaLine(post: Post, label: String) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
             label,
-            style = Type.body(12, FontWeight.Medium),
-            color = Nocturne.accent,
+            style = Type.body(12, FontWeight.SemiBold),
+            color = Nocturne.text,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f, fill = false),
         )
-        Text("·", style = Type.body(12), color = Nocturne.muted(0.35f))
-        Text(post.time, style = Type.body(12), color = Nocturne.muted(0.45f))
+        Text("· ${post.time}", style = Type.body(12), color = Nocturne.textSecondary, maxLines = 1)
     }
 }
 
@@ -400,45 +459,62 @@ private fun ActionRow(post: Post, onShare: () -> Unit, onVote: ((VoteDirection, 
     Row(
         Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Space.s2),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         val score = post.voteScore
         when {
-            // Votable, and this list knows how to cast one.
-            score != null && onVote != null -> VoteControl(
-                direction = post.voteDirection,
-                score = score,
-                canVoteDown = post.canVoteDown,
-                onVote = { onVote(it, null) },
-                onPickFace = { direction, face -> onVote(direction, face) },
-                iconSize = 17.dp,
-                textSize = 12,
-            )
+            // Votable, and this list knows how to cast one. The capsule is
+            // drawn here and the control's own ground turned off, so the three
+            // pills in the row share one height and one grey.
+            score != null && onVote != null -> RowCapsule(horizontalPadding = 6.dp) {
+                VoteControl(
+                    direction = post.voteDirection,
+                    score = score,
+                    canVoteDown = post.canVoteDown,
+                    onVote = { onVote(it, null) },
+                    onPickFace = { direction, face -> onVote(direction, face) },
+                    iconSize = 18.dp,
+                    textSize = 14,
+                    ground = false,
+                )
+            }
             // Votable, but the screen showing it has nowhere to put the write —
             // search results are a view of other lists, not one of their own.
             // Better the same number the topic will show than a like count that
             // disagrees with it.
-            score != null -> MetricPill(Lucide.ArrowBigUp, DiscourseFormat.count(score))
-            else -> MetricPill(Lucide.ThumbsUp, DiscourseFormat.count(post.baseVotes))
+            score != null -> MetricCapsule(Lucide.ArrowBigUp, DiscourseFormat.count(score))
+            else -> MetricCapsule(Lucide.ThumbsUp, DiscourseFormat.count(post.baseVotes))
         }
-        MetricPill(Lucide.MessageCircle, DiscourseFormat.count(post.comments))
-        Spacer(Modifier.weight(1f))
-        ActionPill(onClick = onShare, circular = true) {
-            Icon(
-                Lucide.Share2,
-                stringResource(R.string.common_share),
-                tint = Nocturne.muted(0.45f),
-                modifier = Modifier.size(17.dp),
-            )
-        }
+        MetricCapsule(Lucide.MessageCircle, DiscourseFormat.count(post.comments))
+        MetricCapsule(Lucide.Share2, stringResource(R.string.common_share), onClick = onShare)
     }
 }
 
+/** The design's action pill: 36 high, neutral ground, ink text. */
 @Composable
-private fun MetricPill(icon: androidx.compose.ui.graphics.vector.ImageVector, value: String) {
-    ActionPill {
-        Icon(icon, null, tint = Nocturne.muted(0.45f), modifier = Modifier.size(16.dp))
-        Text(value, style = Type.body(12), color = Nocturne.muted(0.55f))
+private fun RowCapsule(
+    onClick: (() -> Unit)? = null,
+    horizontalPadding: androidx.compose.ui.unit.Dp = 12.dp,
+    content: @Composable RowScope.() -> Unit,
+) {
+    Row(
+        Modifier
+            .height(36.dp)
+            .clip(CircleShape)
+            .background(Nocturne.neutral300)
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .padding(horizontal = horizontalPadding),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        content = content,
+    )
+}
+
+@Composable
+private fun MetricCapsule(icon: ImageVector, value: String, onClick: (() -> Unit)? = null) {
+    RowCapsule(onClick = onClick) {
+        Icon(icon, null, tint = Nocturne.textSecondary, modifier = Modifier.size(18.dp))
+        Text(value, style = Type.body(14, FontWeight.SemiBold), color = Nocturne.text)
     }
 }
 

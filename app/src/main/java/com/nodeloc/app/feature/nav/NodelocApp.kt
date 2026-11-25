@@ -128,6 +128,10 @@ fun NodelocApp(startDestination: Any = Route.Home) {
                 },
                 onOpenApps = { navigator.openApps(); scope.launch { drawerState.close() } },
                 onOpenApp = { navigator.openApp(it); scope.launch { drawerState.close() } },
+                onOpenProfile = { navigator.openMe(); scope.launch { drawerState.close() } },
+                onOpenModDashboard = { navigator.openModDashboard(it); scope.launch { drawerState.close() } },
+                onOpenNodeAdmin = { navigator.openNodeAdmin(it); scope.launch { drawerState.close() } },
+                onOpenSettings = { navigator.openSettings(); scope.launch { drawerState.close() } },
             )
         },
     ) {
@@ -139,7 +143,10 @@ fun NodelocApp(startDestination: Any = Route.Home) {
                     enter = slideInVertically { it } + fadeIn(),
                     exit = slideOutVertically { it } + fadeOut(),
                 ) {
-                    BottomTabBar(navController, unread)
+                    androidx.compose.foundation.layout.Column {
+                        com.nodeloc.app.core.design.HairLine()
+                        BottomTabBar(navController, unread)
+                    }
                 }
             },
         ) { padding ->
@@ -289,6 +296,39 @@ private fun NodelocNavHost(
         composable<Route.NodeSearch> { entry ->
             NodeSearchScreen(entry.toRoute<Route.NodeSearch>().slug, navigator)
         }
+
+        composable<Route.ModDashboard> { entry ->
+            com.nodeloc.app.feature.moderation.ModDashboardScreen(entry.toRoute<Route.ModDashboard>().nodeSlug, navigator)
+        }
+        composable<Route.ReviewQueue> { entry ->
+            com.nodeloc.app.feature.moderation.ReviewQueueScreen(entry.toRoute<Route.ReviewQueue>().nodeSlug, navigator)
+        }
+        composable<Route.ReviewItem> { entry ->
+            val route = entry.toRoute<Route.ReviewItem>()
+            com.nodeloc.app.feature.moderation.ReviewItemScreen(route.itemId, route.nodeSlug, navigator)
+        }
+        composable<Route.ModUsers> { com.nodeloc.app.feature.moderation.ModUsersScreen(navigator) }
+        composable<Route.ModUser> { entry ->
+            val route = entry.toRoute<Route.ModUser>()
+            com.nodeloc.app.feature.moderation.ModUserScreen(route.userId, route.username, route.nodeSlug, navigator)
+        }
+        composable<Route.AuditLog> { entry ->
+            com.nodeloc.app.feature.moderation.AuditLogScreen(entry.toRoute<Route.AuditLog>().nodeSlug, navigator)
+        }
+        composable<Route.NodeAdmin> { entry ->
+            com.nodeloc.app.feature.moderation.NodeAdminScreen(entry.toRoute<Route.NodeAdmin>().slug, navigator)
+        }
+        composable<Route.NodeChannels> { entry ->
+            com.nodeloc.app.feature.moderation.NodeChannelsScreen(entry.toRoute<Route.NodeChannels>().slug, navigator)
+        }
+
+        composable<Route.Achievements> { entry ->
+            com.nodeloc.app.feature.profile.AchievementsScreen(entry.toRoute<Route.Achievements>().username, navigator)
+        }
+        composable<Route.EnergyHistory> { com.nodeloc.app.feature.profile.EnergyScreen(navigator) }
+        composable<Route.WealthRank> { com.nodeloc.app.feature.profile.WealthRankScreen(navigator) }
+        composable<Route.Invite> { com.nodeloc.app.feature.settings.InviteScreen(navigator) }
+        composable<Route.Drafts> { com.nodeloc.app.feature.settings.DraftsScreen(navigator) }
 
         composable<Route.Apps> { AppsScreen(navigator) }
         composable<Route.AppDetail> { entry ->

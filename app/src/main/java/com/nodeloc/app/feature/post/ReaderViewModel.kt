@@ -29,6 +29,7 @@ import com.nodeloc.app.core.util.DiscourseFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
@@ -54,6 +55,8 @@ data class ReaderState(
     val createdAt: String = "",
     /** Nobody may reply to a closed topic; staff can reopen it. */
     val closed: Boolean = false,
+    val pinned: Boolean = false,
+    val featured: Boolean = false,
     val content: PostContent = PostContent.Empty,
     val comments: List<PostComment> = emptyList(),
     /**
@@ -67,6 +70,8 @@ data class ReaderState(
      */
     val blocked: Set<String> = emptySet(),
     val firstPostId: Int? = null,
+    /** 1 for an unedited post; the history sheet opens from "已编辑 N 次" above 1. */
+    val firstPostVersion: Int = 1,
     /**
      * The opening post is not a ReplyRow, so its actions live in the topic
      * menu instead. Same guardian answer, different place to put it.
@@ -126,6 +131,18 @@ data class ReaderState(
     val error: Throwable? = null,
     /** The thread loaded but its replies did not — distinct from having none. */
     val repliesFailed: Boolean = false,
+    /** The floor of the accepted answer, from the activity log; see [TopicLogFacts]. */
+    val acceptedPostNumber: Int? = null,
+    /** Accepted by the topic's author rather than by a moderator on their behalf. */
+    val acceptedByOp: Boolean = true,
+    val bestAnswer: BestAnswer? = null,
+    /** Keyed by floor; only deleted replies the log has an entry for. */
+    val deletions: Map<Int, ReplyDeletion> = emptyMap(),
+    /** Source of deleted replies the reader has opened, keyed by post id. */
+    val revealed: Map<Int, String> = emptyMap(),
+    val related: Map<RelatedSource, List<RelatedTopic>> = emptyMap(),
+    val relatedSource: RelatedSource? = null,
+    val relatedBatch: Int = 0,
 ) {
     /** Nothing arrived and the load is over — the screen must say so. */
     val failedToLoad: Boolean
@@ -217,6 +234,7 @@ class ReaderViewModel : ViewModel() {
 
     fun load(topicId: Int) {
         loadJob?.cancel()
+        extrasJob?.cancel()
         loadJob = viewModelScope.launch {
             // A different topic: nothing of the old one should survive.
             _state.value = ReaderState(topicId = topicId, isLoading = true, replySort = _state.value.replySort)
@@ -289,8 +307,11 @@ class ReaderViewModel : ViewModel() {
                     pmAvatarUrl = DiscourseConfig.avatarUrl(counterpart?.avatarTemplate, 80),
                     createdAt = DiscourseFormat.relative(first?.createdAt ?: topic.createdAt),
                     closed = topic.closed,
+                    pinned = topic.pinned,
+                    featured = topic.featured,
                     content = first?.let { contentFor(it) } ?: PostContent.Empty,
                     firstPostId = first?.id,
+                    firstPostVersion = first?.version ?: 1,
                     firstPostCanEdit = first?.canEdit == true,
                     firstAuthor = first?.let {
                         UserProfileTarget(it.username, it.name, DiscourseConfig.avatarUrl(it.avatarTemplate))
@@ -331,6 +352,7 @@ class ReaderViewModel : ViewModel() {
             loadNested(reset = true)
             _state.value = _state.value.copy(isLoading = false)
             startHeartbeat()
+            loadExtras(topicId)
         } finally {
             loadInFlight = false
         }
@@ -544,6 +566,166 @@ class ReaderViewModel : ViewModel() {
         )
     }
 
+    // ------------------------------------------------ answer, deletions, related
+
+    private val extras = ReaderExtrasApi(client.api)
+    private var extrasJob: Job? = null
+
+    /**
+     * Everything the page shows around the thread rather than in it. Each part
+     * is optional decoration, so a failure leaves that part out instead of
+     * saying anything: the reader asked for the topic, not for these.
+     */
+    private fun loadExtras(topicId: Int) {
+        extrasJob?.cancel()
+        extrasJob = viewModelScope.launch {
+            if (_state.value.isPrivateMessage) return@launch
+            val related = async { relatedTopics(topicId) }
+            runCatchingCancellable { extras.topicLogFacts(topicId) }.onSuccess { facts ->
+                val opAuthor = _state.value.firstAuthor?.username
+                _state.value = _state.value.copy(
+                    acceptedPostNumber = facts.acceptedPostNumber,
+                    acceptedByOp = facts.acceptedBy == null || facts.acceptedBy.equals(opAuthor, ignoreCase = true),
+                    deletions = facts.deletions,
+                )
+                resolveBestAnswer(topicId, facts.acceptedPostNumber)
+            }
+            val lists = related.await()
+            val current = _state.value.relatedSource
+            _state.value = _state.value.copy(
+                related = lists,
+                relatedSource = current?.takeIf { it in lists } ?: lists.keys.firstOrNull(),
+                relatedBatch = 0,
+            )
+        }
+    }
+
+    private suspend fun resolveBestAnswer(topicId: Int, postNumber: Int?) {
+        if (postNumber == null) {
+            _state.value = _state.value.copy(bestAnswer = null)
+            return
+        }
+        val loaded = flatten(nestedRoots).firstOrNull { it.postNumber == postNumber }
+        val answer = if (loaded != null) {
+            BestAnswer(
+                postId = loaded.id,
+                postNumber = postNumber,
+                author = loaded.username,
+                avatarUrl = DiscourseConfig.avatarUrl(loaded.avatarTemplate, 80),
+                time = DiscourseFormat.relative(loaded.createdAt),
+                content = contentFor(loaded),
+            )
+        } else {
+            // A reply on a later page, or deep in a fold: one floor on its own.
+            runCatchingCancellable { extras.floor(topicId, postNumber) }.getOrNull()
+                ?.takeIf { !it.deleted && !it.hidden }
+                ?.let { post ->
+                    BestAnswer(
+                        postId = post.id,
+                        postNumber = postNumber,
+                        author = post.author,
+                        avatarUrl = DiscourseConfig.avatarUrl(post.authorAvatar, 80),
+                        time = DiscourseFormat.relative(post.createdAt),
+                        content = withContext(Dispatchers.Default) { PostHtmlParser.parseSync(post.html) },
+                    )
+                }
+        }
+        if (_state.value.acceptedPostNumber == postNumber) _state.value = _state.value.copy(bestAnswer = answer)
+    }
+
+    /**
+     * Accepts or withdraws [comment] as the answer. Optimistic like every other
+     * toggle here; the server decides who may (the topic's author and the node's
+     * moderators) and whether the topic takes answers at all, and its refusal
+     * says which.
+     */
+    fun setAccepted(comment: PostComment, accept: Boolean) {
+        val before = _state.value
+        val topicId = before.topicId
+        _state.value = before.copy(
+            acceptedPostNumber = if (accept) comment.postNumber else null,
+            acceptedByOp = before.firstAuthor?.username?.equals(services.session.username, ignoreCase = true) != false,
+            bestAnswer = if (accept) {
+                BestAnswer(comment.id, comment.postNumber, comment.author, comment.avatarUrl, comment.time, comment.content)
+            } else {
+                null
+            },
+        )
+        viewModelScope.launch {
+            runCatchingCancellable { extras.setAccepted(comment.id, accept) }.onFailure { error ->
+                if (_state.value.topicId == topicId) {
+                    _state.value = _state.value.copy(
+                        acceptedPostNumber = before.acceptedPostNumber,
+                        acceptedByOp = before.acceptedByOp,
+                        bestAnswer = before.bestAnswer,
+                    )
+                }
+                ToastCenter.showError(error)
+            }
+        }
+    }
+
+    /** Opens or closes a deleted reply's source for the people allowed to see it. */
+    fun toggleOriginal(postId: Int) {
+        val revealed = _state.value.revealed
+        if (postId in revealed) {
+            _state.value = _state.value.copy(revealed = revealed - postId)
+            return
+        }
+        viewModelScope.launch {
+            runCatchingCancellable { extras.raw(postId) }
+                .onSuccess { raw -> _state.value = _state.value.copy(revealed = _state.value.revealed + (postId to raw)) }
+                .onFailure { ToastCenter.showError(it) }
+        }
+    }
+
+    fun selectRelated(source: RelatedSource) {
+        if (source == _state.value.relatedSource) return
+        _state.value = _state.value.copy(relatedSource = source, relatedBatch = 0)
+    }
+
+    fun nextRelatedBatch() {
+        val state = _state.value
+        val size = state.related[state.relatedSource].orEmpty().size
+        val batches = (size + RELATED_BATCH - 1) / RELATED_BATCH
+        if (batches > 1) _state.value = state.copy(relatedBatch = (state.relatedBatch + 1) % batches)
+    }
+
+    /**
+     * There is no related-topics endpoint — the web renders that column into
+     * the page — so the two sources a client can ask for stand in: the node's
+     * own list and the site's hot list. Ten each, two batches, as on the web.
+     */
+    private suspend fun relatedTopics(topicId: Int): Map<RelatedSource, List<RelatedTopic>> = coroutineScope {
+        val slug = _state.value.nodeSlug
+        val node = async {
+            if (slug.isBlank()) emptyList()
+            else runCatchingCancellable { extras.nodeTopics(slug, RELATED_FETCH) }.getOrDefault(emptyList())
+        }
+        val hot = async { runCatchingCancellable { extras.hotTopics(RELATED_FETCH) }.getOrDefault(emptyList()) }
+        fun shape(list: List<com.nodeloc.app.core.network.ApiTopicSummary>) = list
+            .filter { it.id != topicId && !it.adult }
+            .take(RELATED_BATCH * 2)
+            .map { topic ->
+                val topicSlug = topic.nodeSlug.orEmpty()
+                RelatedTopic(
+                    id = topic.id,
+                    title = topic.title,
+                    nodeSlug = topicSlug,
+                    nodeName = topic.nodeName.orEmpty(),
+                    logoUrl = DiscourseConfig.absoluteUrl(site.categoryBySlug(topicSlug)?.uploadedLogo?.url),
+                    author = topic.author.orEmpty(),
+                    time = DiscourseFormat.relative(topic.createdAt),
+                    votes = topic.voteScore ?: 0,
+                    replies = topic.replyCount ?: 0,
+                )
+            }
+        buildMap {
+            shape(node.await()).takeIf { it.isNotEmpty() }?.let { put(RelatedSource.Node, it) }
+            shape(hot.await()).takeIf { it.isNotEmpty() }?.let { put(RelatedSource.Hot, it) }
+        }
+    }
+
     /** Dedupes by id so a page overlapping the inlined preview doesn't double up. */
     private fun appendChildren(
         posts: List<TopicPost>,
@@ -650,6 +832,7 @@ class ReaderViewModel : ViewModel() {
             result += PostComment(
                 id = post.id,
                 author = post.username,
+                version = post.version ?: 1,
                 authorName = post.name,
                 time = DiscourseFormat.relative(post.createdAt),
                 source = post.mobileSource,
@@ -1592,3 +1775,9 @@ private object ParsedContentCache {
 
 /** Enough time on screen for Discourse to count a post as read. */
 private const val READ_MS = 1_000
+
+/** The web's related column shows five at a time and keeps two batches per source. */
+const val RELATED_BATCH = 5
+
+/** One over the two batches, so leaving out the topic being read still fills them. */
+private const val RELATED_FETCH = RELATED_BATCH * 2 + 1

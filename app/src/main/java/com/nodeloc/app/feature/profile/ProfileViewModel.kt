@@ -33,6 +33,22 @@ enum class ActivityTab(@StringRes val labelRes: Int, val filter: Int?) {
     Likes(R.string.profile_likes, 1),
     Bookmarks(R.string.profile_bookmarks, null),
     Points(R.string.profile_energy, null),
+    Achievements(R.string.me2_tab_achievements, null),
+    About(R.string.me2_tab_about, null),
+    ;
+
+    /** Drawn from what the header already loaded; there is nothing to fetch. */
+    val isLocal: Boolean get() = this == Achievements || this == About
+
+    companion object {
+        /**
+         * Bookmarks and energy are your own business — `/api/v1/saved` only
+         * ever answers with the caller's, so on someone else's page that tab
+         * would have shown *your* bookmarks under *their* name.
+         */
+        val own = listOf(Topics, Posts, Likes, Bookmarks, Points)
+        val public = listOf(Topics, Posts, Achievements, About)
+    }
 }
 
 data class ProfileState(
@@ -65,12 +81,19 @@ data class ProfileState(
      */
     val tabError: Throwable? = null,
     val isFollowing: Boolean = false,
+    /** Whether this page is the signed-in account's own; decides what is fetched. */
+    val isOwn: Boolean = false,
+    /** Own page only: reputation, tier and the climb to the next one. */
+    val reputation: ApiRepSummary? = null,
+    /** Someone else's reputation, when they have not hidden it. */
+    val publicReputation: Long? = null,
+    /** Own page only: from the achievement overview. */
+    val achievementsUnlocked: Int? = null,
+    val achievementsTotal: Int? = null,
+    /** Own page: the latest unlocks for the header row. Someone else's: what they pinned. */
+    val achievementBadges: List<ApiAchItem> = emptyList(),
+    val tiers: List<ApiTierInfo> = emptyList(),
     /** The day the account last checked in, as the server counted it. */
-    /**
-     * The rail beside the avatar. Fetched with the profile rather than on the
-     * page it links to, because the header draws it before anyone taps.
-     */
-    val upgrade: com.nodeloc.app.core.model.UpgradeProgress? = null,
     val checkinDate: String? = null,
     val isCheckingIn: Boolean = false,
     val error: Throwable? = null,
@@ -116,6 +139,8 @@ class ProfileViewModel : ViewModel() {
 
     private var boundUsername: String? = null
 
+    private val growth = GrowthApi.shared
+
     init {
         viewModelScope.launch {
             services.preferences.checkinDate.collect { date ->
@@ -157,22 +182,46 @@ class ProfileViewModel : ViewModel() {
 
     fun load(username: String = boundUsername.orEmpty()) {
         if (username.isEmpty()) return
+        val own = session.username?.equals(username, ignoreCase = true) == true
         viewModelScope.launch {
-            _state.value = _state.value.copy(username = username, isLoading = true, error = null)
+            _state.value = _state.value.copy(username = username, isOwn = own, isLoading = true, error = null)
             val profileJob = async { runCatchingCancellable { client.user(username) } }
             val summaryJob = async { runCatchingCancellable { client.userSummary(username) }.getOrNull() }
-            val pointsJob = async { runCatchingCancellable { client.pointsTotal(username) }.getOrNull() }
-            // Optional in the same way the points total is: a site without the
-            // plugin answers with an error, and the header simply has no rail.
-            val upgradeJob = async { runCatchingCancellable { client.upgradeProgress(username) }.getOrNull() }
+            // Everything below is optional: a failure costs the header a "--"
+            // or a row, never the page. The energy balance, reputation and
+            // achievement overview are `/me`-only endpoints, so they are asked
+            // for on the account's own page alone.
+            val pointsJob = async { if (own) runCatchingCancellable { client.pointsTotal(username) }.getOrNull() else null }
+            val repJob = async { if (own) runCatchingCancellable { growth.reputation() }.getOrNull() else null }
+            val achJob = async { if (own) runCatchingCancellable { growth.achievements() }.getOrNull() else null }
+            val showcaseJob = async { if (!own) runCatchingCancellable { growth.showcase(username) }.getOrNull() else null }
+            val checkinJob = async { if (own) runCatchingCancellable { growth.checkinStatus() }.getOrNull() else null }
+            val tiersJob = async { TierDirectory.get() }
 
             val outcome = profileJob.await()
             val profile = outcome.getOrNull()?.user
+            val overview = achJob.await()
+            val showcase = showcaseJob.await()
+            // The server's word on today beats the remembered date: a check-in
+            // made on the website was otherwise invisible here until tomorrow.
+            checkinJob.await()?.let { status ->
+                val today = LocalDate.now().toString()
+                if (status.checkedInToday && _state.value.checkinDate != today) services.preferences.setCheckinDate(today)
+            }
             _state.value = _state.value.copy(
                 profile = profile,
                 summary = summaryJob.await()?.userSummary,
                 pointsTotal = pointsJob.await()?.totalScores,
-                upgrade = upgradeJob.await(),
+                reputation = repJob.await(),
+                publicReputation = showcase?.reputation,
+                achievementsUnlocked = overview?.unlockedCount,
+                achievementsTotal = overview?.total,
+                achievementBadges = overview?.achievements
+                    ?.filter { it.unlocked }
+                    ?.sortedByDescending { it.lastAt ?: it.unlockedAt.orEmpty() }
+                    ?.take(4)
+                    ?: showcase?.showcase.orEmpty(),
+                tiers = tiersJob.await(),
                 isFollowing = profile?.isFollowed == true,
                 isLoading = false,
                 // The transport error itself, not a stand-in for it. The screen
@@ -185,7 +234,8 @@ class ProfileViewModel : ViewModel() {
                     else -> outcome.exceptionOrNull() ?: IllegalStateException("profile unavailable")
                 },
             )
-            selectTab(_state.value.tab, force = true)
+            val tabs = if (own) ActivityTab.own else ActivityTab.public
+            selectTab(_state.value.tab.takeIf { it in tabs } ?: ActivityTab.Topics, force = true)
         }
     }
 
@@ -254,6 +304,10 @@ class ProfileViewModel : ViewModel() {
 
     fun selectTab(tab: ActivityTab, force: Boolean = false) {
         _state.value = _state.value.copy(tab = tab)
+        if (tab.isLocal) {
+            _state.value = _state.value.copy(isLoadingTab = false, tabError = null)
+            return
+        }
         val username = _state.value.username.ifEmpty { return }
         if (!force) {
             val alreadyLoaded = if (tab == ActivityTab.Points) {
@@ -322,7 +376,7 @@ class ProfileViewModel : ViewModel() {
     fun loadMoreActivity() {
         val current = _state.value
         val tab = current.tab
-        if (tab == ActivityTab.Points) return
+        if (tab == ActivityTab.Points || tab.isLocal) return
         if (current.isLoadingTab || current.isLoadingMoreTab) return
         if (!current.currentTabHasMore) return
         val username = current.username.ifEmpty { return }

@@ -12,6 +12,7 @@ import java.time.temporal.ChronoUnit
 import java.time.format.DateTimeFormatter
 import java.time.Instant
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.contentOrNull
 import com.nodeloc.app.core.model.DraftPayload
 import com.nodeloc.app.core.model.DraftItem
 import com.nodeloc.app.core.model.DiscourseUpload
@@ -196,6 +197,15 @@ class ComposeViewModel : ViewModel() {
     /** Set once the stored draft has been read, so autosave cannot pre-empt it. */
     private var draftRestored = false
 
+    /**
+     * The server draft this composer was opened on from the drafts box, if
+     * any. Autosave goes back to it rather than to the phone's own slot, which
+     * holds a different post and must survive this one.
+     */
+    private var serverDraft: com.nodeloc.app.core.network.ApiDraftEntry? = null
+    private var serverDraftBaseline: ComposerDraft? = null
+    private val personalApi by lazy { com.nodeloc.app.core.network.PersonalApi(client.api) }
+
     init {
         // Autosave rather than a save button: the composer is lost to a phone
         // call or a notification tap, not to a decision, and nobody presses
@@ -206,6 +216,14 @@ class ComposeViewModel : ViewModel() {
                 .distinctUntilChanged()
                 .debounce(draftSaveDelayMs)
                 .collect { draft ->
+                    serverDraft?.let { entry ->
+                        // The draft as it arrived is not an edit; writing it
+                        // back would only bump its "saved" time in the box.
+                        if (!draft.isEmpty && draft != serverDraftBaseline) {
+                            runCatchingCancellable { personalApi.saveDraft(entry.key, serverDraftData(entry, _state.value)) }
+                        }
+                        return@collect
+                    }
                     if (!draftable || !draftRestored) return@collect
                     runCatchingCancellable {
                         if (draft.isEmpty) prefs.setComposerDraft(null)
@@ -223,12 +241,18 @@ class ComposeViewModel : ViewModel() {
         repostTopicId: Int? = null,
         /** An existing opening post to load and save over; see [Route.Compose]. */
         editPostId: Int? = null,
+        /** A server draft picked in the drafts box; see [openServerDraft]. */
+        draftKey: String? = null,
     ) {
         // Once. A rotation re-ran this and reset the node to whatever the route
         // said — null, when composing from the feed — and put the prefilled
         // title back over one the user had already edited.
         if (bound) return
         bound = true
+        if (draftKey != null) {
+            openServerDraft(draftKey, categoryId)
+            return
+        }
         draftable = pmRecipient == null && prefillTitle.isNullOrEmpty() && editPostId == null
         // The body arrives from the server. Showing an empty one meanwhile
         // invites somebody to start typing into what is about to be replaced.
@@ -321,6 +345,62 @@ class ComposeViewModel : ViewModel() {
             if (repostTopicId != null) fillRepostCard(repostTopicId)
             if (editPostId != null) loadForEdit(editPostId)
         }
+    }
+
+    /**
+     * Opens one draft from the drafts box.
+     *
+     * Read from the list rather than `GET /drafts/{key}` so a draft deleted on
+     * the web meanwhile opens an empty composer instead of an error. The phone
+     * slot is left alone: it is a different post.
+     */
+    private fun openServerDraft(key: String, categoryId: Int?) {
+        _state.value = _state.value.copy(isLoading = true)
+        viewModelScope.launch {
+            site.siteResponse()
+            val nodes = site.categories().values
+                .filter { it.parentCategoryId != null }
+                .map(NodeSummaryFactory::summary)
+            val entry = runCatchingCancellable { personalApi.drafts() }
+                .onFailure { ToastCenter.showError(it) }
+                .getOrNull()
+                ?.drafts
+                ?.firstOrNull { it.key == key }
+            val fields = entry?.fields
+            fun field(name: String) = (fields?.get(name) as? kotlinx.serialization.json.JsonPrimitive)?.contentOrNull
+            val slug = field("node")
+            val title = field("title").orEmpty()
+            val raw = field("raw") ?: field("body")
+            val blocks = raw?.takeIf { it.isNotBlank() }?.toComposerBlocks()
+            _state.value = _state.value.copy(
+                isLoading = false,
+                nodeOptions = nodes,
+                node = _state.value.node
+                    ?: slug?.let { s -> nodes.firstOrNull { it.slug == s } }
+                    ?: categoryId?.let { id -> nodes.firstOrNull { it.id == id } },
+                title = _state.value.title.ifEmpty { title },
+                blocks = blocks ?: _state.value.blocks,
+            )
+            serverDraft = entry
+            serverDraftBaseline = ComposerDraft.of(_state.value.title, _state.value.node?.id, _state.value.blocks)
+            draftRestored = true
+        }
+    }
+
+    /**
+     * What goes back into the server draft: the fields it already had, with
+     * the four the composer edits replaced. A link or poll draft from the web
+     * keeps its extras, and the scheduler still finds `node`, `title`, `raw`.
+     */
+    private fun serverDraftData(
+        entry: com.nodeloc.app.core.network.ApiDraftEntry,
+        state: ComposeState,
+    ): kotlinx.serialization.json.JsonObject {
+        val base = entry.fields.orEmpty().toMutableMap()
+        base["title"] = kotlinx.serialization.json.JsonPrimitive(state.title)
+        base["raw"] = kotlinx.serialization.json.JsonPrimitive(state.body)
+        state.node?.let { base["node"] = kotlinx.serialization.json.JsonPrimitive(it.slug) }
+        return kotlinx.serialization.json.JsonObject(base)
     }
 
     /** Dismisses the picker and leaves the composer empty. */
@@ -430,6 +510,14 @@ class ComposeViewModel : ViewModel() {
      * discard it — the two moments the words stop being wanted.
      */
     fun clearDraft() {
+        // A draft from the box goes with the post or the discard. Publishing
+        // only clears `new_topic` on the server's side; a `new_topic:…` one
+        // would otherwise outlive the topic it became.
+        serverDraft?.let { entry ->
+            serverDraft = null
+            services.appScope.launch { runCatching { personalApi.deleteDraft(entry.key) } }
+            return
+        }
         draftable = false
         services.appScope.launch { runCatching { prefs.setComposerDraft(null) } }
     }

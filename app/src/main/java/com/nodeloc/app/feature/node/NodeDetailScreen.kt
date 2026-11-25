@@ -95,6 +95,18 @@ import com.nodeloc.app.feature.media.ImageViewerOverlay
 import com.nodeloc.app.feature.media.PostImageViewer
 import com.nodeloc.app.feature.media.imageViewerAt
 import com.nodeloc.app.feature.nav.Navigator
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.shadow
+import com.composables.icons.lucide.Bell
+import com.composables.icons.lucide.LayoutList
+import com.nodeloc.app.core.design.FilterPill
+import com.nodeloc.app.core.html.breakingLongTokens
+import com.nodeloc.app.core.model.Post
 
 /**
  * A node page scrolls as one surface — banner, identity card, sort bar and the
@@ -121,6 +133,12 @@ fun NodeDetailScreen(
     val posts = remember(state.posts, blocked) {
         if (blocked.isEmpty()) state.posts
         else state.posts.filterNot { it.authorUsername in blocked }
+    }
+    // Lifted out of the list into the carousel above the tabs, as the website
+    // does, so a pinned topic is not shown twice on the same screen.
+    val pinned = remember(posts, state.pinnedIds) { posts.filter { it.id in state.pinnedIds } }
+    val listed = remember(posts, pinned) {
+        if (pinned.isEmpty()) posts else posts.filterNot { it.id in state.pinnedIds }
     }
     menu.Dialogs()
     val mode by viewModel.readingMode.collectAsState()
@@ -162,23 +180,42 @@ fun NodeDetailScreen(
                     if (state.node == null && state.showSkeleton) {
                         NodeHeaderSkeleton()
                     } else {
-                        NodeHeaderBlock(state, viewModel, isSignedIn)
+                        NodeHeaderBlock(state, viewModel, isSignedIn, onManage = { state.node?.slug?.let(navigator::openNodeAdmin) })
+                    }
+                }
+                if (pinned.isNotEmpty() && !state.showAbout) {
+                    item(key = "pins") {
+                        PinnedCarousel(pinned) { post ->
+                            viewModel.markRead(post.id)
+                            navigator.openTopic(post.id)
+                        }
                     }
                 }
                 item {
                     SortBar(
                         sort = state.sort,
+                        showAbout = state.showAbout,
                         mode = mode,
-                        isSignedIn = isSignedIn,
                         onSelectSort = viewModel::selectSort,
+                        onSelectAbout = viewModel::selectAbout,
                         onSelectMode = viewModel::selectReadingMode,
                     )
                 }
 
                 when {
+                    state.showAbout -> item {
+                        NodeAboutSection(
+                            about = state.about,
+                            fallbackDescription = state.node?.description,
+                            loading = state.aboutLoading,
+                            failed = state.aboutFailed,
+                            onRetry = viewModel::loadAbout,
+                        )
+                    }
+
                     state.showSkeleton -> item { FeedSkeleton(mode) }
 
-                    posts.isEmpty() -> item {
+                    listed.isEmpty() && pinned.isEmpty() -> item {
                         val offline = state.error?.isOfflineError() == true
                         // The icon used to be WifiOff whatever the reason, so a
                         // node that simply had no topics yet looked broken.
@@ -202,12 +239,11 @@ fun NodeDetailScreen(
                     }
 
                     else -> {
-                        items(posts, key = { it.id }) { post ->
+                        items(listed, key = { it.id }) { post ->
                             PostRow(
                                 post = post,
                                 more = menu.actionsFor(post),
                                 mode = mode,
-                                attributeToAuthor = true,
                                 onOpen = {
                                     viewModel.markRead(post.id)
                                     navigator.openTopic(post.id)
@@ -261,140 +297,427 @@ fun NodeDetailScreen(
     }
 }
 
+/**
+ * The design's identity card: a raised white card that overlaps the banner,
+ * with the handle as the title and the name, members and topics under it.
+ *
+ * The design's "N 在线" is left out: the online count is only rendered into the
+ * website's pages, and no `/api/v1` response carries it.
+ */
 @Composable
-private fun NodeHeaderBlock(state: NodeDetailState, viewModel: NodeDetailViewModel, isSignedIn: Boolean) {
+private fun NodeHeaderBlock(
+    state: NodeDetailState,
+    viewModel: NodeDetailViewModel,
+    isSignedIn: Boolean,
+    onManage: () -> Unit,
+) {
     val node = state.node
-    Column {
+    val moderation = ServiceLocator.get.moderation
+    val privileges by moderation.privileges.collectAsState()
+    val nodePending by moderation.nodePending.collectAsState()
+    val canManage = node != null && privileges.moderates(node.slug)
+    LaunchedEffect(canManage) { if (canManage) moderation.refreshNodeCounts() }
+    val bandHeight = if (node?.bannerUrl != null) maxOf(140.dp, floatingHeaderInset) else floatingHeaderInset
+    Box(Modifier.fillMaxWidth()) {
         if (node?.bannerUrl != null) {
             // Tall enough to be a picture, and at least as tall as the bar that
             // floats over it — a short banner puts the back button on the logo.
             RemoteImage(
                 node.bannerUrl,
-                modifier = Modifier.fillMaxWidth().height(maxOf(140.dp, floatingHeaderInset)),
+                modifier = Modifier.fillMaxWidth().height(bandHeight),
                 contentScale = ContentScale.Crop,
             )
         } else {
             // No picture, so nothing to show off: the band is exactly the bar's
-            // own height, and the node's name starts directly under it.
-            Box(Modifier.fillMaxWidth().height(floatingHeaderInset).background(Nocturne.surface))
+            // own height, and the card starts directly under it.
+            Box(Modifier.fillMaxWidth().height(bandHeight).background(Nocturne.surface))
         }
         Column(
-            Modifier.fillMaxWidth().padding(horizontal = Space.page, vertical = Space.s4),
-            verticalArrangement = Arrangement.spacedBy(Space.s3),
+            Modifier
+                // Overlaps a banner by a third of the card's top so the card
+                // reads as sitting on the picture; with no banner there is
+                // nothing to overlap, and it clears the bar instead.
+                .padding(top = if (node?.bannerUrl != null) bandHeight - 36.dp else bandHeight + 8.dp)
+                .padding(horizontal = Space.page)
+                .fillMaxWidth()
+                .shadow(8.dp, RoundedCornerShape(20.dp))
+                .clip(RoundedCornerShape(20.dp))
+                .background(Nocturne.bg)
+                .padding(horizontal = Space.page, vertical = Space.card),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.s4)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (node?.logoUrl != null) {
-                    RemoteAvatar(node.logoUrl, node.letter, size = 52.dp, cornerRadius = 12.dp)
+                    RemoteAvatar(node.logoUrl, node.letter, size = 52.dp)
                 } else {
-                    Avatar(node?.letter ?: "N", size = 52.dp, cornerRadius = 12.dp)
+                    Avatar(node?.letter ?: "N", variant = (node?.id ?: 0) % 2, size = 52.dp)
                 }
                 Column(Modifier.weight(1f)) {
                     Text(
-                        node?.name.orEmpty(),
-                        style = Type.heading(20, FontWeight.SemiBold),
+                        node?.handle.orEmpty(),
+                        style = Type.heading(20, FontWeight.Bold),
                         color = Nocturne.text,
-                        maxLines = 2,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
                         listOfNotNull(
+                            node?.name?.takeIf { it.isNotBlank() },
                             node?.memberCount?.let { pluralStringResource(R.plurals.common_members, it, DiscourseFormat.count(it)) },
                             node?.topicCount?.let { pluralStringResource(R.plurals.common_topics, it, DiscourseFormat.count(it)) },
                         ).joinToString(" · "),
-                        style = Type.body(12),
-                        color = Nocturne.muted(0.45f),
+                        style = Type.body(13),
+                        color = Nocturne.textSecondary,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
                     )
-                }
-                if (isSignedIn) {
-                    if (state.isJoined) {
-                        SecondaryButton(stringResource(R.string.node_joined), onClick = viewModel::toggleJoin)
-                    } else {
-                        PrimaryButton(stringResource(R.string.node_join), onClick = viewModel::toggleJoin)
-                    }
                 }
             }
             node?.description?.takeIf { it.isNotBlank() }?.let {
-                Text(it, style = Type.body(14), color = Nocturne.muted(0.62f))
+                Text(
+                    it,
+                    style = Type.body(14).copy(lineHeight = Type.lineHeight(14, 7)),
+                    color = Nocturne.text,
+                )
+            }
+            if (canManage || isSignedIn) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (canManage) {
+                        // The design's "管理 · N 待处理": a node moderator's way in from the node itself.
+                        val pending = node?.slug?.let { nodePending[it] } ?: 0
+                        Text(
+                            if (pending > 0) stringResource(R.string.mod_entry_manage_node, pending) else stringResource(R.string.mod_entry_manage),
+                            style = Type.body(14, FontWeight.SemiBold),
+                            color = Nocturne.warning,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(Nocturne.warningBg)
+                                .clickable(onClick = onManage)
+                                .padding(horizontal = 14.dp, vertical = 8.dp),
+                        )
+                    }
+                    Spacer(Modifier.weight(1f))
+                    if (isSignedIn) {
+                        JoinButton(joined = state.isJoined, onClick = viewModel::toggleJoin)
+                        var levelMenu by remember { mutableStateOf(false) }
+                        Box {
+                            Box(
+                                Modifier
+                                    .size(38.dp)
+                                    .clip(CircleShape)
+                                    .background(Nocturne.neutral300)
+                                    .clickable { levelMenu = true },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    Lucide.Bell,
+                                    stringResource(R.string.node2_notifications),
+                                    tint = Nocturne.text,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
+                            NodeLevelMenu(
+                                expanded = levelMenu,
+                                level = state.notificationLevel,
+                                onDismiss = { levelMenu = false },
+                                onSelect = { levelMenu = false; viewModel.setNotificationLevel(it) },
+                            )
+                        }
+                    }
+                }
             }
         }
-        HairLine()
     }
 }
 
-/** [NodeHeaderBlock]'s shape: the band, the logo, the name and the counts. */
+/** Outlined once joined — a state, not an offer; filled accent while it is still an offer. */
+@Composable
+private fun JoinButton(joined: Boolean, onClick: () -> Unit) {
+    val shape = CircleShape
+    Box(
+        Modifier
+            .height(38.dp)
+            .clip(shape)
+            .then(
+                if (joined) Modifier.border(1.dp, Nocturne.textTertiary, shape)
+                else Modifier.background(Nocturne.accent),
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            stringResource(if (joined) R.string.node_joined else R.string.node_join),
+            style = Type.body(14, FontWeight.SemiBold),
+            color = if (joined) Nocturne.text else Nocturne.bg,
+        )
+    }
+}
+
+/** [NodeHeaderBlock]'s shape: the band, then the card's logo, name and counts. */
 @Composable
 private fun NodeHeaderSkeleton() {
     Column(Modifier.fillMaxWidth().skeletonPulsing()) {
         Box(Modifier.fillMaxWidth().height(maxOf(140.dp, floatingHeaderInset)).background(Nocturne.surface))
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = Space.page, vertical = Space.s4),
-            horizontalArrangement = Arrangement.spacedBy(Space.s4),
+            Modifier.fillMaxWidth().padding(horizontal = Space.page * 2, vertical = Space.card),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            SkeletonBox(Modifier.size(52.dp), corner = 12.dp)
+            SkeletonBox(Modifier.size(52.dp), corner = 26.dp)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 SkeletonLine(widthFraction = 0.52f, height = 20.dp)
                 SkeletonLine(widthFraction = 0.34f, height = 12.dp)
             }
         }
-        HairLine()
     }
 }
 
+/**
+ * The node's pinned topics, one card at a time. A pager rather than a stack:
+ * a node with five pins would otherwise push its own topic list off the first
+ * screen, which is the whole reason the website moved pins into a carousel.
+ */
 @Composable
-private fun SortBar(
-    sort: NodeSort,
-    mode: NodeReadingMode,
-    isSignedIn: Boolean,
-    onSelectSort: (NodeSort) -> Unit,
-    onSelectMode: (NodeReadingMode) -> Unit,
-) {
-    Row(
-        Modifier.fillMaxWidth().padding(horizontal = Space.page, vertical = Space.s3),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Space.s3),
+private fun PinnedCarousel(pinned: List<Post>, onOpen: (Post) -> Unit) {
+    val pagerState = rememberPagerState { pinned.size }
+    Column(
+        Modifier
+            .padding(start = Space.page, end = Space.page, top = Space.card)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Nocturne.accent100),
     ) {
-        NodeSort.entries
-            // A node has no "best": the route is the root's alone.
-            .filter { !it.feedOnly }
-            // `new` is only meaningful — and only permitted — when signed in.
-            .filter { isSignedIn || !it.requiresAuth }
-            .forEach { option ->
-                val selected = option == sort
+        HorizontalPager(state = pagerState, verticalAlignment = Alignment.Top) { page ->
+            val post = pinned[page]
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { onOpen(post) }
+                    .padding(start = Space.card, end = Space.card, top = 12.dp, bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            stringResource(R.string.feed_pinned),
+                            style = Type.body(12, FontWeight.Bold),
+                            color = Nocturne.accent700,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(Nocturne.bg)
+                                .padding(horizontal = 9.dp, vertical = 3.dp),
+                        )
+                        RemoteAvatar(post.avatarUrl, post.avatarLetter, variant = post.variant, size = 18.dp)
+                        Text(
+                            listOfNotNull(post.authorUsername, post.time).joinToString(" · "),
+                            style = Type.body(12),
+                            color = Nocturne.textSecondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    Text(
+                        post.title.breakingLongTokens(),
+                        style = Type.body(16, FontWeight.SemiBold).copy(lineHeight = Type.lineHeight(16, 6)),
+                        color = Nocturne.text,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                if (post.imageUrl != null) {
+                    RemoteImage(
+                        post.media.firstOrNull()?.bestUrl(240) ?: post.imageUrl,
+                        modifier = Modifier.size(72.dp).clip(RoundedCornerShape(10.dp)),
+                        contentScale = ContentScale.Crop,
+                    )
+                }
+            }
+        }
+        val current = pinned.getOrNull(pagerState.currentPage)
+        Row(
+            Modifier.fillMaxWidth().padding(start = Space.card, end = Space.card, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            if (current != null) {
                 Text(
-                    stringResource(option.labelRes),
-                    style = Type.body(13, if (selected) FontWeight.SemiBold else FontWeight.Normal),
-                    color = if (selected) Nocturne.accent else Nocturne.muted(0.5f),
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .clickable { onSelectSort(option) }
-                        .background(if (selected) Nocturne.selected else Nocturne.bg)
-                        .padding(horizontal = 12.dp, vertical = 5.dp),
+                    stringResource(
+                        R.string.node2_pin_stats,
+                        DiscourseFormat.count(current.voteScore ?: current.baseVotes),
+                        DiscourseFormat.count(current.comments),
+                    ),
+                    style = Type.body(12),
+                    color = Nocturne.textSecondary,
                 )
             }
-        Spacer(Modifier.weight(1f))
-        var modeMenu by remember { mutableStateOf(false) }
-        Box {
-            Text(
-                stringResource(mode.labelRes),
-                style = Type.body(13),
-                color = Nocturne.muted(0.5f),
-                modifier = Modifier.clickable { modeMenu = true },
-            )
-            DropdownMenu(expanded = modeMenu, onDismissRequest = { modeMenu = false }) {
-                NodeReadingMode.entries.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(stringResource(option.labelRes)) },
-                        onClick = {
-                            onSelectMode(option)
-                            modeMenu = false
-                        },
+            Spacer(Modifier.weight(1f))
+            if (pinned.size > 1) {
+                repeat(pinned.size) { index ->
+                    val selected = index == pagerState.currentPage
+                    Box(
+                        Modifier
+                            .height(6.dp)
+                            .width(if (selected) 14.dp else 6.dp)
+                            .clip(CircleShape)
+                            .background(if (selected) Nocturne.accent else Nocturne.accent200),
                     )
                 }
             }
         }
     }
-    HairLine()
+}
+
+/**
+ * 最新 / 精华 / 关于, then the reading mode. The design also draws 热门, but
+ * `GET /api/v1/topics?sort=hot` ignores `node=` — it would be the site's hot
+ * list under this node's name — so it is left out until the server scopes it.
+ * 新 and 热门榜 went for the same reason: the node list served them as plain
+ * latest.
+ */
+@Composable
+private fun SortBar(
+    sort: NodeSort,
+    showAbout: Boolean,
+    mode: NodeReadingMode,
+    onSelectSort: (NodeSort) -> Unit,
+    onSelectAbout: () -> Unit,
+    onSelectMode: (NodeReadingMode) -> Unit,
+) {
+    Row(
+        Modifier.fillMaxWidth().padding(start = Space.page, end = Space.page, top = 12.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        NODE_SORTS.forEach { option ->
+            FilterPill(stringResource(option.labelRes), selected = !showAbout && option == sort) { onSelectSort(option) }
+        }
+        FilterPill(stringResource(R.string.node2_about), selected = showAbout, onClick = onSelectAbout)
+        Spacer(Modifier.weight(1f))
+        if (!showAbout) {
+            var modeMenu by remember { mutableStateOf(false) }
+            Box {
+                Box(
+                    Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(Nocturne.neutral300)
+                        .clickable { modeMenu = true },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        Lucide.LayoutList,
+                        stringResource(R.string.feed_reading_mode),
+                        tint = Nocturne.text,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+                DropdownMenu(expanded = modeMenu, onDismissRequest = { modeMenu = false }) {
+                    NodeReadingMode.entries.forEach { option ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    stringResource(option.labelRes),
+                                    color = if (option == mode) Nocturne.accent else Nocturne.text,
+                                )
+                            },
+                            onClick = {
+                                onSelectMode(option)
+                                modeMenu = false
+                            },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private val NODE_SORTS = listOf(NodeSort.Latest, NodeSort.Featured)
+
+/** The 关于 tab: the node's description in full, then its rules, numbered as the website numbers them. */
+@Composable
+private fun NodeAboutSection(
+    about: NodeAbout?,
+    fallbackDescription: String?,
+    loading: Boolean,
+    failed: Boolean,
+    onRetry: () -> Unit,
+) {
+    val description = about?.description ?: fallbackDescription?.takeIf { it.isNotBlank() }
+    Column(
+        Modifier.fillMaxWidth().padding(horizontal = Space.page, vertical = Space.card),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        description?.let {
+            Text(it, style = Type.body(15).copy(lineHeight = Type.lineHeight(15, 7)), color = Nocturne.text)
+        }
+        when {
+            loading -> Box(Modifier.fillMaxWidth().height(64.dp), contentAlignment = Alignment.Center) {
+                NodelocLoader(height = 24.dp)
+            }
+
+            failed -> EmptyStateView(
+                icon = Lucide.CircleAlert,
+                title = stringResource(R.string.node2_about_failed),
+                retryLabel = stringResource(R.string.common_retry),
+                onRetry = onRetry,
+            )
+
+            about != null -> {
+                val rules = about.rules.filter { it.title.isNotBlank() }
+                if (rules.isNotEmpty()) {
+                    Text(stringResource(R.string.node2_rules), style = Type.heading(16, FontWeight.SemiBold), color = Nocturne.text)
+                    rules.forEachIndexed { index, rule ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("${index + 1}.", style = Type.body(14, FontWeight.SemiBold), color = Nocturne.textSecondary)
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(rule.title, style = Type.body(14, FontWeight.SemiBold), color = Nocturne.text)
+                                rule.description?.takeIf { it.isNotBlank() }?.let {
+                                    Text(it, style = Type.body(14), color = Nocturne.textSecondary)
+                                }
+                            }
+                        }
+                    }
+                } else if (description == null) {
+                    Text(stringResource(R.string.node2_about_empty), style = Type.body(14), color = Nocturne.textSecondary)
+                }
+            }
+        }
+    }
+}
+
+/** The notification levels, shared by the card's bell and the top bar's overflow. */
+@Composable
+private fun NodeLevelMenu(
+    expanded: Boolean,
+    level: NodeNotificationLevel,
+    onDismiss: () -> Unit,
+    onSelect: (NodeNotificationLevel) -> Unit,
+) {
+    DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
+        NodeNotificationLevel.menuOrder.forEach { option ->
+            DropdownMenuItem(
+                text = {
+                    Column {
+                        Text(
+                            stringResource(option.labelRes),
+                            style = Type.body(14, FontWeight.Medium),
+                            color = if (option == level) Nocturne.accent else Nocturne.text,
+                        )
+                        Text(
+                            stringResource(option.detailRes),
+                            style = Type.body(11),
+                            color = Nocturne.textTertiary,
+                            modifier = Modifier.padding(top = 2.dp),
+                        )
+                    }
+                },
+                onClick = { onSelect(option) },
+            )
+        }
+    }
 }
 
 @Composable
@@ -459,28 +782,12 @@ private fun NodeHeaderBar(
                             )
                         }
                     }
-                    DropdownMenu(expanded = levelMenu, onDismissRequest = { levelMenu = false }) {
-                        NodeNotificationLevel.menuOrder.forEach { option ->
-                            DropdownMenuItem(
-                                text = {
-                                    Column {
-                                        Text(
-                                            stringResource(option.labelRes),
-                                            style = Type.body(14, FontWeight.Medium),
-                                            color = if (option == level) Nocturne.accent else Nocturne.text,
-                                        )
-                                        Text(
-                                            stringResource(option.detailRes),
-                                            style = Type.body(11),
-                                            color = Nocturne.muted(0.45f),
-                                            modifier = Modifier.padding(top = 2.dp),
-                                        )
-                                    }
-                                },
-                                onClick = { levelMenu = false; onSelectLevel(option) },
-                            )
-                        }
-                    }
+                    NodeLevelMenu(
+                        expanded = levelMenu,
+                        level = level,
+                        onDismiss = { levelMenu = false },
+                        onSelect = { levelMenu = false; onSelectLevel(it) },
+                    )
                 }
             }
             if (!isSignedIn) {

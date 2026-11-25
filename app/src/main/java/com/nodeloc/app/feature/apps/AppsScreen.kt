@@ -14,18 +14,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -43,7 +49,8 @@ import com.nodeloc.app.MiniAppActivity
 import com.nodeloc.app.R
 import com.nodeloc.app.ServiceLocator
 import com.nodeloc.app.core.design.EmptyStateView
-import com.nodeloc.app.core.design.HairLine
+import com.nodeloc.app.core.design.FilterPill
+import com.nodeloc.app.core.design.FilterPillRow
 import com.nodeloc.app.core.design.HeaderIconButton
 import com.nodeloc.app.core.design.Nocturne
 import com.nodeloc.app.core.design.NodelocLoader
@@ -55,19 +62,41 @@ import com.nodeloc.app.core.design.Type
 import com.nodeloc.app.core.html.PostContentView
 import com.nodeloc.app.core.html.PostHtmlParser
 import com.nodeloc.app.core.model.DirectoryApp
+import com.nodeloc.app.core.network.ApiDirectoryApp
 import com.nodeloc.app.core.network.DiscourseConfig
+import com.nodeloc.app.core.network.PersonalApi
 import com.nodeloc.app.feature.feed.RowsSkeleton
+import com.nodeloc.app.feature.moderation.ModScaffold
 import com.nodeloc.app.feature.nav.Navigator
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * Which slice of the directory is showing. [Recent] is not a server kind: it
+ * is the account's own play history, and only offered when there is one.
+ */
+enum class AppFilter(val kind: String?) { All(null), Games("game"), Tools("applet"), Bots("bot"), Recent(null) }
+
+data class AppDirectoryState(
+    val filter: AppFilter = AppFilter.All,
+    val apps: List<ApiDirectoryApp> = emptyList(),
+    /** Per-kind totals; a chip whose kind has none is not drawn. */
+    val counts: Map<String, Int> = emptyMap(),
+    val page: Int = 0,
+    val hasMore: Boolean = false,
+    val loading: Boolean = false,
+    val error: Throwable? = null,
+)
+
 class AppsViewModel : ViewModel() {
     private val client = ServiceLocator.get.client
+    private val personal = PersonalApi(client.api)
 
-    private val _apps = MutableStateFlow<List<DirectoryApp>>(emptyList())
-    val apps: StateFlow<List<DirectoryApp>> = _apps.asStateFlow()
+    private val _directory = MutableStateFlow(AppDirectoryState())
+    val directory: StateFlow<AppDirectoryState> = _directory.asStateFlow()
 
     private val _detail = MutableStateFlow<DirectoryApp?>(null)
     val detail: StateFlow<DirectoryApp?> = _detail.asStateFlow()
@@ -79,13 +108,45 @@ class AppsViewModel : ViewModel() {
     private val _installId = MutableStateFlow<Int?>(null)
     val installId: StateFlow<Int?> = _installId.asStateFlow()
 
-    fun loadDirectory() {
-        if (_apps.value.isNotEmpty()) return
-        viewModelScope.launch {
-            _isLoading.value = true
-            // Note: this endpoint answers with a bare array, unlike the detail one.
-            _apps.value = runCatchingCancellable { client.appsDirectory() }.getOrDefault(emptyList())
-            _isLoading.value = false
+    private var pageJob: Job? = null
+
+    fun loadDirectory(force: Boolean = false) {
+        val current = _directory.value
+        if (!force && (current.apps.isNotEmpty() || current.loading)) return
+        select(current.filter)
+    }
+
+    /** A chip switch starts over at page 0; a page in flight for the old one is dropped. */
+    fun select(filter: AppFilter) {
+        pageJob?.cancel()
+        _directory.value = _directory.value.copy(filter = filter, apps = emptyList(), page = 0, hasMore = false, loading = false, error = null)
+        if (filter == AppFilter.Recent) return
+        fetch(filter, 0)
+    }
+
+    fun loadMore() {
+        val current = _directory.value
+        if (current.loading || !current.hasMore || current.filter == AppFilter.Recent) return
+        fetch(current.filter, current.page + 1)
+    }
+
+    private fun fetch(filter: AppFilter, page: Int) {
+        _directory.value = _directory.value.copy(loading = true, error = null)
+        pageJob = viewModelScope.launch {
+            runCatchingCancellable { personal.appDirectory(filter.kind, page) }
+                .onSuccess { result ->
+                    val apps = (if (page == 0) emptyList() else _directory.value.apps) + result.apps
+                    _directory.value = _directory.value.copy(
+                        apps = apps.distinctBy { it.id },
+                        // Every page carries the per-kind totals; they describe the
+                        // whole directory, so whichever page came last is right.
+                        counts = result.counts.ifEmpty { _directory.value.counts },
+                        page = page,
+                        hasMore = apps.size < result.total && result.apps.isNotEmpty(),
+                        loading = false,
+                    )
+                }
+                .onFailure { _directory.value = _directory.value.copy(loading = false, error = it) }
         }
     }
 
@@ -119,63 +180,110 @@ class AppsViewModel : ViewModel() {
 @Composable
 fun AppsScreen(navigator: Navigator) {
     val viewModel: AppsViewModel = viewModel()
-    val apps by viewModel.apps.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    val state by viewModel.directory.collectAsState()
+    val me by ServiceLocator.get.session.currentUser.collectAsState()
+    val recentApps = me?.recentApps.orEmpty()
+    val gridState = rememberLazyGridState()
 
     LaunchedEffect(Unit) { viewModel.loadDirectory() }
 
-    Column(Modifier.fillMaxSize().background(Nocturne.bg)) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.statusBars)
-                .padding(horizontal = Space.page, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Space.s3),
-        ) {
-            HeaderIconButton(Lucide.ArrowLeft, stringResource(R.string.common_back), onClick = navigator::back)
-            Text(stringResource(R.string.apps_title), style = Type.body(15, FontWeight.SemiBold), color = Nocturne.headerText)
+    // Paged at 24: the next page is asked for as the last cards come into view.
+    val nearEnd by remember {
+        derivedStateOf {
+            val last = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            last >= gridState.layoutInfo.totalItemsCount - 4
         }
-        HairLine()
+    }
+    LaunchedEffect(nearEnd, state.apps.size) { if (nearEnd) viewModel.loadMore() }
+
+    ModScaffold(stringResource(R.string.apps2_title), navigator::back) {
+        FilterPillRow {
+            FilterPill(stringResource(R.string.apps2_filter_all), state.filter == AppFilter.All) { viewModel.select(AppFilter.All) }
+            if ((state.counts["game"] ?: 0) > 0) {
+                FilterPill(stringResource(R.string.apps2_filter_games), state.filter == AppFilter.Games) { viewModel.select(AppFilter.Games) }
+            }
+            if ((state.counts["applet"] ?: 0) > 0) {
+                FilterPill(stringResource(R.string.apps2_filter_tools), state.filter == AppFilter.Tools) { viewModel.select(AppFilter.Tools) }
+            }
+            if ((state.counts["bot"] ?: 0) > 0) {
+                FilterPill(stringResource(R.string.apps2_filter_bots), state.filter == AppFilter.Bots) { viewModel.select(AppFilter.Bots) }
+            }
+            if (recentApps.isNotEmpty()) {
+                FilterPill(stringResource(R.string.apps2_filter_recent), state.filter == AppFilter.Recent) { viewModel.select(AppFilter.Recent) }
+            }
+        }
+
+        val cards: List<ApiDirectoryApp> = if (state.filter == AppFilter.Recent) {
+            recentApps.map { ApiDirectoryApp(id = it.id, slug = it.slug, name = it.name, logoUrl = it.logoUrl) }
+        } else {
+            state.apps
+        }
 
         when {
-            isLoading && apps.isEmpty() -> RowsSkeleton()
-            apps.isEmpty() -> EmptyStateView(Lucide.LayoutGrid, stringResource(R.string.apps_empty))
-            else -> LazyColumn(contentPadding = PaddingValues(bottom = 24.dp)) {
-                items(apps, key = { it.id }) { app ->
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable { navigator.openApp(app.slug) }
-                            .padding(horizontal = Space.page, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(Space.s3),
-                    ) {
-                        RemoteAvatar(
-                            DiscourseConfig.absoluteUrl(app.logoUrl),
-                            app.name.take(1),
-                            size = 40.dp,
-                            cornerRadius = 10.dp,
+            state.loading && cards.isEmpty() -> RowsSkeleton()
+            state.error != null && cards.isEmpty() -> EmptyStateView(
+                icon = Lucide.CircleAlert,
+                title = stringResource(R.string.apps2_load_failed),
+                retryLabel = stringResource(R.string.common_retry),
+                onRetry = { viewModel.loadDirectory(force = true) },
+            )
+            cards.isEmpty() -> EmptyStateView(Lucide.LayoutGrid, stringResource(R.string.apps_empty))
+            else -> LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                state = gridState,
+                modifier = Modifier.fillMaxSize().background(Nocturne.surface),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 8.dp)) {
+                        Text(
+                            stringResource(if (state.filter == AppFilter.Recent) R.string.apps2_section_recent else R.string.apps2_section_all),
+                            style = Type.body(13, FontWeight.SemiBold),
+                            color = Nocturne.textSecondary,
+                            modifier = Modifier.weight(1f),
                         )
-                        Column(Modifier.weight(1f)) {
-                            Text(app.name, style = Type.body(15, FontWeight.Medium), color = Nocturne.text)
-                            app.description?.let {
-                                Text(
-                                    it,
-                                    style = Type.body(12),
-                                    color = Nocturne.muted(0.5f),
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
-                        }
-                        app.installsCount?.let {
-                            Text(pluralStringResource(R.plurals.apps_installs, it, it), style = Type.body(11), color = Nocturne.muted(0.4f))
+                        // The directory is ordered by installs, so the label
+                        // states the order the server actually used.
+                        if (state.filter != AppFilter.Recent) {
+                            Text(stringResource(R.string.apps2_by_popularity), style = Type.body(13, FontWeight.SemiBold), color = Nocturne.accent)
                         }
                     }
-                    HairLine()
+                }
+                items(cards, key = { it.id }) { app -> AppCard(app) { navigator.openApp(app.slug) } }
+                if (state.loading) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                            NodelocLoader(height = 20.dp, tint = Nocturne.accent)
+                        }
+                    }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun AppCard(app: ApiDirectoryApp, onClick: () -> Unit) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(Nocturne.bg)
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        RemoteAvatar(DiscourseConfig.absoluteUrl(app.logoUrl), app.name.take(1), variant = app.id % 2, size = 48.dp, cornerRadius = 14.dp)
+        Text(app.name, style = Type.body(15, FontWeight.SemiBold), color = Nocturne.text, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        app.description?.takeIf { it.isNotBlank() }?.let {
+            Text(it, style = Type.body(12), color = Nocturne.textSecondary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+        // Installs, not players: the directory counts where an app was placed,
+        // and "N playing" would claim a number nobody keeps.
+        app.installsCount?.takeIf { it > 0 }?.let {
+            Text(pluralStringResource(R.plurals.apps_installs, it, it), style = Type.body(11), color = Nocturne.textTertiary)
         }
     }
 }

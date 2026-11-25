@@ -37,7 +37,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.composables.icons.lucide.CirclePlus
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.LayoutGrid
+import com.composables.icons.lucide.Settings
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import com.nodeloc.app.R
+import com.nodeloc.app.ServiceLocator
+import com.nodeloc.app.core.design.PillTone
+import com.nodeloc.app.core.design.StatusPill
+import com.nodeloc.app.core.model.CurrentUser
+import com.nodeloc.app.core.store.ModPrivileges
+import com.nodeloc.app.core.store.ModeratedNode
 import com.nodeloc.app.core.design.Avatar
 import com.nodeloc.app.core.design.Nocturne
 import com.nodeloc.app.core.design.RemoteAvatar
@@ -62,11 +71,22 @@ fun SidebarDrawer(
     onCreateNode: () -> Unit,
     onOpenApps: () -> Unit,
     onOpenApp: (String) -> Unit,
+    onOpenProfile: () -> Unit,
+    onOpenModDashboard: (String?) -> Unit,
+    onOpenNodeAdmin: (String) -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     val catalog: NodeCatalogViewModel = viewModel()
     val state by catalog.sidebarState.collectAsState()
+    val services = ServiceLocator.get
+    val user by services.session.currentUser.collectAsState()
+    val privileges by services.moderation.privileges.collectAsState()
+    val nodePending by services.moderation.nodePending.collectAsState()
 
     LaunchedEffect(Unit) { catalog.loadSidebar() }
+    // A node moderator has no pushed count; the drawer is where they look, so
+    // opening it is when the per-node numbers are worth a fetch.
+    LaunchedEffect(privileges.nodes) { services.moderation.refreshNodeCounts() }
 
     ModalDrawerSheet(
         drawerContainerColor = Nocturne.bg,
@@ -74,6 +94,23 @@ fun SidebarDrawer(
     ) {
         Column(Modifier.windowInsetsPadding(WindowInsets.systemBars)) {
             LazyColumn(Modifier.weight(1f)) {
+                user?.let { me ->
+                    item { SidebarUserCard(me, privileges, onOpenProfile) }
+                }
+
+                if (privileges.isModerator) {
+                    item {
+                        SidebarSectionHeader(
+                            stringResource(R.string.mod_entry_managed_nodes),
+                            action = stringResource(R.string.mod_entry_dashboard),
+                            onAction = { onOpenModDashboard(null) },
+                        )
+                    }
+                    items(privileges.nodes, key = { "mod-${it.slug}" }) { node ->
+                        SidebarManagedNodeRow(node, nodePending[node.slug] ?: 0) { onOpenNodeAdmin(node.slug) }
+                    }
+                }
+
                 item {
                     Spacer(Modifier.height(Space.s4))
                     SidebarAction(Lucide.LayoutGrid, stringResource(R.string.node_browse)) { onBrowseNodes() }
@@ -121,6 +158,107 @@ fun SidebarDrawer(
                         SidebarNodeRow(node) { onOpenNode(node) }
                     }
                 }
+
+                item {
+                    Spacer(Modifier.height(Space.s4))
+                    SidebarAction(Lucide.Settings, stringResource(R.string.common_settings)) { onOpenSettings() }
+                    Spacer(Modifier.height(Space.s4))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SidebarUserCard(user: CurrentUser, privileges: ModPrivileges, onClick: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = Space.page, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        val avatar = DiscourseConfig.avatarUrl(user.avatarTemplate, 120)
+        if (avatar != null) RemoteAvatar(avatar, user.username.take(1), size = 48.dp)
+        else Avatar(user.username.take(1), variant = user.id % 2, size = 48.dp)
+        Column(Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    user.name?.takeIf { it.isNotBlank() } ?: user.username,
+                    style = Type.body(18, FontWeight.Bold),
+                    color = Nocturne.text,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                when {
+                    privileges.isAdmin -> StatusPill(stringResource(R.string.mod_entry_role_admin), PillTone.Accent)
+                    privileges.isModerator -> StatusPill(stringResource(R.string.mod_entry_role_moderator), PillTone.Accent)
+                }
+            }
+            user.gamificationScore?.let { energy ->
+                Text(
+                    stringResource(R.string.mod_entry_energy, DiscourseFormat.count(energy)),
+                    style = Type.body(13),
+                    color = Nocturne.textSecondary,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SidebarSectionHeader(title: String, action: String? = null, onAction: () -> Unit = {}) {
+    Row(
+        Modifier.fillMaxWidth().padding(start = Space.page, end = 4.dp, top = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(title, style = Type.body(13), color = Nocturne.textSecondary, modifier = Modifier.weight(1f))
+        if (action != null) {
+            Text(
+                action,
+                style = Type.body(13, FontWeight.SemiBold),
+                color = Nocturne.accent,
+                modifier = Modifier.clip(CircleShape).clickable(onClick = onAction).padding(horizontal = 12.dp, vertical = 8.dp),
+            )
+        }
+    }
+}
+
+/** The design's managed-node row: a 52-high pill row with the node's pending count in a warning badge. */
+@Composable
+private fun SidebarManagedNodeRow(node: ModeratedNode, pending: Int, onClick: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp)
+            .height(52.dp)
+            .clip(CircleShape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Avatar(node.name.take(1), variant = node.slug.hashCode() and 1, size = 28.dp)
+        Text(
+            "n/${node.slug}",
+            style = Type.body(16, FontWeight.Medium),
+            color = Nocturne.text,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+        if (pending > 0) {
+            Box(
+                Modifier
+                    .height(22.dp)
+                    .clip(CircleShape)
+                    .background(Nocturne.warningBg)
+                    .padding(horizontal = 7.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(if (pending >= 50) "50+" else pending.toString(), style = Type.body(12, FontWeight.Bold), color = Nocturne.warning)
             }
         }
     }

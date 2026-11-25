@@ -243,7 +243,14 @@ data class ApiSavedList(val bookmarks: List<ApiSaved> = emptyList(), val total: 
 
 /** `GET /api/v1/me/nodes`: the reader's relation to nodes in one call. */
 @Serializable
-data class ApiMyNode(val slug: String = "", val role: String? = null, val notificationLevel: String? = null)
+data class ApiMyNode(
+    val slug: String = "",
+    val name: String = "",
+    val color: String = "",
+    /** `member` or `moderator`; owners are stored as `moderator` and the field is absent for an owner with no membership row. */
+    val role: String? = null,
+    val notificationLevel: String? = null,
+)
 
 @Serializable
 data class ApiMyNodes(

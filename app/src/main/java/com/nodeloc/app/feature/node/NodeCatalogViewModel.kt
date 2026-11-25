@@ -9,7 +9,7 @@ import com.nodeloc.app.ServiceLocator
 import com.nodeloc.app.core.design.ToastCenter
 import com.nodeloc.app.core.html.plainTextFromHtml
 import com.nodeloc.app.core.model.DiscourseCategory
-import com.nodeloc.app.core.model.NodeGroupSummary
+import com.nodeloc.app.core.network.ApiNode
 import com.nodeloc.app.core.model.NodeSummary
 import com.nodeloc.app.core.model.SidebarDiscourseApp
 import com.nodeloc.app.core.model.SiteResponse
@@ -26,17 +26,34 @@ data class SidebarState(
     val apps: List<SidebarDiscourseApp> = emptyList(),
 )
 
-data class NodeBrowseState(
-    val groups: List<NodeGroupSummary> = emptyList(),
+/** A section of the directory, offered as a chip on the node square. */
+data class NodeSquareSection(val id: Int, val name: String)
+
+data class NodeSquareState(
+    val nodes: List<NodeSummary> = emptyList(),
+    val sections: List<NodeSquareSection> = emptyList(),
+    /** Null is 推荐: every section, busiest first. */
+    val sectionId: Int? = null,
+    val query: String = "",
     val isLoading: Boolean = false,
     val error: Throwable? = null,
 ) {
-    /**
-     * Group names arrive one call before their nodes do. Dropping the skeleton
-     * on the names alone shows a page of empty shelves, which reads as a bug
-     * rather than as loading.
-     */
-    val showSkeleton: Boolean get() = isLoading && groups.all { it.nodes.isEmpty() }
+    val joined: List<NodeSummary> get() = nodes.filter { it.isJoined }
+
+    /** Busiest first, narrowed by the chip and by what is typed into search. */
+    val shown: List<NodeSummary>
+        get() {
+            val needle = query.trim().removePrefix("n/").lowercase()
+            return nodes
+                .filter { sectionId == null || it.parentCategoryId == sectionId }
+                .filter {
+                    needle.isEmpty() ||
+                        it.slug.lowercase().contains(needle) ||
+                        it.name.lowercase().contains(needle) ||
+                        it.description?.lowercase()?.contains(needle) == true
+                }
+                .sortedByDescending { it.memberCount ?: 0 }
+        }
 }
 
 /** Turns Discourse categories into the flat [NodeSummary] rows the UI draws. */
@@ -62,9 +79,8 @@ object NodeSummaryFactory {
 }
 
 /**
- * The node directory: the drawer's list, the browse page's groups, and each
- * group's own pagination. Shared so opening the drawer doesn't refetch what
- * the browse page already has.
+ * The node directory: the drawer's list and the node square. Both read the
+ * client's five-minute directory cache, so neither pays for the other.
  */
 class NodeCatalogViewModel : ViewModel() {
     private val services = ServiceLocator.get
@@ -73,8 +89,8 @@ class NodeCatalogViewModel : ViewModel() {
     private val _sidebarState = MutableStateFlow(SidebarState())
     val sidebarState: StateFlow<SidebarState> = _sidebarState.asStateFlow()
 
-    private val _browseState = MutableStateFlow(NodeBrowseState())
-    val browseState: StateFlow<NodeBrowseState> = _browseState.asStateFlow()
+    private val _squareState = MutableStateFlow(NodeSquareState())
+    val squareState: StateFlow<NodeSquareState> = _squareState.asStateFlow()
 
     private var sidebarLoaded = false
 
@@ -122,84 +138,49 @@ class NodeCatalogViewModel : ViewModel() {
             .map { SidebarDiscourseApp(id = it.id, slug = it.slug, name = it.name, logoUrl = it.logoUrl) }
     }
 
-    fun loadBrowse(force: Boolean = false) {
-        if (!force && _browseState.value.groups.isNotEmpty()) return
+    /**
+     * The node square: the whole directory in one call — `GET /nodes` answers
+     * every visible node with `joined` already folded in — then sections,
+     * search and ordering on the phone, where they cost nothing per keystroke.
+     */
+    fun loadSquare(force: Boolean = false) {
+        if (_squareState.value.isLoading) return
+        _squareState.value = _squareState.value.copy(isLoading = true, error = null)
         viewModelScope.launch {
-            _browseState.value = _browseState.value.copy(isLoading = true, error = null)
             try {
-                val response = client.sidebarNodes()
-                // A grouped bucket describes the *section* only — its nodes are
-                // not in the payload, so each shelf needs its own browse call.
-                val groups = response.grouped.orEmpty().values
-                    .map { bucket ->
-                        NodeGroupSummary(
-                            id = bucket.category.id,
-                            name = bucket.category.name,
-                            slug = bucket.category.slug,
-                            nodes = emptyList(),
-                            totalCount = bucket.totalCount ?: bucket.category.topicCount ?: 0,
-                            hasMore = bucket.hasMore == true,
-                        )
-                    }
-                    .sortedWith(compareByDescending<NodeGroupSummary> { it.totalCount }.thenBy { it.name })
-                    .ifEmpty {
-                        // Some deployments answer flat rather than grouped; the
-                        // site's own category tree is the same information.
-                        groupsFromSite()
-                    }
-
-                _browseState.value = NodeBrowseState(groups = groups, isLoading = groups.any { it.nodes.isEmpty() })
-
-                // Shelves fill in parallel: one slow section shouldn't hold up
-                // the rest of the page.
-                val previews = groups
-                    .filter { it.nodes.isEmpty() }
-                    .map { group -> group.id to async { previewNodes(group.id) } }
-                    .associate { (id, job) -> id to job.await() }
-
-                _browseState.value = _browseState.value.copy(
+                val all = client.nodeDirectory(force = force)
+                val parents = all.filter { it.parentId == null }
+                val leaves = all.filter { it.parentId != null }
+                _squareState.value = _squareState.value.copy(
                     isLoading = false,
-                    groups = _browseState.value.groups.map { group ->
-                        previews[group.id]?.takeIf { it.isNotEmpty() }?.let { group.copy(nodes = it) } ?: group
-                    },
+                    // A section with no visible children would be a chip that
+                    // empties the page.
+                    sections = parents
+                        .filter { parent -> leaves.any { it.parentId == parent.id } }
+                        .map { NodeSquareSection(it.id, it.name) },
+                    nodes = leaves.map(::squareNode),
                 )
             } catch (error: Throwable) {
                 error.rethrowIfCancellation()
-                _browseState.value = _browseState.value.copy(isLoading = false, error = error)
+                _squareState.value = _squareState.value.copy(isLoading = false, error = error)
             }
         }
     }
 
-    private suspend fun previewNodes(parentCategoryId: Int): List<NodeSummary> =
-        runCatchingCancellable { client.nodeBrowse(parentCategoryId, perPage = PREVIEW_COUNT) }
-            .getOrNull()
-            ?.let { it.communities ?: it.recommended }
-            .orEmpty()
-            .map(NodeSummaryFactory::summary)
+    fun selectSection(id: Int?) {
+        _squareState.value = _squareState.value.copy(sectionId = id)
+    }
 
-    private suspend fun groupsFromSite(): List<NodeGroupSummary> {
-        val site = services.siteRepository.siteResponse() ?: return emptyList()
-        return site.categories.orEmpty()
-            .filter { it.parentCategoryId == null }
-            .map { parent ->
-                NodeGroupSummary(
-                    id = parent.id,
-                    name = parent.name,
-                    slug = parent.slug,
-                    nodes = parent.subcategoryList.orEmpty().map(NodeSummaryFactory::summary),
-                )
-            }
-            .filter { it.nodes.isNotEmpty() }
+    fun updateQuery(value: String) {
+        _squareState.value = _squareState.value.copy(query = value)
     }
 
     /**
-     * Join or leave, from the browse page. Flips first and restores on failure,
-     * the way every other membership toggle in the app does.
+     * Join or leave from the square. Flips first and restores on failure, the
+     * way every other membership toggle in the app does.
      */
     fun toggleJoin(nodeId: Int) {
-        val joining = !_browseState.value.groups
-            .firstNotNullOfOrNull { group -> group.nodes.firstOrNull { it.id == nodeId } }
-            ?.isJoined.let { it == true }
+        val joining = _squareState.value.nodes.firstOrNull { it.id == nodeId }?.isJoined != true
         setJoined(nodeId, joining)
         viewModelScope.launch {
             val result = runCatchingCancellable {
@@ -216,19 +197,31 @@ class NodeCatalogViewModel : ViewModel() {
     }
 
     private fun setJoined(nodeId: Int, joined: Boolean) {
-        _browseState.value = _browseState.value.copy(
-            groups = _browseState.value.groups.map { group ->
-                group.copy(
-                    nodes = group.nodes.map { if (it.id == nodeId) it.copy(isJoined = joined) else it },
+        _squareState.value = _squareState.value.copy(
+            nodes = _squareState.value.nodes.map { node ->
+                if (node.id != nodeId) node
+                else node.copy(
+                    isJoined = joined,
+                    // The count moves with the button, so the two never disagree.
+                    memberCount = node.memberCount?.let { (it + if (joined) 1 else -1).coerceAtLeast(0) },
                 )
             },
         )
     }
 
+    private fun squareNode(node: ApiNode): NodeSummary = NodeSummary(
+        id = node.id,
+        name = node.name,
+        slug = node.slug,
+        description = node.description?.let(::plainTextFromHtml)?.takeIf { it.isNotBlank() },
+        logoUrl = DiscourseConfig.absoluteUrl(node.logoUrl),
+        colorHex = node.color,
+        memberCount = node.memberCount,
+        topicCount = node.topicCount,
+        parentCategoryId = node.parentId,
+        isJoined = node.joined,
+    )
 }
 
 /** The drawer shows five, as the site's own sidebar does. */
 private const val SIDEBAR_APP_COUNT = 5
-
-/** What a shelf opens with: two rows of two, the rest behind "更多". */
-private const val PREVIEW_COUNT = 4

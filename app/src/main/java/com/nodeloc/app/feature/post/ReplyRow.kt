@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,7 +50,7 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pin
-import com.nodeloc.app.core.design.NodelocIcons
+import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.Reply
 import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.ChevronUp
@@ -60,19 +61,20 @@ import com.nodeloc.app.core.design.ConfirmDialog
 import com.nodeloc.app.core.design.BadgeTitleText
 import com.nodeloc.app.core.design.Nocturne
 import com.nodeloc.app.core.design.NodelocLoader
+import com.nodeloc.app.core.design.PillTone
 import com.nodeloc.app.core.design.RemoteAvatar
 import com.nodeloc.app.core.design.Space
 import com.nodeloc.app.core.design.TagChip
 import com.nodeloc.app.core.design.TagStyle
 import com.nodeloc.app.core.design.Type
 import com.nodeloc.app.core.design.VoteControl
+import com.nodeloc.app.core.design.colors
 import com.nodeloc.app.core.html.PostContentView
 import com.nodeloc.app.core.html.PostVideo
 import com.nodeloc.app.core.html.PostImage
 import com.nodeloc.app.core.model.PostComment
 import com.nodeloc.app.core.model.VoteDirection
 
-/** Indent per nesting level; 8 levels is where the rails stop biting in. */
 /**
  * One vertical guide per ancestor level, and the indent they measure out.
  *
@@ -83,6 +85,7 @@ import com.nodeloc.app.core.model.VoteDirection
  */
 private val IndentStep = 14.dp
 private val RailInset = Space.page
+private val AvatarSize = 30.dp
 
 /**
  * One row of the flattened reply tree.
@@ -123,12 +126,29 @@ fun ReplyRow(
     onToggleLock: () -> Unit,
     /** Staff, for the lock item — everything else is gated by the server's flags. */
     isStaff: Boolean,
+    /** Moderators: the reply's moderation sheet (delete with a reason, sanction the author). */
+    onModerate: (() -> Unit)? = null,
+    /** Edited posts, for the author and moderators: the edit history sheet. */
+    onShowHistory: (() -> Unit)? = null,
     onOpenLink: (String) -> Unit,
     onOpenImage: (PostImage) -> Unit,
     onOpenVideo: (PostVideo) -> Unit,
     onLoadMoreChildren: (Int) -> Unit,
     pollSlot: @Composable (String) -> Unit,
     modifier: Modifier = Modifier,
+    /** Written by the topic's author: the 楼主 pill. */
+    isOp: Boolean = false,
+    /** This reply is the topic's accepted answer. */
+    isAccepted: Boolean = false,
+    /** Null for everyone who may not accept or withdraw an answer here. */
+    onToggleAccepted: (() -> Unit)? = null,
+    /** What the activity log says about a deleted reply; null when it says nothing. */
+    deletion: ReplyDeletion? = null,
+    /** The author and moderators may open a deleted reply's source. */
+    canRevealOriginal: Boolean = false,
+    /** The source, once opened. */
+    revealedSource: String? = null,
+    onToggleOriginal: () -> Unit = {},
 ) {
     if (comment.isLoadMore) {
         LoadMoreRow(comment, isLoadingChildren) { onLoadMoreChildren(comment.loadMoreParent) }
@@ -147,13 +167,27 @@ fun ReplyRow(
             .clickable(onClick = onToggleCollapse),
     ) {
         Spacer(Modifier.width(RailInset + IndentStep * depth))
+        if (comment.deleted) {
+            DeletedReply(comment, deletion, canRevealOriginal, revealedSource, onToggleOriginal, onRecover)
+            return@Row
+        }
+        RemoteAvatar(
+            comment.avatarUrl,
+            comment.author.take(1).uppercase(),
+            variant = comment.id % 2,
+            size = AvatarSize,
+            modifier = Modifier
+                .padding(top = 10.dp)
+                .clickable { onOpenAuthor(comment.author) },
+        )
+        Spacer(Modifier.width(10.dp))
         Column(
             Modifier
                 .weight(1f)
-                .padding(end = Space.page, top = 10.dp, bottom = 10.dp),
+                .padding(end = Space.page, top = 10.dp, bottom = 8.dp),
             verticalArrangement = Arrangement.spacedBy(Space.s2),
         ) {
-            AuthorRow(comment, collapsed, onOpenAuthor)
+            AuthorRow(comment, collapsed, isOp, isAccepted)
 
             // Collapsing hides a whole subtree, so the body slides rather than
             // vanishes — otherwise everything below it jumps and the reader
@@ -168,8 +202,8 @@ fun ReplyRow(
                     val body = @Composable {
                         PostContentView(
                             content = comment.content,
-                            baseSize = 14,
-                            lineExtra = 5,
+                            baseSize = 15,
+                            lineExtra = 7,
                             onOpenLink = onOpenLink,
                             onOpenImage = onOpenImage,
                             // Both were left at their no-op defaults: a poll in
@@ -193,13 +227,8 @@ fun ReplyRow(
                         TagChip(stringResource(R.string.reader_claimed_points, points), style = TagStyle.Accent2)
                     }
 
-                    // Only the tip total. The faces went back down beside the
-                    // menu: a reply's actions already hug the trailing edge, so
-                    // a face row above them reads as a second, emptier line.
                     if (comment.rewardTotal > 0) {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                            RewardSummary(comment.rewardTotal, onRewardDetail)
-                        }
+                        RewardSummary(comment.rewardTotal, onRewardDetail)
                     }
 
                     ActionRow(
@@ -209,7 +238,6 @@ fun ReplyRow(
                         onPickFace = onPickFace,
                         onReply = onReply,
                         onReward = onReward,
-                        onRewardDetail = onRewardDetail,
                         onReactionDetail = onReactionDetail,
                         onShare = onShare,
                         bookmarked = bookmarked,
@@ -222,8 +250,85 @@ fun ReplyRow(
                         onRecover = onRecover,
                         onToggleLock = onToggleLock,
                         isStaff = isStaff,
+                        onModerate = onModerate,
+                        onShowHistory = onShowHistory,
+                        isAccepted = isAccepted,
+                        onToggleAccepted = onToggleAccepted,
                     )
                 }
+            }
+        }
+    }
+}
+
+/**
+ * A deleted reply keeps its floor and its place in the tree — the replies
+ * under it still answer something — but not its author or its words. Who
+ * removed it, and why, come from the activity log; the source is fetched on
+ * demand for the two kinds of people the server will give it to.
+ */
+@Composable
+private fun DeletedReply(
+    comment: PostComment,
+    deletion: ReplyDeletion?,
+    canReveal: Boolean,
+    revealed: String?,
+    onToggleOriginal: () -> Unit,
+    onRecover: () -> Unit,
+) {
+    Row(Modifier.padding(top = 10.dp, bottom = 8.dp, end = Space.page)) {
+        Box(
+            Modifier.size(AvatarSize).clip(CircleShape).background(Nocturne.neutral300),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Lucide.Trash2, null, tint = Nocturne.textTertiary, modifier = Modifier.size(14.dp))
+        }
+        Spacer(Modifier.width(10.dp))
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                stringResource(R.string.reader2_deleted_header, comment.time),
+                style = Type.body(13),
+                color = Nocturne.textSecondary,
+            )
+            val byAuthor = deletion?.actor != null && deletion.actor.equals(comment.author, ignoreCase = true)
+            val notice = when {
+                deletion == null -> stringResource(R.string.reader_deleted_badge)
+                byAuthor -> stringResource(R.string.reader2_deleted_by_author)
+                deletion.reason != null -> stringResource(R.string.reader2_deleted_by_mod_reason, deletion.reason)
+                else -> stringResource(R.string.reader2_deleted_by_mod)
+            }
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Nocturne.neutral200)
+                    .padding(horizontal = 12.dp, vertical = 9.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(notice, style = Type.body(14), color = Nocturne.textSecondary, modifier = Modifier.weight(1f))
+                if (canReveal) {
+                    Text(
+                        stringResource(if (revealed != null) R.string.reader2_hide_original else R.string.reader2_view_original),
+                        style = Type.body(14, FontWeight.SemiBold),
+                        color = Nocturne.accent,
+                        modifier = Modifier.clickable(onClick = onToggleOriginal),
+                    )
+                }
+            }
+            if (revealed != null) {
+                Text(stringResource(R.string.reader2_original_private), style = Type.body(12), color = Nocturne.textTertiary)
+                Text(revealed, style = Type.body(14), color = Nocturne.textSecondary)
+            }
+            // Recovery stays where it was, under the placeholder rather than in
+            // a menu the placeholder no longer has.
+            if (comment.canRecover) {
+                Text(
+                    stringResource(R.string.reader_recover),
+                    style = Type.body(13, FontWeight.SemiBold),
+                    color = Nocturne.accent,
+                    modifier = Modifier.clickable(onClick = onRecover),
+                )
             }
         }
     }
@@ -233,7 +338,8 @@ fun ReplyRow(
 private fun AuthorRow(
     comment: PostComment,
     collapsed: Boolean,
-    onOpenAuthor: (String) -> Unit,
+    isOp: Boolean,
+    isAccepted: Boolean,
 ) {
     Row(
         Modifier.fillMaxWidth(),
@@ -249,26 +355,20 @@ private fun AuthorRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            RemoteAvatar(
-                comment.avatarUrl,
-                comment.author.take(1).uppercase(),
-                variant = comment.id % 2,
-                size = 22.dp,
-                modifier = Modifier.clickable { onOpenAuthor(comment.author) },
-            )
-            // Only the avatar goes somewhere else; the name, the timestamp and
-            // the gap after them all fall through to the row.
             // The bare name. `u/` earns its place where a handle has to be told
             // apart from a node's `n/` — a feed row, a header — and a reply row
             // is nothing but people, so it only costs three characters of the
             // width their names have to share with a title and a timestamp.
             Text(
                 comment.author,
-                style = Type.body(13, FontWeight.SemiBold),
+                style = Type.body(13, FontWeight.Bold),
                 color = Nocturne.text,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
             )
+            if (isOp) SmallPill(stringResource(R.string.reader2_op), PillTone.Accent)
+            if (isAccepted) SmallPill(stringResource(R.string.reader2_best_answer), PillTone.Accent)
             comment.flairUrl?.let {
                 RemoteAvatar(it, "", size = 14.dp)
             }
@@ -286,13 +386,7 @@ private fun AuthorRow(
                     modifier = Modifier.size(12.dp),
                 )
             }
-            Text(comment.time, style = Type.body(11), color = Nocturne.muted(0.4f))
-            // Only staff are sent a deleted post at all, and when they are it
-            // has to look deleted — otherwise the thread reads as though
-            // nothing happened and the recover action makes no sense.
-            if (comment.deleted) {
-                TagChip(stringResource(R.string.reader_deleted_badge), style = TagStyle.Outline)
-            }
+            Text("· ${comment.time}", style = Type.body(13), color = Nocturne.textSecondary, maxLines = 1)
             if (comment.locked) {
                 TagChip(stringResource(R.string.reader_locked_badge))
             }
@@ -309,10 +403,22 @@ private fun AuthorRow(
             Icon(
                 if (collapsed) Lucide.ChevronDown else Lucide.ChevronUp,
                 stringResource(if (collapsed) R.string.common_expand else R.string.common_collapse),
-                tint = Nocturne.muted(0.4f),
+                tint = Nocturne.textTertiary,
                 modifier = Modifier.size(16.dp),
             )
         }
+    }
+}
+
+/** The 18-high pill beside a reply's name; StatusPill's 22 crowds a 13sp line. */
+@Composable
+private fun SmallPill(text: String, tone: PillTone) {
+    val (ground, ink) = tone.colors()
+    Box(
+        Modifier.height(18.dp).clip(CircleShape).background(ground).padding(horizontal = 6.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text, style = Type.body(11, FontWeight.Bold), color = ink, maxLines = 1)
     }
 }
 
@@ -324,7 +430,6 @@ private fun ActionRow(
     onPickFace: ((VoteDirection, String) -> Unit)?,
     onReply: () -> Unit,
     onReward: () -> Unit,
-    onRewardDetail: () -> Unit,
     onReactionDetail: () -> Unit,
     onShare: () -> Unit,
     /** Already bookmarked: the menu offers to take it off instead. */
@@ -338,38 +443,84 @@ private fun ActionRow(
     onRecover: () -> Unit,
     onToggleLock: () -> Unit,
     isStaff: Boolean,
+    onModerate: (() -> Unit)? = null,
+    onShowHistory: (() -> Unit)? = null,
+    isAccepted: Boolean,
+    onToggleAccepted: (() -> Unit)?,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
+    val ink = Nocturne.textSecondary
     Row(
         Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        // Every control sits at the trailing edge — the reply body is the thing
-        // being read, and the actions are a margin note against it.
-        horizontalArrangement = Arrangement.spacedBy(Space.s6, Alignment.End),
+        // The design's reply row: score and reply lead, everything rarer is
+        // behind the trailing ⋯ (report, edit, delete, tip, answer, share).
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // Leftmost, so the tally reads as what the row is about rather than as
-        // a fifth button on it.
+        // discourse-vote replaces the heart rather than joining it: the upvote
+        // *is* the like, so both would be the same button twice.
+        if (comment.voteScore != null) {
+            VoteControl(
+                direction = comment.voteDirection,
+                score = comment.voteScore,
+                canVoteDown = comment.canVoteDown,
+                onVote = onVote,
+                onPickFace = onPickFace,
+                iconSize = 16.dp,
+                textSize = 13,
+                ground = false,
+            )
+        } else {
+            Row(
+                Modifier.clickable(onClick = onLike),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Icon(
+                    // Lucide has no solid heart, so the tint carries the state alone.
+                    Lucide.Heart,
+                    stringResource(R.string.reader_like),
+                    tint = if (comment.isLiked) Nocturne.love else ink,
+                    modifier = Modifier.size(16.dp),
+                )
+                if (comment.votes > 0) {
+                    Text("${comment.votes}", style = Type.body(13, FontWeight.Bold), color = ink)
+                }
+            }
+        }
+        Row(
+            Modifier.clickable(onClick = onReply),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            Icon(Lucide.Reply, null, tint = ink, modifier = Modifier.size(16.dp))
+            Text(stringResource(R.string.reader_reply), style = Type.body(13, FontWeight.Bold), color = ink)
+        }
+        // The tally of faces is what was actually said; it stays beside the
+        // score it nets into.
         ReactionSummary(
             reactions = comment.reactions,
             total = comment.reactionCount,
             onClick = onReactionDetail,
         )
+        Spacer(Modifier.weight(1f))
 
-        // The rarely-wanted three live behind one glyph rather than beside the
-        // three that are wanted often; a reply row is a margin note, and six
-        // icons in a margin note is a toolbar.
         Box {
             Icon(
                 Lucide.EllipsisVertical,
                 stringResource(R.string.common_more),
-                tint = Nocturne.muted(0.45f),
+                tint = Nocturne.textTertiary,
                 modifier = Modifier.size(16.dp).clickable { menuOpen = true },
             )
             DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.common_share)) },
                     onClick = { menuOpen = false; onShare() },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.reader_reward)) },
+                    onClick = { menuOpen = false; onReward() },
                 )
                 DropdownMenuItem(
                     text = {
@@ -381,6 +532,14 @@ private fun ActionRow(
                     },
                     onClick = { menuOpen = false; onBookmark() },
                 )
+                onToggleAccepted?.let { toggle ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(stringResource(if (isAccepted) R.string.reader2_unmark_answer else R.string.reader2_mark_answer))
+                        },
+                        onClick = { menuOpen = false; toggle() },
+                    )
+                }
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.reader_report)) },
                     onClick = { menuOpen = false; onReport() },
@@ -440,6 +599,18 @@ private fun ActionRow(
                         },
                         onClick = { menuOpen = false; onToggleLock() },
                     )
+                    if (onModerate != null) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.mod_entry_moderate)) },
+                            onClick = { menuOpen = false; onModerate() },
+                        )
+                    }
+                }
+                if (onShowHistory != null) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.history_title)) },
+                        onClick = { menuOpen = false; onShowHistory() },
+                    )
                 }
             }
 
@@ -454,49 +625,6 @@ private fun ActionRow(
                     onConfirm = { confirmDelete = false; onDelete() },
                     onDismiss = { confirmDelete = false },
                 )
-            }
-        }
-        Icon(
-            Lucide.Reply,
-            stringResource(R.string.reader_reply),
-            tint = Nocturne.muted(0.45f),
-            modifier = Modifier.size(16.dp).clickable(onClick = onReply),
-        )
-        Icon(
-            NodelocIcons.Zap,
-            stringResource(R.string.reader_reward),
-            tint = Nocturne.muted(0.45f),
-            modifier = Modifier.size(16.dp).clickable(onClick = onReward),
-        )
-        // discourse-vote replaces the heart rather than joining it: the upvote
-        // *is* the like, so both would be the same button twice.
-        if (comment.voteScore != null) {
-            VoteControl(
-                direction = comment.voteDirection,
-                score = comment.voteScore,
-                canVoteDown = comment.canVoteDown,
-                onVote = onVote,
-                onPickFace = onPickFace,
-                iconSize = 16.dp,
-                textSize = 12,
-                ground = false,
-            )
-        } else {
-            Row(
-                Modifier.clickable(onClick = onLike),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Icon(
-                    // Lucide has no solid heart, so the tint carries the state alone.
-                    Lucide.Heart,
-                    stringResource(R.string.reader_like),
-                    tint = if (comment.isLiked) Nocturne.love else Nocturne.muted(0.45f),
-                    modifier = Modifier.size(16.dp),
-                )
-                if (comment.votes > 0) {
-                    Text("${comment.votes}", style = Type.body(12), color = Nocturne.muted(0.5f))
-                }
             }
         }
     }

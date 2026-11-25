@@ -68,6 +68,8 @@ class ServiceLocator private constructor(context: Context) {
     val messageCenter = MessageCenterRepository(appContext, client, session, messageBus)
     val userPreferences = UserPreferencesRepository(client, session)
     val pushRepository = PushRepository(appContext, client, preferences)
+    val moderationApi = com.nodeloc.app.core.network.ModerationApi(client.api)
+    val moderation = com.nodeloc.app.core.store.ModerationRepository(moderationApi, messageBus, session, appScope)
     // Which UpdateController this is depends on the flavour: the github build
     // installs an APK, the play build opens the store listing.
     val updates = UpdateController(appContext, client)

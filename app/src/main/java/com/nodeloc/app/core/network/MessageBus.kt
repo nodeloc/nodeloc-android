@@ -132,7 +132,21 @@ class MessageBusClient(private val client: DiscourseClient) {
         }
     }
 
+    /**
+     * The site review queue's pending total, from the stream's `review` event.
+     * Unlike every other event this carries the value itself, and only
+     * `admin.review` holders ever receive it, so null means "not told", not zero.
+     */
+    private val _reviewPending = kotlinx.coroutines.flow.MutableStateFlow<Int?>(null)
+    val reviewPending: kotlinx.coroutines.flow.StateFlow<Int?> = _reviewPending
+
     internal fun dispatch(event: String, data: String) {
+        if (event == "review") {
+            val pending = runCatching {
+                ((NodelocApi.json.parseToJsonElement(data) as? JsonObject)?.get("pending") as? JsonPrimitive)?.intOrNull
+            }.getOrNull()
+            if (pending != null) _reviewPending.value = pending
+        }
         val fired = channelsFor(event, data, synchronized(lock) { subscribers.values.flatMap { it.channels }.toSet() })
         if (fired.isEmpty()) return
         val listeners = synchronized(lock) { subscribers.values.toList() }

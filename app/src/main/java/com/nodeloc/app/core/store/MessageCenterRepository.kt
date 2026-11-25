@@ -18,6 +18,12 @@ import com.nodeloc.app.core.model.InboxNotification
 import com.nodeloc.app.core.model.PrivateMessageSummary
 import com.nodeloc.app.core.model.PrivateMessagesResponse
 import com.nodeloc.app.core.network.DiscourseClient
+import com.nodeloc.app.core.network.ApiNotification
+import com.nodeloc.app.core.network.ApiNotificationList
+import com.nodeloc.app.core.network.Legacy
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import com.nodeloc.app.core.network.DiscourseConfig
 import com.nodeloc.app.core.util.DiscourseFormat
 import kotlinx.coroutines.sync.withLock
@@ -201,8 +207,68 @@ object NotificationFormatter {
     }
 }
 
+/** The inbox's filter chips, plus the kinds they do not name. */
+enum class NoteCategory { Reply, Mention, Vote, Follow, Points, Moderation, System, Other }
+
+/**
+ * A notification as the native list describes it.
+ *
+ * There is no moderation kind on the server: a report to handle, a queue that
+ * filled up, a withdrawal to approve all arrive as `system` notes. What marks
+ * them as work for a moderator is where they point — the site's `/admin/`
+ * pages or a node's `/n/{slug}/manage` — so that is what [category] reads.
+ */
+data class NotificationMeta(
+    val kind: String,
+    val category: NoteCategory,
+    val actor: String?,
+    val actorCount: Int,
+    val excerpt: String?,
+    val topicTitle: String?,
+    val title: String?,
+    val body: String?,
+    val path: String?,
+) {
+    companion object {
+        private val NODE_MANAGE = Regex("^/n/[^/]+/manage")
+
+        fun of(item: ApiNotification): NotificationMeta {
+            val data = item.data as? JsonObject
+            fun field(name: String): String? =
+                (data?.get(name) as? JsonPrimitive)?.contentOrNull?.trim()?.takeIf { it.isNotEmpty() }
+            val path = field("path")
+            val category = when (item.kind) {
+                "reply", "watching", "message" -> NoteCategory.Reply
+                "mention" -> NoteCategory.Mention
+                "vote" -> NoteCategory.Vote
+                "follow", "followed_topic", "node_topic", "node_hot_topic" -> NoteCategory.Follow
+                "system" -> when {
+                    path != null && (path.startsWith("/admin/") || path == "/admin" || NODE_MANAGE.containsMatchIn(path)) ->
+                        NoteCategory.Moderation
+                    field("type") == "points" -> NoteCategory.Points
+                    else -> NoteCategory.System
+                }
+                else -> NoteCategory.Other
+            }
+            return NotificationMeta(
+                kind = item.kind,
+                category = category,
+                actor = item.actor,
+                actorCount = item.actorCount,
+                excerpt = field("excerpt")?.let(DiscourseFormat::plainText),
+                topicTitle = item.topicTitle,
+                title = field("title"),
+                body = field("body"),
+                path = path,
+            )
+        }
+    }
+}
+
 data class MessageCenterState(
     val notifications: List<InboxNotification> = emptyList(),
+    /** What the native list says about each row that the legacy row has no room for; keyed by id. */
+    val notificationMeta: Map<Int, NotificationMeta> = emptyMap(),
     val conversations: List<PrivateMessageSummary> = emptyList(),
     val groupConversations: List<PrivateMessageSummary> = emptyList(),
     val messageGroups: List<String> = emptyList(),
@@ -269,10 +335,11 @@ class MessageCenterRepository(
         val current = session.refresh(force = true)
         val groups = current?.groups.orEmpty().filter { it.hasMessages == true }.map { it.name }
 
-        val notifications = runCatchingCancellable { client.notifications().notifications }
+        val fetched = runCatchingCancellable { fetchNotifications(filter = null) }
             .onFailure { error = it }
             .getOrDefault(emptyList())
-            .map { NotificationFormatter.row(context, it) }
+        val notifications = fetched.map { it.first }
+        val meta = fetched.associate { it.first.id to it.second }
 
         val username = session.username
         val conversations = if (username != null) {
@@ -291,6 +358,7 @@ class MessageCenterRepository(
         // group inbox the user had selected.
         _state.value = _state.value.copy(
             notifications = notifications,
+            notificationMeta = meta,
             conversations = conversations,
             messageGroups = groups,
             channels = channels,
@@ -393,6 +461,29 @@ class MessageCenterRepository(
     }
 
     /**
+     * The native list, read directly rather than through the Discourse-shaped
+     * facade: that mapping keeps a type number and a title and drops the rest —
+     * the actor's avatar, how many voted, a system note's body and the path it
+     * links to — which is everything the inbox rows and filters are built from.
+     *
+     * [filter] is the server's own (`reply`, `mention`, `system`, …); null is all.
+     */
+    suspend fun fetchNotifications(filter: String?): List<Pair<InboxNotification, NotificationMeta>> {
+        val list = client.api.get<ApiNotificationList>(
+            "api/v1/notifications",
+            buildList {
+                add("limit" to "50")
+                filter?.let { add("filter" to it) }
+            },
+        )
+        return list.notifications.map { item ->
+            val row = NotificationFormatter.row(context, Legacy.notification(item))
+                .copy(avatarUrl = DiscourseConfig.absoluteUrl(item.actorAvatar))
+            row to NotificationMeta.of(item)
+        }
+    }
+
+    /**
      * One notification, read because the user opened it.
      *
      * Counted off the rows like [unreadNotifications] itself, so the segment
@@ -400,7 +491,13 @@ class MessageCenterRepository(
      */
     suspend fun markNotificationRead(id: Int) {
         val previous = _state.value
-        val row = previous.notifications.firstOrNull { it.id == id } ?: return
+        val row = previous.notifications.firstOrNull { it.id == id }
+        // A filtered list reaches further back than the 50 the badge counts,
+        // so a row opened there may not be here; it still has to be marked.
+        if (row == null) {
+            runCatchingCancellable { client.markNotificationsRead(id) }
+            return
+        }
         if (row.read) return
         _state.value = previous.copy(
             notifications = previous.notifications.map { if (it.id == id) it.copy(read = true) else it },

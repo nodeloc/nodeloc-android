@@ -61,6 +61,19 @@ data class NocturneColors(
     /** Text weight for the second accent, and the ground it sits on. */
     val accent2700: Color,
     val accent2800: Color,
+    /**
+     * Fixed secondary and tertiary text. `muted()` stays for the many places
+     * that fade the ink; the 2026-11 design draws metadata in a cool grey that
+     * an alpha of the ink cannot reach, so new screens use these.
+     */
+    val textSecondary: Color,
+    val textTertiary: Color,
+    /** Grounds behind `danger`, the warning ink and the info ink: badges, report strips, status pills. */
+    val dangerBg: Color,
+    val warning: Color,
+    val warningBg: Color,
+    val info: Color,
+    val infoBg: Color,
 ) {
     /** Secondary body text is always the main text colour at a fixed opacity. */
     fun muted(pct: Float): Color = text.copy(alpha = pct)
@@ -78,38 +91,50 @@ private fun hex(value: Long, alpha: Float = 1f): Color =
         alpha = alpha,
     )
 
+// Light values are the 2026-11 community redesign's (design canvas, Android
+// page): ink #0F1A1C on white, green #007A52, cool blue-grey neutrals. The
+// orange danger is the design's — it marks counts and destructive actions
+// alike, so a red here would read as an error on every badge.
 val LightNocturne = NocturneColors(
     isDark = false,
-    bg = hex(0xFFFFFF), surface = hex(0xF7F7F7), text = hex(0x222222),
-    divider = hex(0x222222, 0.12f), accent = hex(0x009966), accent2 = hex(0xFF9933),
-    headerBg = hex(0xFFFFFF), headerText = hex(0x333333), selected = hex(0xCDFEEE),
-    hover = hex(0xF2F2F2), highlight = hex(0xFFFF4D), danger = hex(0xC80001),
-    success = hex(0x009900), love = hex(0xFA6C8D),
-    neutral100 = hex(0xFFFFFF), neutral200 = hex(0xF7F7F7), neutral300 = hex(0xF2F2F2),
-    neutral400 = hex(0xE3E3E3), neutral500 = hex(0xBDBDBD), neutral600 = hex(0x8F8F8F),
-    neutral700 = hex(0x666666), neutral800 = hex(0x333333), neutral900 = hex(0x222222),
-    accent100 = hex(0xCDFEEE), accent200 = hex(0xA3F6DC), accent300 = hex(0x6FE9C5),
-    accent400 = hex(0x3AD4A8), accent500 = hex(0x009966), accent600 = hex(0x00875A),
-    accent700 = hex(0x00714C), accent800 = hex(0x005A3E), accent900 = hex(0x00402C),
+    bg = hex(0xFFFFFF), surface = hex(0xF2F5F6), text = hex(0x0F1A1C),
+    divider = hex(0xE5EBEE), accent = hex(0x007A52), accent2 = hex(0xFF9933),
+    headerBg = hex(0xFFFFFF), headerText = hex(0x0F1A1C), selected = hex(0xE3F4EC),
+    hover = hex(0xEEF2F3), highlight = hex(0xFFF3BF), danger = hex(0xA33A00),
+    success = hex(0x007A52), love = hex(0xC2255C),
+    neutral100 = hex(0xFFFFFF), neutral200 = hex(0xF2F5F6), neutral300 = hex(0xEEF2F3),
+    neutral400 = hex(0xE5EBEE), neutral500 = hex(0xC9D3D8), neutral600 = hex(0x8BA2AD),
+    neutral700 = hex(0x576F76), neutral800 = hex(0x2B3B3F), neutral900 = hex(0x0F1A1C),
+    accent100 = hex(0xE3F4EC), accent200 = hex(0xC9E3D6), accent300 = hex(0x8FCFB2),
+    accent400 = hex(0x3FA57D), accent500 = hex(0x007A52), accent600 = hex(0x006A47),
+    accent700 = hex(0x00573B), accent800 = hex(0x00382A), accent900 = hex(0x0B1F18),
     accent2100 = hex(0xFFE9CC), accent2500 = hex(0xFF9933), accent2600 = hex(0xE37E1A),
     accent2700 = hex(0xA85A0D), accent2800 = hex(0xFFD9A8),
+    textSecondary = hex(0x576F76), textTertiary = hex(0x8BA2AD),
+    dangerBg = hex(0xFFE4D1), warning = hex(0x8A5200), warningBg = hex(0xFFEFD6),
+    info = hex(0x1F5FBF), infoBg = hex(0xE4EEFF),
 )
 
+// The design has no dark page; these keep the existing dark ground and move
+// its neutrals toward the same cool grey so the two modes feel like one app.
 val DarkNocturne = NocturneColors(
     isDark = true,
-    bg = hex(0x0B0F0E), surface = hex(0x171C1A), text = hex(0xF1F4F2),
-    divider = hex(0xFFFFFF, 0.14f), accent = hex(0x26D99B), accent2 = hex(0xFFB15C),
-    headerBg = hex(0x0B0F0E), headerText = hex(0xF1F4F2), selected = hex(0x133D31),
-    hover = hex(0x202624), highlight = hex(0xD9C93F), danger = hex(0xFF6B6B),
-    success = hex(0x4ADB84), love = hex(0xFF7A9A),
-    neutral100 = hex(0xF7FAF8), neutral200 = hex(0xEEF2EF), neutral300 = hex(0x232927),
-    neutral400 = hex(0x343B38), neutral500 = hex(0x8B938F), neutral600 = hex(0xA6ADA9),
-    neutral700 = hex(0xC4CBC7), neutral800 = hex(0x1D2320), neutral900 = hex(0x050807),
+    bg = hex(0x0B1012), surface = hex(0x162024), text = hex(0xEEF3F4),
+    divider = hex(0xFFFFFF, 0.12f), accent = hex(0x2BD49A), accent2 = hex(0xFFB15C),
+    headerBg = hex(0x0B1012), headerText = hex(0xEEF3F4), selected = hex(0x123A2D),
+    hover = hex(0x1C272B), highlight = hex(0x5A4A12), danger = hex(0xFF8A57),
+    success = hex(0x4ADB9A), love = hex(0xFF7A9A),
+    neutral100 = hex(0xF7FAFA), neutral200 = hex(0xEEF2F3), neutral300 = hex(0x1F2A2E),
+    neutral400 = hex(0x2E3B40), neutral500 = hex(0x6F858D), neutral600 = hex(0x8BA2AD),
+    neutral700 = hex(0xB5C4C9), neutral800 = hex(0x1A2427), neutral900 = hex(0x05090A),
     accent100 = hex(0xD7FFF2), accent200 = hex(0x9FF5D9), accent300 = hex(0x6FE9C5),
-    accent400 = hex(0x42DDB1), accent500 = hex(0x26D99B), accent600 = hex(0x55E2B0),
+    accent400 = hex(0x42DDB1), accent500 = hex(0x2BD49A), accent600 = hex(0x55E2B0),
     accent700 = hex(0x7BEBC5), accent800 = hex(0x064B38), accent900 = hex(0x033326),
     accent2100 = hex(0xFFE4BF), accent2500 = hex(0xFFB15C), accent2600 = hex(0xFFC078),
     accent2700 = hex(0xFFC078), accent2800 = hex(0x4A2A05),
+    textSecondary = hex(0x9DB0B6), textTertiary = hex(0x6F858D),
+    dangerBg = hex(0x3D1E10), warning = hex(0xFFC56B), warningBg = hex(0x3A2A0E),
+    info = hex(0x8AB4FF), infoBg = hex(0x152640),
 )
 
 /** Spacing scale, verbatim from iOS (odd values are intentional). */

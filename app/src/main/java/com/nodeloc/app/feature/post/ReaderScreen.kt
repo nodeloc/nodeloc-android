@@ -110,6 +110,8 @@ import com.nodeloc.app.core.design.ReportDialog
 import com.nodeloc.app.core.design.ReportTarget
 import com.nodeloc.app.core.design.BlockUserDialog
 import com.nodeloc.app.R
+import com.nodeloc.app.ServiceLocator
+import com.nodeloc.app.core.model.PostComment
 import com.nodeloc.app.core.design.ConfirmDialog
 import com.nodeloc.app.core.design.CapsuleIconButton
 import com.nodeloc.app.core.design.BadgeTitleText
@@ -175,7 +177,17 @@ fun ReaderScreen(
     val state by viewModel.state.collectAsState()
     val isSignedIn by app.isSignedIn.collectAsState()
     val currentUser by app.currentUser.collectAsState()
-    val isStaff = currentUser?.let { it.admin == true || it.moderator == true } == true
+    // Node moderators count too: on 2.0 the node's own moderators pin, lock
+    // and delete in it, not only site staff.
+    val privileges by ServiceLocator.get.moderation.privileges.collectAsState()
+    val isStaff = currentUser?.let { it.admin == true || it.moderator == true } == true ||
+        privileges.moderates(state.nodeSlug.ifEmpty { null })
+    val myName = currentUser?.username
+    val opName = state.firstAuthor?.username
+    val isTopicOwner = myName != null && opName != null && myName.equals(opName, ignoreCase = true)
+    var moderatingTopic by remember { mutableStateOf(false) }
+    var moderatingReply by remember { mutableStateOf<PostComment?>(null) }
+    var historyPost by remember { mutableStateOf<Int?>(null) }
     /** The reply whose source is being edited, if any; the topic goes to the composer. */
     var editingPost by remember { mutableStateOf<Int?>(null) }
 
@@ -370,7 +382,7 @@ fun ReaderScreen(
                     Modifier.padding(horizontal = Space.page),
                     verticalArrangement = Arrangement.spacedBy(Space.s4),
                 ) {
-                    AuthorHeader(state, navigator)
+                    AuthorHeader(state, navigator, onOpenHistory = { state.firstPostId?.let { historyPost = it }; Unit }.takeIf { state.firstPostVersion > 1 && (isStaff || state.firstPostCanEdit) })
                     // The title and the body select and copy; everything around
                     // them does not. One container each rather than one around
                     // both, so a drag cannot run from the title through the
@@ -472,6 +484,23 @@ fun ReaderScreen(
                         .height(Space.s3)
                         .background(Nocturne.surface),
                 )
+                // Inside the header slot rather than items of their own: every
+                // jump and the read tracker count rows as index + HeaderItemCount.
+                if (!state.isPrivateMessage && state.totalReplyCount > 0) {
+                    RepliesHeading(state.totalReplyCount, state.replySort, onSort = viewModel::applySort)
+                }
+                state.bestAnswer?.let { answer ->
+                    BestAnswerCard(
+                        answer = answer,
+                        byOp = state.acceptedByOp,
+                        onOpenAuthor = { navigator.openProfile(it) },
+                        onOpenLink = { navigator.openUrl(context, it) },
+                        onOpen = {
+                            val index = state.visibleComments.indexOfFirst { it.postNumber == answer.postNumber }
+                            if (index >= 0) scope.launch { listState.animateScrollToItem(index + HeaderItemCount) }
+                        },
+                    )
+                }
             }
 
             if (state.repliesFailed) {
@@ -565,12 +594,32 @@ fun ReaderScreen(
                     onRecover = { viewModel.recoverPost(comment.id) },
                     onToggleLock = { viewModel.setPostLocked(comment.id, !comment.locked) },
                     isStaff = isStaff,
+                    onModerate = { moderatingReply = comment }.takeIf { isStaff },
+                    onShowHistory = { historyPost = comment.id }.takeIf { comment.version > 1 && (isStaff || comment.canEdit) },
                     onOpenLink = { navigator.openUrl(context, it) },
                     onOpenImage = { image ->
                         viewer = imageViewerFor(comment.content.images, image, state.imageViewerSource(withActions = false))
                     },
                     onLoadMoreChildren = viewModel::loadMoreChildren,
                     onOpenVideo = { videoUrl = DiscourseConfig.absoluteUrl(it.src) },
+                    isOp = opName != null && comment.author.equals(opName, ignoreCase = true),
+                    isAccepted = comment.postNumber == state.acceptedPostNumber,
+                    // The server's rule, mirrored so the item is only offered
+                    // where it can work: the topic's author or a moderator,
+                    // never on the author's own replies or the actor's own.
+                    onToggleAccepted = { viewModel.setAccepted(comment, comment.postNumber != state.acceptedPostNumber) }
+                        .takeIf {
+                            val mine = myName != null && comment.author.equals(myName, ignoreCase = true)
+                            val byOp = opName != null && comment.author.equals(opName, ignoreCase = true)
+                            isSignedIn && !state.isPrivateMessage && comment.postNumber > 1 && !comment.deleted &&
+                                (isTopicOwner || isStaff) &&
+                                (comment.postNumber == state.acceptedPostNumber || (!mine && !byOp))
+                        },
+                    deletion = state.deletions[comment.postNumber],
+                    canRevealOriginal = comment.canRecover ||
+                        (myName != null && comment.author.equals(myName, ignoreCase = true)),
+                    revealedSource = state.revealed[comment.id],
+                    onToggleOriginal = { viewModel.toggleOriginal(comment.id) },
                     // The reply's own polls, not the topic's: each post carries
                     // its own, and a vote is recorded against the post holding
                     // the poll.
@@ -602,6 +651,21 @@ fun ReaderScreen(
                     Box(Modifier.fillMaxWidth().height(72.dp), contentAlignment = Alignment.Center) {
                         NodelocLoader(height = 40.dp)
                     }
+                }
+            }
+
+            // Only once the thread has run out: above unloaded replies it would
+            // sit where the next page is about to land.
+            val relatedSource = state.relatedSource
+            if (relatedSource != null && !state.hasMoreComments && !state.isLoading && !state.isLoadingMore) {
+                item(key = "related") {
+                    RelatedTopicsSection(
+                        state = state,
+                        source = relatedSource,
+                        onSelect = viewModel::selectRelated,
+                        onMore = viewModel::nextRelatedBatch,
+                        onOpen = { navigator.openTopic(it) },
+                    )
                 }
             }
         }
@@ -676,7 +740,7 @@ fun ReaderScreen(
                 }
             },
             isStaff = isStaff,
-            onToggleClosed = { viewModel.setTopicClosed(!state.closed) },
+            onModerate = { moderatingTopic = true },
             onDeleteTopic = { confirmDeleteTopic = true },
         )
 
@@ -821,6 +885,52 @@ fun ReaderScreen(
             )
         }
 
+        // Undo offers from the moderation sheets surface here; without a host
+        // the write still happens but the way back is never shown.
+        com.nodeloc.app.feature.moderation.ModUndoHost()
+
+        historyPost?.let { postId ->
+            EditHistorySheet(postId, onDismiss = { historyPost = null }, onRolledBack = { viewModel.reloadAfterEdit() })
+        }
+
+        if (moderatingTopic) {
+            com.nodeloc.app.feature.moderation.PostModerationSheet(
+                topic = com.nodeloc.app.feature.moderation.ModTopicRef(
+                    topicId = state.topicId.toLong(),
+                    firstPostId = state.firstPostId?.toLong() ?: 0L,
+                    title = state.title,
+                    nodeSlug = state.nodeSlug.ifEmpty { null },
+                    nodeName = state.nodeName.ifEmpty { null },
+                    pinned = state.pinned,
+                    closed = state.closed,
+                    featured = state.featured,
+                    authorUsername = state.firstAuthor?.username.orEmpty(),
+                    authorId = null,
+                ),
+                navigator = navigator,
+                onDismiss = { moderatingTopic = false },
+                onChanged = { viewModel.reloadAfterEdit() },
+            )
+        }
+
+        moderatingReply?.let { comment ->
+            com.nodeloc.app.feature.moderation.ReplyModerationSheet(
+                post = com.nodeloc.app.feature.moderation.ModPostRef(
+                    postId = comment.id.toLong(),
+                    topicId = state.topicId.toLong(),
+                    postNumber = comment.postNumber,
+                    nodeSlug = state.nodeSlug.ifEmpty { null },
+                    excerpt = comment.content.excerpt(80),
+                    authorUsername = comment.author,
+                    authorId = null,
+                    deleted = comment.deleted,
+                ),
+                navigator = navigator,
+                onDismiss = { moderatingReply = null },
+                onChanged = { viewModel.reloadAfterEdit() },
+            )
+        }
+
         if (confirmDeleteTopic) {
             ConfirmDialog(
                 title = stringResource(R.string.reader_topic_delete_confirm),
@@ -933,7 +1043,12 @@ fun ReaderScreen(
 private const val HeaderItemCount = 1
 
 @Composable
-private fun AuthorHeader(state: ReaderState, navigator: Navigator) {
+private fun AuthorHeader(
+    state: ReaderState,
+    navigator: Navigator,
+    /** Null unless the post was edited and the viewer may see its history (author, moderators). */
+    onOpenHistory: (() -> Unit)? = null,
+) {
     val author = state.firstAuthor
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Space.s3)) {
         RemoteAvatar(
@@ -983,6 +1098,14 @@ private fun AuthorHeader(state: ReaderState, navigator: Navigator) {
                 // sits beneath.
                 state.firstPostSource?.takeIf { it.isNotBlank() }?.let {
                     TagChip(stringResource(R.string.post_source_from, it))
+                }
+                if (onOpenHistory != null) {
+                    Text(
+                        stringResource(R.string.history_edited_times, state.firstPostVersion - 1),
+                        style = Type.body(12),
+                        color = Nocturne.textSecondary,
+                        modifier = Modifier.clickable(onClick = onOpenHistory),
+                    )
                 }
             }
         }
@@ -1066,7 +1189,7 @@ private fun ReaderHeader(
     onEditFirstPost: () -> Unit,
     /** Staff only. Absent for everyone else rather than shown and refused. */
     isStaff: Boolean,
-    onToggleClosed: () -> Unit,
+    onModerate: () -> Unit,
     onDeleteTopic: () -> Unit,
 ) {
     var sortMenu by remember { mutableStateOf(false) }
@@ -1176,16 +1299,11 @@ private fun ReaderHeader(
                         // everybody, and they belong below the ones that only
                         // change it for you.
                         if (isStaff) {
+                            // Pin, lock, feature, move, sanction the author: the
+                            // design's moderator sheet. Closing lives there now.
                             DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        stringResource(
-                                            if (state.closed) R.string.reader_topic_reopen
-                                            else R.string.reader_topic_close,
-                                        ),
-                                    )
-                                },
-                                onClick = { moreMenu = false; onToggleClosed() },
+                                text = { Text(stringResource(R.string.mod_entry_moderate)) },
+                                onClick = { moreMenu = false; onModerate() },
                             )
                             DropdownMenuItem(
                                 text = {

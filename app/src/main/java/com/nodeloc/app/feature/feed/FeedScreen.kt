@@ -35,6 +35,11 @@ import com.nodeloc.app.ServiceLocator
 import com.nodeloc.app.R
 import com.nodeloc.app.core.design.EmptyStateView
 import com.nodeloc.app.core.design.FloatingHeaderBar
+import com.nodeloc.app.core.design.FilterPill
+import com.nodeloc.app.core.design.FilterPillRow
+import com.nodeloc.app.core.model.NodeSort
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.nodeloc.app.core.design.GuestLoginButton
 import com.nodeloc.app.core.design.HeaderIconButton
 import com.nodeloc.app.core.design.Nocturne
@@ -94,6 +99,13 @@ fun FeedScreen(
     // the row itself still opens the topic everywhere else.
     var viewer by remember { mutableStateOf<PostImageViewer?>(null) }
 
+    val sortChips: @Composable () -> Unit = {
+        FeedSortChips(state.sort, isSignedIn, onSelect = { sort ->
+            viewModel.selectSort(sort)
+            listState.requestScrollToTop()
+        })
+    }
+
     LaunchedEffect(Unit) { viewModel.loadIfNeeded() }
     listState.OnReachedEnd { viewModel.loadMore() }
 
@@ -111,12 +123,17 @@ fun FeedScreen(
             when {
                 state.showSkeleton -> {
                     Column(Modifier.padding(contentPadding).padding(top = headerInset)) {
+                        sortChips()
                         FeedSkeleton(mode)
                     }
                 }
 
                 state.showEmptyState -> {
-                    Box(Modifier.fillMaxSize().padding(contentPadding), contentAlignment = Alignment.Center) {
+                    // The chips stay above an empty list: "关注" with no nodes
+                    // joined is empty, and the way out is another chip.
+                    Column(Modifier.fillMaxSize().padding(contentPadding).padding(top = headerInset)) {
+                    sortChips()
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         val offline = state.error?.isOfflineError() == true
                         EmptyStateView(
                             icon = if (offline) Lucide.WifiOff else Lucide.Inbox,
@@ -125,6 +142,7 @@ fun FeedScreen(
                             retryLabel = if (state.error != null) stringResource(R.string.common_retry) else null,
                             onRetry = { viewModel.load() },
                         )
+                    }
                     }
                 }
 
@@ -137,6 +155,7 @@ fun FeedScreen(
                             bottom = contentPadding.calculateBottomPadding() + 24.dp,
                         ),
                     ) {
+                        item(key = "sorts") { sortChips() }
                         itemsIndexed(posts, key = { _, post -> post.id }) { _, post ->
                             PostRow(
                                 post = post,
@@ -184,6 +203,22 @@ fun FeedScreen(
 
 
 
+/**
+ * The design's order: 热门 / 最新 / 精华 / 关注, then 推荐 kept from the old
+ * home. 上升中 is on the website but `GET /api/v1/topics` has no such sort yet.
+ */
+private val FEED_SORTS = listOf(NodeSort.Hot, NodeSort.Latest, NodeSort.Featured, NodeSort.Following, NodeSort.Best)
+
+@Composable
+private fun FeedSortChips(selected: NodeSort, isSignedIn: Boolean, onSelect: (NodeSort) -> Unit) {
+    val label = stringResource(R.string.feed_sorts)
+    FilterPillRow(Modifier.semantics { contentDescription = label }) {
+        FEED_SORTS.filter { isSignedIn || !it.requiresAuth }.forEach { sort ->
+            FilterPill(stringResource(sort.labelRes), selected = sort == selected) { onSelect(sort) }
+        }
+    }
+}
+
 @Composable
 private fun FeedHeader(
     scrolled: Boolean,
@@ -194,7 +229,7 @@ private fun FeedHeader(
 ) {
     FloatingHeaderBar(
         scrolled = scrolled,
-        leading = { HeaderIconButton(Lucide.Menu, stringResource(R.string.common_menu), onClick = onOpenDrawer) },
+        leading = { com.nodeloc.app.feature.nav.DrawerMenuButton(onClick = onOpenDrawer) },
         // Static branding that stays put: the bar fills in behind it on scroll,
         // so there is nothing left for it to get in the way of.
         center = { NodelocLogo(height = 26.dp) },

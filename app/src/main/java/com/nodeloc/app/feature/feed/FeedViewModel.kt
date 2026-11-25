@@ -23,14 +23,11 @@ import kotlinx.coroutines.launch
 data class FeedUiState(
     val posts: List<Post> = emptyList(),
     /**
-     * Which list the feed is showing.
-     *
-     * A setting now rather than a control on the page: the home feed had a row
-     * of sorts above it that most readers set once and then scrolled past
-     * forever. It lives in preferences, where the rest of what the home page is
-     * lives, and the page itself is just the page.
+     * Which list the feed is showing. The 2026-11 design puts the sorts back on
+     * the page as chips; the choice is still stored as the default home, so it
+     * survives a restart and the setting shows the same thing.
      */
-    val sort: NodeSort = NodeSort.Best,
+    val sort: NodeSort = NodeSort.Hot,
     val isLoading: Boolean = false,
     val isLoadingMore: Boolean = false,
     val hasMore: Boolean = false,
@@ -88,7 +85,10 @@ class FeedViewModel : ViewModel() {
         }
         viewModelScope.launch {
             preferences.defaultHome.collect { key ->
-                val chosen = NodeSort.entries.firstOrNull { it.key == key } ?: NodeSort.Best
+                val stored = NodeSort.entries.firstOrNull { it.key == key } ?: NodeSort.Hot
+                // "Following" kept from a signed-in session would load an
+                // empty list for a guest with no way to tell why.
+                val chosen = if (stored.requiresAuth && !services.session.isSignedIn.value) NodeSort.Hot else stored
                 val first = !homeResolved
                 homeResolved = true
                 when {
@@ -106,6 +106,16 @@ class FeedViewModel : ViewModel() {
                 }
             }
         }
+    }
+
+    /**
+     * A chip on the page and the setting are the same choice: writing the
+     * preference is what switches the list, through the collector above, so
+     * the two can never disagree.
+     */
+    fun selectSort(sort: NodeSort) {
+        if (sort == _state.value.sort) return
+        viewModelScope.launch { preferences.setDefaultHome(sort.key) }
     }
 
     fun loadIfNeeded() {

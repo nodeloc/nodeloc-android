@@ -265,6 +265,7 @@ class DiscourseClient(
             "hot", "top" -> topicPage("hot", "api/v1/topics", listOf("sort" to "hot"), page, offsetPaging = true)
             "best" -> topicPage("best", "api/v1/feed/personal", emptyList(), page, offsetPaging = true)
             "featured" -> topicPage("featured", "api/v1/topics", listOf("featured" to "1"), page, offsetPaging = false)
+            "following" -> topicPage("following", "api/v1/topics", listOf("joined" to "1"), page, offsetPaging = false)
             else -> topicPage("latest", "api/v1/topics", emptyList(), page, offsetPaging = false)
         }
         return latestResponse(list)

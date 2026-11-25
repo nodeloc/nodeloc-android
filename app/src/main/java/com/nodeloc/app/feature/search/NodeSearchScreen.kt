@@ -66,8 +66,9 @@ import com.nodeloc.app.feature.media.imageViewerAt
 import com.nodeloc.app.feature.nav.Navigator
 
 /**
- * Search scoped to one node. Discourse expresses that as a `#slug` prefix in
- * the query, so the field opens pre-filled with it and the user types after.
+ * Search scoped to one node. The native search takes the node as a parameter
+ * (a `#slug` prefix in the query is now searched as plain text), so the view
+ * model is bound to the node and the field holds only what the user types.
  */
 @Composable
 fun NodeSearchScreen(slug: String, navigator: Navigator) {
@@ -86,7 +87,7 @@ fun NodeSearchScreen(slug: String, navigator: Navigator) {
         keyboard?.show()
     }
 
-    LaunchedEffect(slug) { viewModel.updateQuery("#$slug ") }
+    LaunchedEffect(slug) { viewModel.bindNode(slug) }
 
     Column(Modifier.fillMaxSize().background(Nocturne.bg)) {
         Row(

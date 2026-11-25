@@ -165,7 +165,7 @@ class AppPreferences(context: Context) {
         store.edit { it[Keys.colorMode] = value }
     }
 
-    val defaultHome: Flow<String> = flow { it[Keys.defaultHome] ?: "best" }
+    val defaultHome: Flow<String> = flow { it[Keys.defaultHome] ?: "hot" }
 
     suspend fun setDefaultHome(value: String) {
         store.edit { it[Keys.defaultHome] = value }

@@ -35,6 +35,18 @@ data class NodeDetailState(
     val error: Throwable? = null,
     /** The id resolves to no node at all — not merely an empty one. */
     val notFound: Boolean = false,
+    /**
+     * The topics pinned in this node, as they arrived on the first page of the
+     * latest list. The list has no pinned-first ordering and no pinned-only
+     * query, so this is the best the API offers: a pin further down than the
+     * first page stays in the list with its pin glyph.
+     */
+    val pinnedIds: Set<Int> = emptySet(),
+    /** The 关于 tab is showing instead of a topic list. */
+    val showAbout: Boolean = false,
+    val about: NodeAbout? = null,
+    val aboutLoading: Boolean = false,
+    val aboutFailed: Boolean = false,
 ) {
     val showSkeleton: Boolean get() = isLoading && posts.isEmpty()
 }
@@ -96,11 +108,13 @@ class NodeDetailViewModel : ViewModel() {
             try {
                 val response = client.nodeTopics(path, categoryId, _state.value.sort.key)
                 response.users.orEmpty().forEach { usersById[it.id] = it }
+                val posts = response.topicList?.topics.orEmpty().map(::map)
                 _state.value = _state.value.copy(
                     node = node,
                     isJoined = node?.isJoined == true,
                     notificationLevel = NodeNotificationLevel.from(node?.notificationLevel),
-                    posts = response.topicList?.topics.orEmpty().map(::map),
+                    posts = posts,
+                    pinnedIds = pinnedOf(posts),
                     hasMore = response.topicList?.moreTopicsUrl != null,
                     isLoading = false,
                 )
@@ -119,8 +133,10 @@ class NodeDetailViewModel : ViewModel() {
             .onSuccess { response ->
                 usersById.clear()
                 response.users.orEmpty().forEach { usersById[it.id] = it }
+                val posts = response.topicList?.topics.orEmpty().map(::map)
                 _state.value = _state.value.copy(
-                    posts = response.topicList?.topics.orEmpty().map(::map),
+                    posts = posts,
+                    pinnedIds = pinnedOf(posts),
                     hasMore = response.topicList?.moreTopicsUrl != null,
                     error = null,
                 )
@@ -156,10 +172,32 @@ class NodeDetailViewModel : ViewModel() {
     }
 
     fun selectSort(sort: NodeSort) {
+        if (_state.value.showAbout) _state.value = _state.value.copy(showAbout = false)
         if (sort == _state.value.sort) return
-        _state.value = _state.value.copy(sort = sort, posts = emptyList())
+        _state.value = _state.value.copy(sort = sort, posts = emptyList(), pinnedIds = emptySet())
         load()
     }
+
+    fun selectAbout() {
+        _state.value = _state.value.copy(showAbout = true)
+        if (_state.value.about == null && !_state.value.aboutLoading) loadAbout()
+    }
+
+    fun loadAbout() {
+        val slug = _state.value.node?.slug ?: return
+        _state.value = _state.value.copy(aboutLoading = true, aboutFailed = false)
+        viewModelScope.launch {
+            runCatchingCancellable { client.api.nodeAbout(slug) }
+                .onSuccess { _state.value = _state.value.copy(about = it, aboutLoading = false) }
+                // Shown in the tab itself, with a retry: the tab is the only
+                // place the rules would have appeared.
+                .onFailure { _state.value = _state.value.copy(aboutLoading = false, aboutFailed = true) }
+        }
+    }
+
+    /** Pins lead only the latest list; under 精华 a pin is just another row. */
+    private fun pinnedOf(posts: List<Post>): Set<Int> =
+        if (_state.value.sort == NodeSort.Latest) posts.filter { it.pinned }.mapTo(mutableSetOf()) { it.id } else emptySet()
 
     fun selectReadingMode(mode: NodeReadingMode) {
         viewModelScope.launch { preferences.selectReadingMode(mode) }

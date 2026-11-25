@@ -40,6 +40,8 @@ object Route {
          * stays in the sheet it was written in.
          */
         val editPostId: Int? = null,
+        /** A server draft to pick up (`new_topic` or `new_topic:…`), from the drafts box. */
+        val draftKey: String? = null,
     )
 
     @Serializable data class PublicProfile(val username: String)
@@ -89,6 +91,24 @@ object Route {
     @Serializable data class SignupActivation(val email: String)
 
     @Serializable data object Welcome
+
+    // Moderation. A null nodeSlug means the site-wide view (staff); a slug
+    // scopes the page to one node, which is all a node moderator can see.
+    @Serializable data class ModDashboard(val nodeSlug: String? = null)
+    @Serializable data class ReviewQueue(val nodeSlug: String? = null)
+    @Serializable data class ReviewItem(val itemId: Long, val nodeSlug: String? = null)
+    @Serializable data object ModUsers
+    @Serializable data class ModUser(val userId: Long, val username: String, val nodeSlug: String? = null)
+    @Serializable data class AuditLog(val nodeSlug: String? = null)
+    @Serializable data class NodeAdmin(val slug: String)
+    @Serializable data class NodeChannels(val slug: String)
+
+    // Personal pages (2026-11 design, 个人 1–10).
+    @Serializable data class Achievements(val username: String? = null)
+    @Serializable data object EnergyHistory
+    @Serializable data object WealthRank
+    @Serializable data object Invite
+    @Serializable data object Drafts
 }
 
 enum class TabItem(

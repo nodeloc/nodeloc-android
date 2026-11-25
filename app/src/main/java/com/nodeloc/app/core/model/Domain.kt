@@ -125,6 +125,8 @@ data class PostComment(
     val canRecover: Boolean = false,
     val deleted: Boolean = false,
     val locked: Boolean = false,
+    /** Edit version; 1 means never edited. */
+    val version: Int = 1,
     val hasChildren: Boolean = false,
     /** The top-level reply this thread hangs off; rows are grouped by it. */
     val groupId: Int = 0,
@@ -232,6 +234,9 @@ enum class NodeSort(
     Hot("hot", R.string.sort_hot, R.string.sort_hot_detail),
     Featured("featured", R.string.sort_featured, R.string.sort_featured_detail),
     Top("top", R.string.sort_top, R.string.sort_top_detail),
+
+    /** Topics from the nodes the reader has joined (`joined=1`). Home only. */
+    Following("following", R.string.sort_following, R.string.sort_following_detail, requiresAuth = true, feedOnly = true),
 }
 
 /** How a topic list renders. Shared globally across feed and node pages. */

@@ -10,8 +10,10 @@ import com.nodeloc.app.core.model.AppSummary
 import com.nodeloc.app.core.model.DiscourseUser
 import com.nodeloc.app.core.model.NodeSummary
 import com.nodeloc.app.core.model.Post
-import com.nodeloc.app.core.network.DiscourseConfig
+import com.nodeloc.app.core.network.Legacy
 import com.nodeloc.app.core.util.FeedMapper
+import com.nodeloc.app.core.network.DiscourseConfig
+import com.nodeloc.app.core.util.DiscourseFormat
 import com.nodeloc.app.feature.node.NodeSummaryFactory
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -23,18 +25,41 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+/**
+ * The design's four tabs, and Apps after them: the app directory is searched
+ * here too, and nothing else in the app finds an app by what it does.
+ */
 enum class SearchScope(@StringRes val labelRes: Int) {
-    All(R.string.search_scope_all),
+    Topics(R.string.search2_tab_topics),
+    Replies(R.string.search2_tab_replies),
     Nodes(R.string.search_scope_nodes),
-    Posts(R.string.search_scope_posts),
     Users(R.string.search_scope_users),
     Apps(R.string.search_scope_apps),
-    Media(R.string.search_scope_media),
 }
+
+/** A topic or reply hit, ready to draw. */
+data class SearchHit(
+    val postId: Int,
+    val topicId: Int,
+    val postNumber: Int,
+    val isFirstPost: Boolean,
+    /** HTML-escaped, the matched words in `<mark>`; see markedText. */
+    val titleHtml: String,
+    val blurbHtml: String,
+    val nodeSlug: String,
+    val nodeName: String,
+    val nodeId: Int?,
+    val nodeLogoUrl: String?,
+    val time: String,
+    val upvotes: Int,
+    val replyCount: Int,
+)
 
 data class SearchState(
     val query: String = "",
-    val scope: SearchScope = SearchScope.All,
+    val scope: SearchScope = SearchScope.Topics,
+    val hits: List<SearchHit> = emptyList(),
+    /** In-node search only (NodeSearchScreen), drawn with the feed's PostRow. */
     val posts: List<Post> = emptyList(),
     val users: List<DiscourseUser> = emptyList(),
     val nodes: List<NodeSummary> = emptyList(),
@@ -45,9 +70,6 @@ data class SearchState(
     val hasSearched: Boolean = false,
     val error: Throwable? = null,
 ) {
-    val isEmpty: Boolean
-        get() = posts.isEmpty() && users.isEmpty() && nodes.isEmpty() && apps.isEmpty()
-
     /**
      * Whether the scope the reader is actually looking at has nothing in it.
      * A term can match posts and no nodes, and the Nodes tab must then say so
@@ -55,30 +77,31 @@ data class SearchState(
      */
     val scopeIsEmpty: Boolean
         get() = when (scope) {
-            SearchScope.All -> isEmpty
+            SearchScope.Topics, SearchScope.Replies -> hits.isEmpty()
             SearchScope.Nodes -> nodes.isEmpty()
-            SearchScope.Posts -> posts.isEmpty()
             SearchScope.Users -> users.isEmpty()
             SearchScope.Apps -> apps.isEmpty()
-            SearchScope.Media -> posts.isEmpty()
         }
+
+    /** Nothing found in any list; the in-node screen reads it. */
+    val isEmpty: Boolean
+        get() = hits.isEmpty() && posts.isEmpty() && users.isEmpty() && nodes.isEmpty() && apps.isEmpty()
 }
 
 /**
- * Global search, one endpoint per scope.
+ * Global search, one call per scope.
  *
- * There is no single call that answers all of them: `search.json` hard-codes
- * `type_filter: "topic"` server-side and returns empty `users`/`categories`
- * whatever the term, while `search/query.json` answers every facet but caps
- * each at five and cannot page. So the overview tab uses the latter and each
- * dedicated tab goes to the endpoint built for it — categories and users have
- * their own, with their own much higher ceilings.
+ * Topics and replies come from the site's own search (`/api/v1/search`) read
+ * natively, for the highlighting the compatibility mapping has no field for.
+ * Nodes are matched against the node directory, which knows their ids; people
+ * through the mention lookup; apps against the directory, locally.
  */
 class SearchViewModel : ViewModel() {
     private val services = ServiceLocator.get
     private val client = services.client
     private val site = services.siteRepository
     private val preferences = services.preferences
+    private val search = SearchApi(client.api)
 
     private val _state = MutableStateFlow(SearchState())
     val state: StateFlow<SearchState> = _state.asStateFlow()
@@ -120,12 +143,25 @@ class SearchViewModel : ViewModel() {
     }
 
     private var searchJob: Job? = null
+
+    /**
+     * Set by the in-node search: every query is then scoped to this node through
+     * the API's `node` parameter, whatever tab the state says.
+     */
+    private var nodeScope: String? = null
+
+    fun bindNode(slug: String) {
+        if (nodeScope == slug) return
+        nodeScope = slug
+        results.clear()
+    }
     private var appsCache: List<AppSummary>? = null
 
     /** One entry per term and scope, so flipping between tabs is free. */
     private val results = mutableMapOf<String, ScopeResults>()
 
     private data class ScopeResults(
+        val hits: List<SearchHit> = emptyList(),
         val posts: List<Post> = emptyList(),
         val users: List<DiscourseUser> = emptyList(),
         val nodes: List<NodeSummary> = emptyList(),
@@ -140,7 +176,7 @@ class SearchViewModel : ViewModel() {
         // Two characters is the floor; anything shorter matches half the forum.
         if (value.trim().length < 2) {
             _state.value = _state.value.copy(
-                posts = emptyList(), users = emptyList(), nodes = emptyList(), apps = emptyList(),
+                hits = emptyList(), posts = emptyList(), users = emptyList(), nodes = emptyList(), apps = emptyList(),
                 nodeTotal = null, hasSearched = false, isSearching = false,
             )
             return
@@ -176,15 +212,14 @@ class SearchViewModel : ViewModel() {
     }
 
     private suspend fun runSearch(query: String, scope: SearchScope) {
-        val key = "$query|$scope"
+        val key = "$query|$scope|${nodeScope.orEmpty()}"
         results[key]?.let { apply(it); return }
 
         _state.value = _state.value.copy(isSearching = true, error = null)
         try {
-            val found = when (scope) {
-                SearchScope.All -> overview(query)
-                SearchScope.Posts -> posts(query)
-                SearchScope.Media -> media(query)
+            val found = nodeScope?.let { ScopeResults(posts = nodeTopics(query, it)) } ?: when (scope) {
+                SearchScope.Topics -> ScopeResults(hits = topics(query))
+                SearchScope.Replies -> ScopeResults(hits = replies(query))
                 SearchScope.Nodes -> nodes(query)
                 SearchScope.Users -> users(query)
                 SearchScope.Apps -> ScopeResults(apps = apps(query))
@@ -205,6 +240,7 @@ class SearchViewModel : ViewModel() {
 
     private fun apply(found: ScopeResults) {
         _state.value = _state.value.copy(
+            hits = found.hits,
             posts = found.posts,
             users = found.users,
             nodes = found.nodes,
@@ -216,43 +252,54 @@ class SearchViewModel : ViewModel() {
         )
     }
 
-    /** Five of everything, for the tab that shows a bit of each. */
-    private suspend fun overview(query: String): ScopeResults {
-        site.siteResponse()
-        val response = client.searchEverything(query)
-        val users = response.users.orEmpty()
-        val usersById = users.associateBy { it.id }
-        return ScopeResults(
-            posts = response.topics.orEmpty().map { FeedMapper.post(it, usersById, site.category(it.categoryId)) },
-            users = users,
-            nodes = response.categories.orEmpty().map(NodeSummaryFactory::summary),
-            apps = apps(query),
-        )
-    }
-
-    private suspend fun posts(query: String): ScopeResults {
-        site.siteResponse()
-        val response = client.search(query)
-        val usersById = response.users.orEmpty().associateBy { it.id }
-        return ScopeResults(
-            posts = response.topics.orEmpty().map { FeedMapper.post(it, usersById, site.category(it.categoryId)) },
-        )
-    }
-
     /**
-     * Media is the post search with Discourse's own `with:images` filter, not a
-     * local one: `search.json` topics carry no `image_url` or `thumbnails` at
-     * all, so there is nothing here to filter on. The server knows which posts
-     * have an `image_upload_id`; we cannot.
+     * One row per topic, from whichever of its posts matched best. The server's
+     * own `topics` list is the same dedup without the highlighting, so the
+     * posts are deduplicated here instead.
      */
-    private suspend fun media(query: String): ScopeResults {
+    private suspend fun topics(query: String): List<SearchHit> {
         site.siteResponse()
-        val response = client.search("$query with:images")
-        val usersById = response.users.orEmpty().associateBy { it.id }
-        return ScopeResults(
-            posts = response.topics.orEmpty().map { FeedMapper.post(it, usersById, site.category(it.categoryId)) },
+        return search.hits(query, "topics").distinctBy { it.topicId }.map(::hit)
+    }
+
+    /** Hits in replies only; an opening post is its topic, and the Topics tab has those. */
+    private suspend fun replies(query: String): List<SearchHit> {
+        site.siteResponse()
+        return search.hits(query, "posts").filterNot { it.isFirstPost }.map(::hit)
+    }
+
+    private fun hit(found: ApiSearchHit): SearchHit {
+        val slug = found.nodeSlug.orEmpty()
+        val node = site.categoryBySlug(slug)
+        return SearchHit(
+            postId = found.id,
+            topicId = found.topicId,
+            postNumber = found.postNumber,
+            isFirstPost = found.isFirstPost,
+            titleHtml = found.titleHtml ?: escape(found.topicTitle),
+            // A folded hit (adult content the reader folds) carries no excerpt
+            // on purpose; it stays a title.
+            blurbHtml = if (found.folded) "" else found.blurb ?: escape(found.excerpt.orEmpty()),
+            nodeSlug = slug,
+            nodeName = found.nodeName.orEmpty(),
+            nodeId = node?.id,
+            nodeLogoUrl = DiscourseConfig.absoluteUrl(node?.uploadedLogo?.url),
+            time = DiscourseFormat.relative(found.createdAt),
+            upvotes = found.upvotes,
+            replyCount = found.replyCount,
         )
     }
+
+    private suspend fun nodeTopics(query: String, slug: String): List<Post> {
+        site.siteResponse()
+        val topics = search.nodeTopics(query, slug)
+        val usersById = Legacy.topicUsers(topics).associateBy { it.id }
+        val node = site.categoryBySlug(slug)
+        return topics.map { FeedMapper.post(Legacy.topicListItem(it, node?.id), usersById, node) }
+    }
+
+    private fun escape(text: String): String =
+        text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
     private suspend fun nodes(query: String): ScopeResults {
         val response = client.searchCategories(query)
