@@ -21,7 +21,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.ui.graphics.Color
 import com.composables.icons.lucide.Image
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Pencil
+import com.composables.icons.lucide.Camera
+import androidx.compose.foundation.layout.offset
+import androidx.compose.material3.ripple
+import androidx.compose.ui.text.style.TextOverflow
+import com.nodeloc.app.core.design.pressScale
+import com.nodeloc.app.core.design.rememberPressSource
 import com.composables.icons.lucide.Trash2
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.layout.Arrangement
@@ -244,6 +249,22 @@ class ProfileEditViewModel : ViewModel() {
 fun ProfileEditScreen(navigator: Navigator) {
     val viewModel: ProfileEditViewModel = viewModel()
     val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(Unit) { viewModel.load() }
+
+    SettingsScaffold(stringResource(R.string.settings_profile), navigator::back, loading = state.isLoading) {
+        ProfileEditBody(viewModel, onSaved = navigator::back)
+    }
+}
+
+/**
+ * The editor itself, without chrome: its own page above, and the settings
+ * page's 个人资料 tab, which hosts it under the tab bar and stays put after a
+ * save rather than closing.
+ */
+@Composable
+internal fun ProfileEditBody(viewModel: ProfileEditViewModel, onSaved: () -> Unit) {
+    val state by viewModel.state.collectAsState()
     val context = LocalContext.current
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
@@ -264,196 +285,224 @@ fun ProfileEditScreen(navigator: Navigator) {
         }
     }
 
-    LaunchedEffect(Unit) { viewModel.load() }
-
-    SettingsScaffold(stringResource(R.string.settings_profile), navigator::back, loading = state.isLoading) {
-        if (state.loadFailed) {
-            // An empty form here is indistinguishable from an empty profile,
-            // and saving it would overwrite the real one with blanks.
-            EmptyStateView(
-                icon = Lucide.CircleAlert,
-                title = stringResource(R.string.profile_edit_load_failed),
-                detail = stringResource(R.string.profile_edit_load_failed_detail),
-                retryLabel = stringResource(R.string.common_retry),
-                onRetry = { viewModel.load(force = true) },
-            )
-            return@SettingsScaffold
-        }
-
-        ProfileHeader(
-            avatarUrl = state.avatarUrl,
-            letter = state.name.take(1).ifEmpty { "?" },
-            backgroundUrl = state.backgroundUrl,
-            canEditBackground = state.canEditBackground,
-            onPickAvatar = {
-                picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-            },
-            onPickBackground = {
-                backgroundPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-            },
-            onRemoveBackground = viewModel::removeBackground,
+    if (state.loadFailed) {
+        // An empty form here is indistinguishable from an empty profile,
+        // and saving it would overwrite the real one with blanks.
+        EmptyStateView(
+            icon = Lucide.CircleAlert,
+            title = stringResource(R.string.profile_edit_load_failed),
+            detail = stringResource(R.string.profile_edit_load_failed_detail),
+            retryLabel = stringResource(R.string.common_retry),
+            onRetry = { viewModel.load(force = true) },
         )
+        return
+    }
 
-        SettingsSection(title = stringResource(R.string.profile_edit_section)) {
-            SettingsTextRow(stringResource(R.string.profile_edit_name), state.name, stringResource(R.string.profile_edit_name_hint)) { value ->
-                viewModel.update { it.copy(name = value) }
-            }
-            SettingsRowDivider()
-            // A title is not free text — it has to be one the account has earned.
-            val noTitle = stringResource(R.string.profile_edit_title_none)
-            if (state.availableTitles.isEmpty()) {
-                SettingsValueRow(
-                    stringResource(R.string.profile_edit_title),
-                    stringResource(R.string.profile_edit_title_locked),
-                )
-            } else {
-                SettingsPickerRow(
-                    title = stringResource(R.string.profile_edit_title),
-                    options = listOf("") + state.availableTitles,
-                    selected = state.title,
-                    label = { it.ifEmpty { noTitle } },
-                    onSelect = { value -> viewModel.update { it.copy(title = value) } },
-                )
-            }
-            SettingsRowDivider()
-            SettingsTextRow(stringResource(R.string.profile_edit_bio), state.bio, stringResource(R.string.profile_edit_bio_hint), singleLine = false) { value ->
-                viewModel.update { it.copy(bio = value) }
-            }
-            SettingsRowDivider()
-            SettingsTextRow(stringResource(R.string.profile_edit_website), state.website, "https://") { value ->
-                viewModel.update { it.copy(website = value) }
-            }
-            SettingsRowDivider()
-            SettingsTextRow(stringResource(R.string.profile_edit_location), state.location, "") { value ->
-                viewModel.update { it.copy(location = value) }
-            }
+    val username = ServiceLocator.get.session.username.orEmpty()
+    ProfileHeader(
+        avatarUrl = state.avatarUrl,
+        letter = state.name.ifEmpty { username }.take(1).uppercase().ifEmpty { "?" },
+        name = state.name.ifEmpty { username },
+        username = username,
+        backgroundUrl = state.backgroundUrl,
+        canEditBackground = state.canEditBackground,
+        onPickAvatar = {
+            picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        },
+        onPickBackground = {
+            backgroundPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        },
+        onRemoveBackground = viewModel::removeBackground,
+    )
+
+    SettingsSection(title = stringResource(R.string.profile_edit_section)) {
+        SettingsTextRow(stringResource(R.string.profile_edit_name), state.name, stringResource(R.string.profile_edit_name_hint)) { value ->
+            viewModel.update { it.copy(name = value) }
         }
+        SettingsRowDivider()
+        // A title is not free text — it has to be one the account has earned.
+        val noTitle = stringResource(R.string.profile_edit_title_none)
+        if (state.availableTitles.isEmpty()) {
+            SettingsValueRow(
+                stringResource(R.string.profile_edit_title),
+                stringResource(R.string.profile_edit_title_locked),
+            )
+        } else {
+            SettingsPickerRow(
+                title = stringResource(R.string.profile_edit_title),
+                options = listOf("") + state.availableTitles,
+                selected = state.title,
+                label = { it.ifEmpty { noTitle } },
+                onSelect = { value -> viewModel.update { it.copy(title = value) } },
+            )
+        }
+        SettingsRowDivider()
+        SettingsTextRow(stringResource(R.string.profile_edit_bio), state.bio, stringResource(R.string.profile_edit_bio_hint), singleLine = false) { value ->
+            viewModel.update { it.copy(bio = value) }
+        }
+        SettingsRowDivider()
+        SettingsTextRow(stringResource(R.string.profile_edit_website), state.website, "https://") { value ->
+            viewModel.update { it.copy(website = value) }
+        }
+        SettingsRowDivider()
+        SettingsTextRow(stringResource(R.string.profile_edit_location), state.location, "") { value ->
+            viewModel.update { it.copy(location = value) }
+        }
+    }
 
-        Column(Modifier.padding(horizontal = Space.page, vertical = Space.s4)) {
-            FilledAccentButton(
-                stringResource(R.string.common_save),
-                loading = state.isSaving,
-                enabled = state.canSave,
-            ) {
-                viewModel.save { navigator.back() }
-            }
+    Column(Modifier.padding(horizontal = Space.page, vertical = Space.s4)) {
+        FilledAccentButton(
+            stringResource(R.string.common_save),
+            loading = state.isSaving,
+            enabled = state.canSave,
+        ) {
+            viewModel.save(onSaved)
         }
     }
 }
 
-/** How far the avatar hangs below the banner it sits on. */
-private val AvatarOverlap = 34.dp
-private val BannerHeight = 132.dp
-private val AvatarSize = 84.dp
+/** The board's numbers: a 120-high cover card, and an 80 avatar hanging 36 below its edge. */
+private val CoverHeight = 120.dp
+private val AvatarOverlap = 36.dp
+private val AvatarSize = 80.dp
 
 /**
- * Banner, avatar, and the two ways to change them.
+ * Cover, avatar, and the ways to change them — the board's 个人资料 header.
  *
  * The avatar is the control, not a preview beside one: tapping the picture is
- * what everyone tries first, and a `+` badge says so without spending a row on
- * a button. The banner does the same with a pill laid over it, so neither
- * image needs a caption explaining that it can be replaced.
+ * what everyone tries first, and the camera badge says so without spending a
+ * row on a button. The cover's buttons sit on the picture itself, bottom
+ * right, one dark and one light so at least one reads on any image.
  */
 @Composable
 private fun ProfileHeader(
     avatarUrl: String?,
     letter: String,
+    name: String,
+    username: String,
     backgroundUrl: String?,
     canEditBackground: Boolean,
     onPickAvatar: () -> Unit,
     onPickBackground: () -> Unit,
     onRemoveBackground: () -> Unit,
 ) {
-    Column(Modifier.fillMaxWidth()) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(BannerHeight + AvatarOverlap),
-        ) {
+    Column(Modifier.fillMaxWidth().padding(start = Space.page, end = Space.page, top = 16.dp)) {
+        val coverShape = RoundedCornerShape(16.dp)
+        Box(Modifier.fillMaxWidth()) {
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .height(BannerHeight)
-                    .background(Nocturne.surface),
+                    .height(CoverHeight)
+                    .clip(coverShape)
+                    .background(Nocturne.neutral300),
             ) {
-                backgroundUrl?.let { url ->
+                if (backgroundUrl != null) {
                     AsyncImage(
-                        model = url,
+                        model = backgroundUrl,
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),
                     )
+                } else {
+                    Column(
+                        Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(Lucide.Image, null, tint = Nocturne.textSecondary, modifier = Modifier.size(20.dp))
+                        Text(stringResource(R.string.settings2_cover_none), style = Type.body(13), color = Nocturne.textSecondary)
+                    }
                 }
-            }
-
-            if (canEditBackground) {
-                Row(
-                    Modifier.align(Alignment.TopEnd).padding(Space.s3),
-                    horizontalArrangement = Arrangement.spacedBy(Space.s2),
-                ) {
-                    BannerPill(Lucide.Image, stringResource(R.string.profile_edit_background), onPickBackground)
-                    if (backgroundUrl != null) {
-                        BannerPill(Lucide.Trash2, stringResource(R.string.profile_edit_background_remove), onRemoveBackground)
+                if (canEditBackground) {
+                    Row(
+                        Modifier.align(Alignment.BottomEnd).padding(10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        if (backgroundUrl != null) {
+                            CoverButton(Lucide.Trash2, stringResource(R.string.settings2_cover_remove), dark = true, onClick = onRemoveBackground)
+                        }
+                        CoverButton(Lucide.Image, stringResource(R.string.settings2_cover_change), dark = false, onClick = onPickBackground)
                     }
                 }
             }
 
-            Box(
+            // Laid over the cover's bottom edge rather than offset up, so the space
+            // the column reserves is exactly what is drawn.
+            Row(
                 Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(start = Space.page),
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, top = CoverHeight - AvatarOverlap),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                // The circle is clipped around the picture alone. Clipping the
-                // pair of them takes a bite out of the badge, which sits by
-                // design where the circle has already curved away.
-                Box(
-                    Modifier
-                        .clip(CircleShape)
-                        .clickable(onClick = onPickAvatar),
-                ) {
-                    RemoteAvatar(avatarUrl, letter, size = AvatarSize)
+                Box(Modifier.size(AvatarSize)) {
+                    // The white ring is the page showing through, so the avatar
+                    // reads as lifted off the cover rather than pasted on it.
+                    Box(
+                        Modifier
+                            .size(AvatarSize)
+                            .clip(CircleShape)
+                            .background(Nocturne.bg)
+                            .padding(4.dp)
+                            .clip(CircleShape)
+                            .clickable(onClick = onPickAvatar),
+                    ) {
+                        RemoteAvatar(avatarUrl, letter, size = AvatarSize - 8.dp)
+                    }
+                    Box(
+                        Modifier
+                            .align(Alignment.BottomEnd)
+                            .offset(x = 4.dp)
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(Nocturne.bg)
+                            .padding(3.dp)
+                            .clip(CircleShape)
+                            .background(Nocturne.text)
+                            .clickable(onClick = onPickAvatar),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(Lucide.Camera, stringResource(R.string.profile_edit_avatar), tint = Nocturne.bg, modifier = Modifier.size(14.dp))
+                    }
                 }
-                Box(
-                    Modifier
-                        .align(Alignment.BottomEnd)
-                        .size(26.dp)
-                        .clip(CircleShape)
-                        .background(Nocturne.bg)
-                        .padding(2.dp)
-                        .clip(CircleShape)
-                        .background(Nocturne.accent)
-                        .clickable(onClick = onPickAvatar),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        Lucide.Pencil,
-                        stringResource(R.string.profile_edit_avatar),
-                        tint = if (Nocturne.isDark) Nocturne.neutral900 else Color.White,
-                        modifier = Modifier.size(13.dp),
-                    )
+                Column(Modifier.weight(1f).padding(top = 42.dp)) {
+                    Text(name, style = Type.heading(18, FontWeight.Bold), color = Nocturne.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    if (username.isNotEmpty()) {
+                        Text("u/$username", style = Type.body(13), color = Nocturne.textSecondary, maxLines = 1)
+                    }
                 }
             }
         }
+        Text(
+            stringResource(R.string.settings2_media_hint),
+            style = Type.body(12),
+            color = Nocturne.textSecondary,
+            modifier = Modifier.padding(top = 10.dp),
+        )
     }
 }
 
-/** A control laid over the banner, legible against whatever image is behind it. */
+/** A button laid over the cover image. */
 @Composable
-private fun BannerPill(
+private fun CoverButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
+    dark: Boolean,
     onClick: () -> Unit,
 ) {
+    val press = rememberPressSource()
     Row(
         Modifier
+            .pressScale(press)
+            .height(36.dp)
             .clip(CircleShape)
-            .background(Nocturne.bg.copy(alpha = 0.78f))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 6.dp),
+            .background(if (dark) Nocturne.text.copy(alpha = 0.72f) else Nocturne.bg.copy(alpha = 0.94f))
+            .clickable(interactionSource = press, indication = ripple(), onClick = onClick)
+            .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Icon(icon, null, tint = Nocturne.text, modifier = Modifier.size(14.dp))
-        Text(label, style = Type.body(12, FontWeight.Medium), color = Nocturne.text)
+        val ink = if (dark) Nocturne.bg else Nocturne.text
+        Icon(icon, null, tint = ink, modifier = Modifier.size(16.dp))
+        Text(label, style = Type.body(13, FontWeight.Bold), color = ink)
     }
 }

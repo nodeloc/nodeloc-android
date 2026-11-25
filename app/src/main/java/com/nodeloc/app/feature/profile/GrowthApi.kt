@@ -7,6 +7,8 @@ import com.nodeloc.app.core.network.ApiCheckinStatus
 import com.nodeloc.app.core.network.ApiPointsSummary
 import com.nodeloc.app.core.network.NodelocApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 /**
  * Reputation, tiers, achievements and energy on the 2.0 backend.
@@ -36,20 +38,50 @@ class GrowthApi(private val api: NodelocApi) {
 
     suspend fun balance(): Long = api.get<ApiPointsSummary>("api/v1/points").balance
 
-    /** The current month in Beijing time, which is how the ledger counts months. */
-    suspend fun monthSummary(): ApiMonthSummary = api.get("api/v1/points/summary")
+    /** The balance plus the reader's own transfer terms, which depend on their tier. */
+    suspend fun pointsInfo(): ApiPointsInfo = api.get("api/v1/points")
+
+    /** [month] is `YYYY-MM`; null is the current month in Beijing time, which is how the ledger counts months. */
+    suspend fun monthSummary(month: String? = null): ApiMonthSummary =
+        api.get("api/v1/points/summary", listOfNotNull(month?.let { "month" to it }))
 
     /**
-     * [direction] is `in`/`out`, [group] a ledger group key; the server
-     * intersects them, so the screen sends at most one of the two.
+     * [direction] is `in`/`out`, [group] a ledger group key, [month] `YYYY-MM`
+     * in Beijing time; the server intersects all three.
      */
-    suspend fun history(direction: String?, group: String?, before: Long?, limit: Int = 30): ApiEnergyPage =
+    suspend fun history(
+        direction: String?,
+        group: String?,
+        before: Long?,
+        limit: Int = 30,
+        month: String? = null,
+    ): ApiEnergyPage =
         api.get("api/v1/points/history", buildList {
             add("limit" to limit.toString())
             direction?.let { add("direction" to it) }
             group?.let { add("group" to it) }
+            month?.let { add("month" to it) }
             before?.let { add("before" to it.toString()) }
         })
+
+    /**
+     * 转赠. [key] is the Idempotency-Key the server requires: a retry of the
+     * same confirmed transfer must reuse it, or a timeout that actually went
+     * through would be paid twice.
+     */
+    suspend fun transfer(to: String, amount: Long, memo: String, key: String): ApiTransferResult =
+        api.decode(
+            api.sendRaw(
+                "POST",
+                "api/v1/points/transfers",
+                buildJsonObject {
+                    put("to", to)
+                    put("amount", amount)
+                    put("memo", memo)
+                },
+                headers = mapOf("Idempotency-Key" to key),
+            ),
+        )
 
     suspend fun checkinStatus(): ApiCheckinStatus = api.get("api/v1/checkin")
 
@@ -126,7 +158,10 @@ data class ApiRepSummary(
     val sources: List<ApiRepSource> = emptyList(),
     val tiers: List<ApiRepStep> = emptyList(),
     val legendReview: String? = null,
+    /** `pending` while a backfilled promotion waits on an admin; the number can be met and the tier still held. */
+    val tierReview: String? = null,
     val upgradeLockedUntil: String? = null,
+    val onboardingDoneAt: String? = null,
 )
 
 @Serializable
@@ -145,14 +180,30 @@ data class ApiTiers(val tiers: List<ApiTierInfo> = emptyList())
 @Serializable
 data class ApiMonthSummary(val month: String? = null, val income: Long = 0, val expense: Long = 0)
 
+/** Single-transfer bounds and the fee rate, both set by the sender's tier. The fee is paid on top. */
+@Serializable
+data class ApiTransferRule(val min: Long = 1, val max: Long = 0, val feePercent: Long = 0) {
+    /** Rounded up, as the server does: with any rate at all, every transfer pays at least one. */
+    fun feeOf(amount: Long): Long = (amount * feePercent + 99) / 100
+}
+
+@Serializable
+data class ApiPointsInfo(val balance: Long = 0, val transfer: ApiTransferRule? = null)
+
+@Serializable
+data class ApiTransferResult(val transactionId: Long? = null, val amount: Long = 0, val fee: Long = 0, val balance: Long? = null)
+
 @Serializable
 data class ApiEnergyRef(val type: String? = null, val label: String? = null, val url: String? = null)
 
 @Serializable
 data class ApiEnergyEntry(
     val id: Long = 0,
+    /** The serial shown to people: NL + Beijing date + transaction id. */
+    val no: String? = null,
     val kind: String = "",
     val amount: Long = 0,
+    val balanceAfter: Long? = null,
     val memo: String? = null,
     val ref: ApiEnergyRef? = null,
     val counterpart: String? = null,
@@ -161,7 +212,7 @@ data class ApiEnergyEntry(
 )
 
 @Serializable
-data class ApiEnergyPage(val entries: List<ApiEnergyEntry> = emptyList(), val total: Int? = null, val nextBefore: Long? = null)
+data class ApiEnergyPage(val entries: List<ApiEnergyEntry> = emptyList(), val total: Long? = null, val nextBefore: Long? = null)
 
 @Serializable
 data class ApiLeaderRow(val rank: Int = 0, val username: String = "", val balance: Long = 0)

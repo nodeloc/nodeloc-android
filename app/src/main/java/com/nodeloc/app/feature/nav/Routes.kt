@@ -56,15 +56,10 @@ object Route {
     @Serializable data class AppDetail(val slug: String)
 
     @Serializable data object Settings
-    @Serializable data object SettingsInterface
-    @Serializable data object SettingsNotifications
     @Serializable data object SettingsPush
     @Serializable data object SettingsPostSource
-    @Serializable data object SettingsPrivacy
-    @Serializable data object SettingsEmail
     @Serializable data object SettingsSecurity
     @Serializable data object SettingsBlocked
-    @Serializable data object SettingsAssociated
     @Serializable data object ProfileEdit
 
     @Serializable data object Auth

@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ripple
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -250,11 +251,13 @@ fun HeaderIconButton(
     // under it, and a floating pill on top of a filled app bar is two surfaces
     // saying the same thing. The circular ripple is all the affordance a top
     // bar icon gets on Android.
+    val press = rememberPressSource()
     Box(
         modifier
+            .pressScale(press)
             .size(FloatingHeader.touchHeight)
             .clip(CircleShape)
-            .clickable(enabled = enabled, onClick = onClick),
+            .clickable(interactionSource = press, indication = ripple(), enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         val color = LocalHeaderContentColor.current.takeIf { it.isSpecified } ?: Nocturne.headerText
@@ -305,11 +308,13 @@ fun CapsuleIconButton(
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
+    val press = rememberPressSource()
     Box(
         modifier
+            .pressScale(press)
             .size(FloatingHeader.controlHeight + 6.dp)
             .clip(CircleShape)
-            .clickable(enabled = enabled, onClick = onClick),
+            .clickable(interactionSource = press, indication = ripple(), enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         val fallback = LocalHeaderContentColor.current.takeIf { it.isSpecified } ?: Nocturne.headerText
@@ -330,12 +335,14 @@ fun CapsuleIconButton(
 fun GuestLoginButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
     // A tonal chip rather than a glass pill: it is the one call to action in
     // the bar, so it should read as a button and not as another floating disc.
+    val press = rememberPressSource()
     Box(
         modifier
+            .pressScale(press)
             .height(FloatingHeader.controlHeight)
             .clip(CircleShape)
             .background(Nocturne.selected)
-            .clickable(onClick = onClick)
+            .clickable(interactionSource = press, indication = ripple(), onClick = onClick)
             .padding(horizontal = 16.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -355,24 +362,26 @@ fun PrimaryButton(
     compact: Boolean = false,
     onClick: () -> Unit,
 ) {
-    val shape = RoundedCornerShape(Radius.md)
+    // The design's primary action is a filled green pill (关注, 加入, 发布):
+    // 34 high inline, 38 as the page's action.
+    val press = rememberPressSource()
     Box(
         modifier
+            .pressScale(press)
             .then(if (block) Modifier.fillMaxWidth() else Modifier)
-            .clip(shape)
-            .border(1.dp, Nocturne.accent.copy(alpha = if (enabled) 1f else 0.4f), shape)
-            .clickable(enabled = enabled, onClick = onClick)
-            .padding(
-                vertical = if (compact) Space.s1 else Space.s2,
-                horizontal = if (compact) Space.s3 else Space.s3 * 1.2f,
-            ),
+            .height(if (compact) 30.dp else 38.dp)
+            .clip(CircleShape)
+            .background(Nocturne.accent.copy(alpha = if (enabled) 1f else 0.4f))
+            .clickable(interactionSource = press, indication = ripple(), enabled = enabled, onClick = onClick)
+            .padding(horizontal = if (compact) 12.dp else 16.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text,
-            style = Type.heading(if (compact) 12 else 14),
-            color = Nocturne.accent.copy(alpha = if (enabled) 1f else 0.4f),
+            style = Type.body(if (compact) 13 else 14, FontWeight.SemiBold),
+            color = if (Nocturne.isDark) Nocturne.neutral900 else Nocturne.neutral100,
             textAlign = TextAlign.Center,
+            maxLines = 1,
         )
     }
 }
@@ -388,24 +397,25 @@ fun SecondaryButton(
     compact: Boolean = false,
     onClick: () -> Unit,
 ) {
-    val shape = RoundedCornerShape(Radius.md)
+    // The quiet counterpart: a grey pill (已加入, 取消), same heights as primary.
+    val press = rememberPressSource()
     Box(
         modifier
+            .pressScale(press)
             .then(if (block) Modifier.fillMaxWidth() else Modifier)
-            .clip(shape)
-            .border(1.dp, Nocturne.divider, shape)
-            .clickable(enabled = enabled, onClick = onClick)
-            .padding(
-                vertical = if (compact) Space.s1 else Space.s2,
-                horizontal = when {
-                    leadingAligned -> 16.dp
-                    compact -> Space.s3
-                    else -> Space.s3 * 1.2f
-                },
-            ),
+            .height(if (compact) 30.dp else 38.dp)
+            .clip(CircleShape)
+            .background(Nocturne.neutral300)
+            .clickable(interactionSource = press, indication = ripple(), enabled = enabled, onClick = onClick)
+            .padding(horizontal = if (leadingAligned) 16.dp else if (compact) 12.dp else 16.dp),
         contentAlignment = if (leadingAligned) Alignment.CenterStart else Alignment.Center,
     ) {
-        Text(text, style = Type.heading(if (compact) 12 else 14), color = Nocturne.text)
+        Text(
+            text,
+            style = Type.body(if (compact) 13 else 14, FontWeight.SemiBold),
+            color = Nocturne.text.copy(alpha = if (enabled) 1f else 0.4f),
+            maxLines = 1,
+        )
     }
 }
 
@@ -430,14 +440,15 @@ fun FilledAccentButton(
     loading: Boolean = false,
     onClick: () -> Unit,
 ) {
-    val shape = RoundedCornerShape(Radius.md)
+    val press = rememberPressSource()
     Box(
         modifier
+            .pressScale(press)
             .fillMaxWidth()
             .height(50.dp)
-            .clip(shape)
+            .clip(CircleShape)
             .background(Nocturne.accent.copy(alpha = if (enabled && !loading) 1f else 0.4f))
-            .clickable(enabled = enabled && !loading, onClick = onClick),
+            .clickable(interactionSource = press, indication = ripple(), enabled = enabled && !loading, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         if (loading) {
@@ -606,8 +617,10 @@ fun ActionPill(
     circular: Boolean = false,
     content: @Composable RowScope.() -> Unit,
 ) {
+    val press = rememberPressSource()
     Row(
         modifier
+            .then(if (onClick != null) Modifier.pressScale(press) else Modifier)
             // Fixed, not wrapped. The glyphs in these are not all one size and
             // some carry a number beside them, so a row of pills that sized to
             // their contents came out visibly uneven.
@@ -619,7 +632,7 @@ fun ActionPill(
             // is a stadium, and a glyph on its own in it is a disc.
             .clip(CircleShape)
             .background(LocalActionPillStyle.current?.ground ?: Nocturne.surface)
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .then(if (onClick != null) Modifier.clickable(interactionSource = press, indication = ripple(), onClick = onClick) else Modifier)
             .then(if (circular) Modifier else Modifier.padding(horizontal = horizontalPadding)),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement =

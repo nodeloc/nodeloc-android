@@ -45,6 +45,20 @@ class PersonalApi(private val api: NodelocApi) {
         api.sendRaw("DELETE", "api/v1/drafts/${key.enc()}")
     }
 
+    /** One request for the box's multi-select; keys already gone are skipped by the server. */
+    suspend fun deleteDrafts(keys: List<String>) {
+        api.sendRaw("POST", "api/v1/drafts/delete", kotlinx.serialization.json.buildJsonObject {
+            put("keys", kotlinx.serialization.json.JsonArray(keys.map { kotlinx.serialization.json.JsonPrimitive(it) }))
+        })
+    }
+
+    /** Settles a save held back from another device: `held` takes it, `current` drops it. */
+    suspend fun resolveDraftConflict(key: String, useHeld: Boolean) {
+        api.sendRaw("POST", "api/v1/drafts/${key.enc()}/conflict", kotlinx.serialization.json.buildJsonObject {
+            put("use", kotlinx.serialization.json.JsonPrimitive(if (useHeld) "held" else "current"))
+        })
+    }
+
     // ----------------------------------------------------------------- apps
 
     /**
@@ -114,12 +128,25 @@ data class ApiInviteFriend(
     val canRemind: Boolean = false,
     val remindedAt: String? = null,
     val expiresAt: String? = null,
+    /** People this friend went on to invite. */
+    val subInvites: Int = 0,
+    /** What this friend has paid me so far, the second-level part ([second]) included. */
+    val earned: Long = 0,
+    val second: Long = 0,
+    /** What their remaining steps would still pay me. */
+    val pending: Long = 0,
+    /** Over that month's cap: still an active friend, but no longer paying me. */
+    val capped: Boolean = false,
 )
 
 @Serializable
 data class ApiDraftBox(
     val drafts: List<ApiDraftEntry> = emptyList(),
     val lifetimeDays: Int? = null,
+    /** How many drafts an account may keep. */
+    val limit: Int? = null,
+    /** How long before deletion the owner is warned. */
+    val warnDays: Int? = null,
 )
 
 @Serializable
@@ -131,9 +158,20 @@ data class ApiDraftEntry(
     val publishAt: String? = null,
     val scheduleError: String? = null,
     val expiresAt: String? = null,
+    /** `pc` or `phone`; empty on drafts older than the field. */
+    val device: String? = null,
+    /** A save from another device that would have overwritten a newer one, held for the owner to choose. */
+    val conflict: ApiDraftConflict? = null,
 ) {
     val fields: JsonObject? get() = data as? JsonObject
 }
+
+@Serializable
+data class ApiDraftConflict(
+    val data: JsonElement? = null,
+    val device: String? = null,
+    val savedAt: String? = null,
+)
 
 @Serializable
 data class ApiAppDirectoryPage(
@@ -154,4 +192,6 @@ data class ApiDirectoryApp(
     /** game · applet · bot */
     val kind: String? = null,
     val logoUrl: String? = null,
+    /** `/t/<topic>?post=<n>`, the first public place the app is put; absent when it is placed nowhere public. */
+    val homeUrl: String? = null,
 )

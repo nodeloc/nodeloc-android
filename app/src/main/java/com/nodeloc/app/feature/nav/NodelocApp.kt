@@ -63,12 +63,7 @@ import com.nodeloc.app.feature.profile.PublicProfileScreen
 import com.nodeloc.app.feature.profile.UpgradeProgressScreen
 import com.nodeloc.app.feature.search.NodeSearchScreen
 import com.nodeloc.app.feature.search.SearchScreen
-import com.nodeloc.app.feature.settings.AssociatedAccountsScreen
-import com.nodeloc.app.feature.settings.EmailSettingsScreen
-import com.nodeloc.app.feature.settings.InterfaceSettingsScreen
-import com.nodeloc.app.feature.settings.NotificationPreferencesScreen
 import com.nodeloc.app.feature.settings.PostSourceScreen
-import com.nodeloc.app.feature.settings.PrivacySettingsScreen
 import com.nodeloc.app.feature.settings.ProfileEditScreen
 import com.nodeloc.app.feature.settings.PushSettingsScreen
 import com.nodeloc.app.feature.settings.BlockedUsersScreen
@@ -338,15 +333,10 @@ private fun NodelocNavHost(
         }
 
         composable<Route.Settings> { SettingsScreen(app, navigator) }
-        composable<Route.SettingsInterface> { InterfaceSettingsScreen(navigator) }
-        composable<Route.SettingsNotifications> { NotificationPreferencesScreen(navigator) }
         composable<Route.SettingsPush> { PushSettingsScreen(navigator) }
         composable<Route.SettingsPostSource> { PostSourceScreen(navigator) }
-        composable<Route.SettingsPrivacy> { PrivacySettingsScreen(navigator) }
-        composable<Route.SettingsEmail> { EmailSettingsScreen(navigator) }
         composable<Route.SettingsSecurity> { SecurityScreen(navigator) }
         composable<Route.SettingsBlocked> { BlockedUsersScreen(navigator) }
-        composable<Route.SettingsAssociated> { AssociatedAccountsScreen(navigator) }
         composable<Route.ProfileEdit> { ProfileEditScreen(navigator) }
 
         composable<Route.Auth> { AuthNavHost(app, navigator) }

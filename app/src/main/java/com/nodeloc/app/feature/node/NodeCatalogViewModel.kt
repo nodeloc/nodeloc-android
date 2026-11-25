@@ -35,6 +35,8 @@ data class NodeSquareState(
     /** Null is 推荐: every section, busiest first. */
     val sectionId: Int? = null,
     val query: String = "",
+    /** How many of [shown] are drawn; 显示更多 adds a page. */
+    val limit: Int = SQUARE_PAGE,
     val isLoading: Boolean = false,
     val error: Throwable? = null,
 ) {
@@ -55,6 +57,12 @@ data class NodeSquareState(
                 .sortedByDescending { it.memberCount ?: 0 }
         }
 }
+
+/**
+ * The web square's phone layout pages at 12 (design-sync 16.8). The whole
+ * directory is already on the phone, so a page here is only how much is drawn.
+ */
+const val SQUARE_PAGE = 12
 
 /** Turns Discourse categories into the flat [NodeSummary] rows the UI draws. */
 object NodeSummaryFactory {
@@ -168,11 +176,15 @@ class NodeCatalogViewModel : ViewModel() {
     }
 
     fun selectSection(id: Int?) {
-        _squareState.value = _squareState.value.copy(sectionId = id)
+        _squareState.value = _squareState.value.copy(sectionId = id, limit = SQUARE_PAGE)
     }
 
     fun updateQuery(value: String) {
-        _squareState.value = _squareState.value.copy(query = value)
+        _squareState.value = _squareState.value.copy(query = value, limit = SQUARE_PAGE)
+    }
+
+    fun showMore() {
+        _squareState.value = _squareState.value.copy(limit = _squareState.value.limit + SQUARE_PAGE)
     }
 
     /**

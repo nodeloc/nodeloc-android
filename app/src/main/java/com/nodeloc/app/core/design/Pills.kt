@@ -15,6 +15,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.material3.ripple
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,15 +41,17 @@ fun FilterPill(
     count: Int? = null,
     onClick: () -> Unit,
 ) {
-    val ground = if (selected) Nocturne.text else Nocturne.neutral400
-    val ink = if (selected) Nocturne.bg else Nocturne.text
+    val ground by animatedColor(if (selected) Nocturne.text else Nocturne.neutral400, "pillGround")
+    val ink by animatedColor(if (selected) Nocturne.bg else Nocturne.text, "pillInk")
+    val press = rememberPressSource()
     Row(
         modifier
+            .pressScale(press)
             .height(34.dp)
             .clip(CircleShape)
             .background(ground)
             .semantics { this.selected = selected }
-            .clickable(role = Role.Tab, onClick = onClick)
+            .clickable(interactionSource = press, indication = ripple(), role = Role.Tab, onClick = onClick)
             .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp),

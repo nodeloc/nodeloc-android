@@ -2,7 +2,9 @@ package com.nodeloc.app.core.design
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import com.nodeloc.app.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
@@ -15,15 +17,31 @@ import androidx.compose.ui.unit.sp
  * iOS. That keeps the reader's dense layouts (quote nesting, reply rails)
  * predictable.
  */
+/**
+ * IBM Plex Sans, the 2026-11 design's face (`'IBM Plex Sans', 'Noto Sans SC'`).
+ *
+ * Plex has no Han glyphs; Android falls back per character to the system's
+ * Noto Sans CJK, which is the design's second family, so the pair needs only
+ * the Latin face bundled. Static weights rather than the variable file:
+ * variation settings on resource fonts are unreliable below API 28, and the
+ * app supports 26. Licence: assets/licenses/IBMPlexSans-OFL.txt.
+ */
+val NodelocFont = FontFamily(
+    Font(R.font.ibm_plex_sans_regular, FontWeight.Normal),
+    Font(R.font.ibm_plex_sans_medium, FontWeight.Medium),
+    Font(R.font.ibm_plex_sans_semibold, FontWeight.SemiBold),
+    Font(R.font.ibm_plex_sans_bold, FontWeight.Bold),
+)
+
 object Type {
     fun heading(size: Int, weight: FontWeight = FontWeight.Medium): TextStyle =
-        TextStyle(fontFamily = FontFamily.Default, fontSize = size.sp, fontWeight = weight)
+        TextStyle(fontFamily = NodelocFont, fontSize = size.sp, fontWeight = weight)
 
     fun body(size: Int, weight: FontWeight = FontWeight.Normal): TextStyle =
-        TextStyle(fontFamily = FontFamily.Default, fontSize = size.sp, fontWeight = weight)
+        TextStyle(fontFamily = NodelocFont, fontSize = size.sp, fontWeight = weight)
 
     fun body(size: Float, weight: FontWeight = FontWeight.Normal): TextStyle =
-        TextStyle(fontFamily = FontFamily.Default, fontSize = size.sp, fontWeight = weight)
+        TextStyle(fontFamily = NodelocFont, fontSize = size.sp, fontWeight = weight)
 
     /** Post body line spacing: 16sp text with 6sp extra leading. */
     fun lineHeight(size: Int, extra: Int): TextUnit = (size + extra).sp

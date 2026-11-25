@@ -3,6 +3,20 @@ package com.nodeloc.app.feature.apps
 import com.nodeloc.app.core.util.runCatchingCancellable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ripple
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
+import com.nodeloc.app.core.design.pressScale
+import com.nodeloc.app.core.design.rememberPressSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -98,6 +112,16 @@ class AppsViewModel : ViewModel() {
     private val _directory = MutableStateFlow(AppDirectoryState())
     val directory: StateFlow<AppDirectoryState> = _directory.asStateFlow()
 
+    private val _games = MutableStateFlow<List<ApiDirectoryApp>>(emptyList())
+
+    /**
+     * The strip of playable games above the directory. The web page orders its
+     * "daily games" by thirty-day players, which only exists server-rendered;
+     * the directory's own first page of games, by installs, is the nearest
+     * thing the app can ask for, so the strip makes no "updated daily" claim.
+     */
+    val games: StateFlow<List<ApiDirectoryApp>> = _games.asStateFlow()
+
     private val _detail = MutableStateFlow<DirectoryApp?>(null)
     val detail: StateFlow<DirectoryApp?> = _detail.asStateFlow()
 
@@ -112,6 +136,7 @@ class AppsViewModel : ViewModel() {
 
     fun loadDirectory(force: Boolean = false) {
         val current = _directory.value
+        if (force || _games.value.isEmpty()) loadGames()
         if (!force && (current.apps.isNotEmpty() || current.loading)) return
         select(current.filter)
     }
@@ -122,6 +147,14 @@ class AppsViewModel : ViewModel() {
         _directory.value = _directory.value.copy(filter = filter, apps = emptyList(), page = 0, hasMore = false, loading = false, error = null)
         if (filter == AppFilter.Recent) return
         fetch(filter, 0)
+    }
+
+    // A failure leaves the strip out; the directory below still has every game.
+    private fun loadGames() {
+        viewModelScope.launch {
+            runCatchingCancellable { personal.appDirectory("game", 0) }
+                .onSuccess { _games.value = it.apps.take(GAME_STRIP_SIZE) }
+        }
     }
 
     fun loadMore() {
@@ -196,8 +229,9 @@ fun AppsScreen(navigator: Navigator) {
     }
     LaunchedEffect(nearEnd, state.apps.size) { if (nearEnd) viewModel.loadMore() }
 
-    ModScaffold(stringResource(R.string.apps2_title), navigator::back) {
-        FilterPillRow {
+    val games by viewModel.games.collectAsState()
+    val chips: @Composable () -> Unit = {
+        FilterPillRow(contentPadding = PaddingValues(top = 4.dp, bottom = 4.dp)) {
             FilterPill(stringResource(R.string.apps2_filter_all), state.filter == AppFilter.All) { viewModel.select(AppFilter.All) }
             if ((state.counts["game"] ?: 0) > 0) {
                 FilterPill(stringResource(R.string.apps2_filter_games), state.filter == AppFilter.Games) { viewModel.select(AppFilter.Games) }
@@ -212,50 +246,75 @@ fun AppsScreen(navigator: Navigator) {
                 FilterPill(stringResource(R.string.apps2_filter_recent), state.filter == AppFilter.Recent) { viewModel.select(AppFilter.Recent) }
             }
         }
+    }
 
+    // The bar carries only the way back; the page names itself in its heading.
+    ModScaffold("", navigator::back) {
         val cards: List<ApiDirectoryApp> = if (state.filter == AppFilter.Recent) {
             recentApps.map { ApiDirectoryApp(id = it.id, slug = it.slug, name = it.name, logoUrl = it.logoUrl) }
         } else {
             state.apps
         }
 
-        when {
-            state.loading && cards.isEmpty() -> RowsSkeleton()
-            state.error != null && cards.isEmpty() -> EmptyStateView(
-                icon = Lucide.CircleAlert,
-                title = stringResource(R.string.apps2_load_failed),
-                retryLabel = stringResource(R.string.common_retry),
-                onRetry = { viewModel.loadDirectory(force = true) },
-            )
-            cards.isEmpty() -> EmptyStateView(Lucide.LayoutGrid, stringResource(R.string.apps_empty))
-            else -> LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                state = gridState,
-                modifier = Modifier.fillMaxSize().background(Nocturne.surface),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 24.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            state = gridState,
+            modifier = Modifier.fillMaxSize().background(Nocturne.bg),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Text(stringResource(R.string.apps2_title), style = Type.heading(24, FontWeight.Bold), color = Nocturne.text)
+            }
+            if (games.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 8.dp)) {
-                        Text(
-                            stringResource(if (state.filter == AppFilter.Recent) R.string.apps2_section_recent else R.string.apps2_section_all),
-                            style = Type.body(13, FontWeight.SemiBold),
-                            color = Nocturne.textSecondary,
-                            modifier = Modifier.weight(1f),
-                        )
-                        // The directory is ordered by installs, so the label
-                        // states the order the server actually used.
-                        if (state.filter != AppFilter.Recent) {
-                            Text(stringResource(R.string.apps2_by_popularity), style = Type.body(13, FontWeight.SemiBold), color = Nocturne.accent)
-                        }
+                    GameStrip(games) { game ->
+                        val home = game.homeUrl?.let { HOME_TOPIC.find(it) }
+                        val topicId = home?.groupValues?.get(1)?.toIntOrNull()
+                        // "Start" goes where the game runs: the post it is
+                        // placed in. One placed nowhere public has only its page.
+                        if (home != null && topicId != null) navigator.openTopic(topicId, home.groupValues[2].toIntOrNull())
+                        else navigator.openApp(game.slug)
                     }
                 }
-                items(cards, key = { it.id }) { app -> AppCard(app) { navigator.openApp(app.slug) } }
-                if (state.loading) {
+            }
+            item(span = { GridItemSpan(maxLineSpan) }) { chips() }
+            when {
+                state.loading && cards.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) { RowsSkeleton() }
+                state.error != null && cards.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
+                    EmptyStateView(
+                        icon = Lucide.CircleAlert,
+                        title = stringResource(R.string.apps2_load_failed),
+                        retryLabel = stringResource(R.string.common_retry),
+                        onRetry = { viewModel.loadDirectory(force = true) },
+                    )
+                }
+                cards.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
+                    EmptyStateView(Lucide.LayoutGrid, stringResource(R.string.apps_empty))
+                }
+                else -> {
                     item(span = { GridItemSpan(maxLineSpan) }) {
-                        Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                            NodelocLoader(height = 20.dp, tint = Nocturne.accent)
+                        Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                stringResource(if (state.filter == AppFilter.Recent) R.string.apps2_section_recent else R.string.apps2_section_all),
+                                style = Type.heading(17, FontWeight.Bold),
+                                color = Nocturne.text,
+                                modifier = Modifier.weight(1f),
+                            )
+                            // The directory is ordered by installs, so the label
+                            // states the order the server actually used.
+                            if (state.filter != AppFilter.Recent) {
+                                Text(stringResource(R.string.apps2_by_popularity), style = Type.body(12), color = Nocturne.textSecondary)
+                            }
+                        }
+                    }
+                    items(cards, key = { it.id }) { app -> AppCard(app) { navigator.openApp(app.slug) } }
+                    if (state.loading) {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                                NodelocLoader(height = 20.dp, tint = Nocturne.accent)
+                            }
                         }
                     }
                 }
@@ -264,14 +323,122 @@ fun AppsScreen(navigator: Navigator) {
     }
 }
 
+/** How many games the strip shows — the web page's own count. */
+private const val GAME_STRIP_SIZE = 8
+
+/** `/t/<topic>?post=<n>` from a directory entry's `home_url`. */
+private val HOME_TOPIC = Regex("/t/(\\d+)(?:\\?post=(\\d+))?")
+
+/**
+ * The board's horizontally swiped game cards. Each takes one of four tinted
+ * grounds by app id, as the web page assigns them, so a game keeps its colour
+ * between visits.
+ */
 @Composable
-private fun AppCard(app: ApiDirectoryApp, onClick: () -> Unit) {
+private fun GameStrip(games: List<ApiDirectoryApp>, onStart: (ApiDirectoryApp) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(stringResource(R.string.apps2_games_section), style = Type.heading(17, FontWeight.Bold), color = Nocturne.text)
+        // The grid's side padding would clip the strip at the margins; the
+        // row reaches the screen edges and pads its own content instead.
+        Row(
+            Modifier
+                .layout { measurable, constraints ->
+                    val bleed = 16.dp.roundToPx()
+                    val placeable = measurable.measure(constraints.copy(minWidth = 0, maxWidth = constraints.maxWidth + bleed * 2))
+                    layout(constraints.maxWidth, placeable.height) { placeable.place(-bleed, 0) }
+                }
+                .horizontalScroll(rememberScrollState())
+                .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            games.forEach { game -> GameCard(game) { onStart(game) } }
+        }
+    }
+}
+
+@Composable
+private fun GameCard(game: ApiDirectoryApp, onStart: () -> Unit) {
+    val (ground, ink) = when (game.id % 4) {
+        0 -> Nocturne.warningBg to Nocturne.warning
+        1 -> Nocturne.infoBg to Nocturne.info
+        2 -> Nocturne.accent100 to Nocturne.accent700
+        else -> Nocturne.dangerBg to Nocturne.danger
+    }
     Column(
         Modifier
+            .width(150.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(ground)
+            .padding(start = 12.dp, end = 12.dp, top = 16.dp, bottom = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        val logo = DiscourseConfig.absoluteUrl(game.logoUrl)
+        if (logo.isNullOrEmpty()) {
+            Box(Modifier.size(72.dp).clip(CircleShape).background(ink), contentAlignment = Alignment.Center) {
+                Text(game.name.take(1), style = Type.heading(30, FontWeight.Bold), color = ground)
+            }
+        } else {
+            RemoteAvatar(logo, game.name.take(1), size = 72.dp)
+        }
+        Text(
+            game.name,
+            style = Type.heading(16, FontWeight.Bold),
+            color = Nocturne.text,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 10.dp),
+        )
+        Text(
+            game.description.orEmpty(),
+            style = Type.body(13),
+            color = Nocturne.textSecondary,
+            maxLines = 2,
+            minLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 2.dp),
+        )
+        Box(Modifier.padding(vertical = 10.dp).fillMaxWidth().height(1.dp).background(Nocturne.text.copy(alpha = 0.12f)))
+        // Installs, not players: the thirty-day player count is only on the
+        // server-rendered page, and "N playing" would claim a number this
+        // client never sees.
+        Text(
+            game.installsCount?.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.apps_installs, it, it) }.orEmpty(),
+            style = Type.body(12, FontWeight.Bold),
+            color = Nocturne.text,
+            maxLines = 1,
+            minLines = 1,
+        )
+        val press = rememberPressSource()
+        val label = stringResource(R.string.apps2_start_a11y, game.name)
+        Box(
+            Modifier
+                .padding(top = 10.dp)
+                .pressScale(press)
+                .fillMaxWidth()
+                .height(36.dp)
+                .clip(CircleShape)
+                .background(Nocturne.text)
+                .clickable(interactionSource = press, indication = ripple(), role = Role.Button, onClick = onStart)
+                .semantics { contentDescription = label },
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(stringResource(R.string.apps2_start), style = Type.body(13, FontWeight.Bold), color = Nocturne.bg)
+        }
+    }
+}
+
+@Composable
+private fun AppCard(app: ApiDirectoryApp, onClick: () -> Unit) {
+    val press = rememberPressSource()
+    Column(
+        Modifier
+            .pressScale(press)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
-            .background(Nocturne.bg)
-            .clickable(onClick = onClick)
+            .clip(RoundedCornerShape(16.dp))
+            .border(1.dp, Nocturne.divider, RoundedCornerShape(16.dp))
+            .clickable(interactionSource = press, indication = ripple(), onClick = onClick)
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {

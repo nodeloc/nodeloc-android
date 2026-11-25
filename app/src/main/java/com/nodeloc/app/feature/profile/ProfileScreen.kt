@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -28,6 +30,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -48,7 +51,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Award
 import com.composables.icons.lucide.Ban
 import com.composables.icons.lucide.Bell
@@ -86,6 +88,10 @@ import com.nodeloc.app.core.design.HeaderIconButton
 import com.nodeloc.app.core.design.Nocturne
 import com.nodeloc.app.core.design.NodelocLoader
 import com.nodeloc.app.core.design.PillTone
+import com.nodeloc.app.core.design.PrimaryButton
+import com.nodeloc.app.core.design.SecondaryButton
+import com.nodeloc.app.core.design.pressScale
+import com.nodeloc.app.core.design.rememberPressSource
 import com.nodeloc.app.core.design.PullToRefreshBox
 import com.nodeloc.app.core.design.RemoteAvatar
 import com.nodeloc.app.core.design.RemoteImage
@@ -108,6 +114,7 @@ import com.nodeloc.app.core.network.DiscourseConfig
 import com.nodeloc.app.core.network.isOfflineError
 import com.nodeloc.app.core.util.DiscourseFormat
 import com.nodeloc.app.feature.feed.RowsSkeleton
+import com.nodeloc.app.feature.moderation.ModTopBar
 import com.nodeloc.app.feature.nav.AppViewModel
 import com.nodeloc.app.feature.nav.Navigator
 import java.time.Instant
@@ -228,35 +235,13 @@ fun PublicProfileScreen(username: String, app: AppViewModel, navigator: Navigato
 
     LaunchedEffect(username) { viewModel.bind(username) }
 
-    Box(Modifier.fillMaxSize().background(Nocturne.bg)) {
-        ProfileBody(
-            state = state,
-            listState = listState,
-            contentPadding = PaddingValues(),
-            isOwn = false,
-            navigator = navigator,
-            onRetry = viewModel::retry,
-            onSelectTab = viewModel::selectTab,
-            onLoadMoreActivity = viewModel::loadMoreActivity,
-            onToggleFollow = viewModel::toggleFollow,
-        )
-
-        FloatingHeaderBar(
-            scrolled = listState.isScrolledPastTop(threshold = 0),
-            overMedia = true,
-            leading = { HeaderIconButton(Lucide.ArrowLeft, stringResource(R.string.common_back), onClick = navigator::back) },
-            centerVisible = listState.isScrolledPastTop(threshold = 120),
-            center = {
-                HeaderGroup {
-                    Text(
-                        username,
-                        style = Type.body(14, FontWeight.SemiBold),
-                        color = Nocturne.headerText,
-                        modifier = Modifier.padding(horizontal = 10.dp),
-                    )
-                }
-            },
-            trailing = {
+    // The design's plain Material bar over a short cover band, not the own
+    // page's floating bar over a tall one: here the person is the content.
+    Column(Modifier.fillMaxSize().background(Nocturne.bg)) {
+        ModTopBar(
+            title = if (listState.isScrolledPastTop(threshold = 120)) username else "",
+            onBack = navigator::back,
+            actions = {
                 // What the website offers on someone's page: write to them,
                 // chat, or decide how loudly they reach you.
                 Box {
@@ -347,6 +332,20 @@ fun PublicProfileScreen(username: String, app: AppViewModel, navigator: Navigato
                 }
             },
         )
+
+        Box(Modifier.weight(1f).fillMaxWidth()) {
+            ProfileBody(
+                state = state,
+                listState = listState,
+                contentPadding = PaddingValues(),
+                isOwn = false,
+                navigator = navigator,
+                onRetry = viewModel::retry,
+                onSelectTab = viewModel::selectTab,
+                onLoadMoreActivity = viewModel::loadMoreActivity,
+                onToggleFollow = viewModel::toggleFollow,
+            )
+        }
     }
 }
 
@@ -403,7 +402,17 @@ private fun ProfileBody(
         contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding() + 24.dp),
         overscrollEffect = rememberTapSafeOverscroll(),
     ) {
-        item(key = "header") {
+        if (!isOwn) {
+            item(key = "header") {
+                PublicHeader(
+                    state = state,
+                    profile = profile,
+                    navigator = navigator,
+                    onToggleFollow = onToggleFollow,
+                    onShowAchievements = { onSelectTab(ActivityTab.Achievements) },
+                )
+            }
+        } else item(key = "header") {
             Box(Modifier.fillMaxWidth()) {
                 Banner(profile, Modifier.fillMaxWidth().height(floatingHeaderInset + BandExtra))
                 HeaderCard(
@@ -428,7 +437,13 @@ private fun ProfileBody(
         }
 
         item(key = "tabs") {
-            FilterPillRow(contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)) {
+            FilterPillRow(
+                contentPadding = if (isOwn) {
+                    PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)
+                } else {
+                    PaddingValues(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 10.dp)
+                },
+            ) {
                 tabs.forEach { tab ->
                     FilterPill(
                         text = stringResource(
@@ -442,6 +457,7 @@ private fun ProfileBody(
                     )
                 }
             }
+            if (!isOwn) HairLine()
         }
 
         when {
@@ -460,6 +476,16 @@ private fun ProfileBody(
                 )
             }
             state.tab == ActivityTab.Points -> {
+                if (isOwn) {
+                    item(key = "points-summary") {
+                        PointsSummary(
+                            balance = state.pointsTotal?.toLong() ?: state.boardRow?.balance,
+                            rank = state.boardRow?.rank,
+                            onRank = navigator::openWealthRank,
+                            onLedger = navigator::openEnergyHistory,
+                        )
+                    }
+                }
                 if (state.points.isEmpty()) {
                     item { EmptyStateView(Lucide.User, stringResource(R.string.profile_empty_points)) }
                 } else {
@@ -941,6 +967,234 @@ private fun LazyListScope.aboutItems(state: ProfileState, profile: UserProfile) 
                     Text(value, style = Type.body(15), color = Nocturne.text)
                 }
             }
+        }
+    }
+}
+
+// ------------------------------------------------------- Someone's page
+
+/**
+ * The 用户主页 header: a short cover band, the avatar breaking out of it with
+ * 私信 and 关注 beside it, then name, join date, bio, three figures, the energy
+ * line and the achievements strip — each a quiet grey block, as on the board.
+ */
+@Composable
+private fun PublicHeader(
+    state: ProfileState,
+    profile: UserProfile,
+    navigator: Navigator,
+    onToggleFollow: () -> Unit,
+    onShowAchievements: () -> Unit,
+) {
+    val tier = state.tiers.level(profile.trustLevel)
+    Column(Modifier.fillMaxWidth()) {
+        Box(Modifier.fillMaxWidth().height(114.dp)) {
+            Banner(profile, Modifier.fillMaxWidth().height(64.dp))
+            Box(
+                Modifier
+                    .padding(start = 16.dp, top = 32.dp)
+                    .size(72.dp)
+                    .clip(CircleShape)
+                    .background(Nocturne.bg)
+                    .padding(3.dp),
+            ) {
+                RemoteAvatar(
+                    DiscourseConfig.avatarUrl(profile.avatarTemplate, 240),
+                    profile.username.take(1).uppercase().ifEmpty { "?" },
+                    size = 66.dp,
+                )
+            }
+            Row(
+                Modifier.align(Alignment.BottomEnd).padding(end = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                SecondaryButton(stringResource(R.string.profile_message)) {
+                    navigator.openCompose(pmRecipient = profile.username)
+                }
+                if (state.isFollowing) {
+                    OutlinedPillButton(stringResource(R.string.profile_following), null, onToggleFollow, Modifier.width(96.dp))
+                } else {
+                    PrimaryButton(stringResource(R.string.profile_follow), modifier = Modifier.width(84.dp), onClick = onToggleFollow)
+                }
+            }
+        }
+
+        Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    profile.name?.takeIf { it.isNotBlank() } ?: profile.username,
+                    style = Type.heading(22, FontWeight.Bold),
+                    color = Nocturne.text,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                when {
+                    profile.admin == true -> StatusPill(stringResource(R.string.profile_admin), PillTone.Accent)
+                    profile.moderator == true -> StatusPill(stringResource(R.string.profile_moderator), PillTone.Accent)
+                }
+            }
+            Text(
+                listOfNotNull("u/${profile.username}", joinedLine(profile.createdAt)).joinToString(" · "),
+                style = Type.body(13),
+                color = Nocturne.textSecondary,
+            )
+            profile.bioExcerpt?.let { com.nodeloc.app.core.html.plainTextFromHtml(it) }?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                Text(it, style = Type.body(14), color = Nocturne.text, modifier = Modifier.padding(top = 6.dp))
+            }
+
+            // The badge title and group flair the member chose: not on the
+            // board, but their own choice of how to be seen, so they stay.
+            val title = profile.title?.takeIf { it.isNotBlank() && it != tier?.name }
+            if (title != null || profile.flairUrl != null || profile.flairName != null) {
+                FlowRow(
+                    Modifier.padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    title?.let { BadgeTitleText(it, size = 13) }
+                    FlairBadge(
+                        flairUrl = profile.flairUrl,
+                        flairName = profile.flairName,
+                        backgroundColor = profile.flairBgColor,
+                        foregroundColor = profile.flairColor,
+                    )
+                }
+            }
+
+            Row(
+                Modifier
+                    .padding(top = 12.dp)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Nocturne.surface)
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                val summary = state.summary
+                val topics = (summary?.topicCount ?: profile.topicCount)?.toLong()
+                val posts = (summary?.postCount ?: profile.postCount)?.toLong()
+                // 贡献 is topics and replies together, as the web counts it.
+                val contribution = if (topics == null && posts == null) null else (topics ?: 0) + (posts ?: 0)
+                Figure(stringResource(R.string.profile_reputation), state.publicReputation, Modifier.weight(1f))
+                Figure(stringResource(R.string.me2_contribution), contribution, Modifier.weight(1f))
+                Figure(stringResource(R.string.me2_followers_label), profile.totalFollowers?.toLong(), Modifier.weight(1f))
+            }
+
+            EnergyLine(state.boardRow, tier?.name, onRank = navigator::openWealthRank)
+
+            if (state.achievementBadges.isNotEmpty()) {
+                val press = rememberPressSource()
+                Row(
+                    Modifier
+                        .padding(top = 8.dp)
+                        .fillMaxWidth()
+                        .pressScale(press)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Nocturne.surface)
+                        .clickable(interactionSource = press, indication = ripple(), role = Role.Button, onClick = onShowAchievements)
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    state.achievementBadges.take(3).forEach { AchievementDisc(it, 44.dp) }
+                    Text(
+                        stringResource(R.string.me2_showcase_label),
+                        style = Type.body(13),
+                        color = Nocturne.textSecondary,
+                        modifier = Modifier.weight(1f).padding(start = 4.dp),
+                    )
+                    Icon(Lucide.ChevronRight, null, tint = Nocturne.textTertiary, modifier = Modifier.size(18.dp))
+                }
+            }
+        }
+    }
+}
+
+/** "2022 年 9 月加入": the month, in the reader's own date order. */
+@Composable
+private fun joinedLine(createdAt: String?): String? {
+    val start = DiscourseFormat.instant(createdAt) ?: return null
+    val month = remember(start) {
+        java.time.format.DateTimeFormatter
+            .ofPattern(android.text.format.DateFormat.getBestDateTimePattern(java.util.Locale.getDefault(), "yMMM"))
+            .format(start.atZone(ZoneId.systemDefault()))
+    }
+    return stringResource(R.string.me2_joined_at, month)
+}
+
+@Composable
+private fun Figure(label: String, value: Long?, modifier: Modifier) {
+    Column(modifier) {
+        Text(value?.let(::formatCount) ?: "--", style = Type.heading(18, FontWeight.ExtraBold), color = Nocturne.text, maxLines = 1)
+        Text(label, style = Type.body(12), color = Nocturne.textSecondary, maxLines = 1)
+    }
+}
+
+/**
+ * "14,770 能量 · 财富榜第 128 名 · 钻石". Someone else's balance is public only
+ * through the board's first page, so off it the line keeps just the tier, and
+ * goes nowhere.
+ */
+@Composable
+private fun EnergyLine(row: ApiLeaderRow?, tierName: String?, onRank: () -> Unit) {
+    if (row == null && tierName == null) return
+    val press = rememberPressSource()
+    Row(
+        Modifier
+            .padding(top = 8.dp)
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .then(if (row != null) Modifier.pressScale(press) else Modifier)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Nocturne.surface)
+            .then(
+                if (row != null) {
+                    Modifier.clickable(interactionSource = press, indication = ripple(), role = Role.Button, onClick = onRank)
+                } else {
+                    Modifier
+                },
+            )
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        row?.let {
+            Text(stringResource(R.string.rank_energy_amount, formatCount(it.balance)), style = Type.body(14, FontWeight.Bold), color = Nocturne.text)
+        }
+        val rest = listOfNotNull(row?.let { stringResource(R.string.me2_board_rank, it.rank) }, tierName)
+        Text(
+            (if (row != null) "· " else "") + rest.joinToString(" · "),
+            style = Type.body(14),
+            color = Nocturne.textSecondary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+        if (row != null) Icon(Lucide.ChevronRight, null, tint = Nocturne.textTertiary, modifier = Modifier.size(18.dp))
+    }
+}
+
+/** The 能量记录 tab's head: the balance, its place on the board, and the way to the full ledger. */
+@Composable
+private fun PointsSummary(balance: Long?, rank: Int?, onRank: () -> Unit, onLedger: () -> Unit) {
+    FlowRow(
+        Modifier
+            .padding(start = 16.dp, end = 16.dp, top = 12.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(Nocturne.surface)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Column(Modifier.weight(1f).widthIn(min = 120.dp)) {
+            Text(stringResource(R.string.energy_current), style = Type.body(12), color = Nocturne.textSecondary)
+            Text(balance?.let(::formatCount) ?: "--", style = Type.heading(24, FontWeight.ExtraBold), color = Nocturne.text)
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.align(Alignment.CenterVertically)) {
+            rank?.let { SecondaryButton(stringResource(R.string.me2_board_rank, it), onClick = onRank) }
+            PrimaryButton(stringResource(R.string.me2_full_ledger), onClick = onLedger)
         }
     }
 }

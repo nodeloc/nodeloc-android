@@ -93,6 +93,11 @@ data class ProfileState(
     /** Own page: the latest unlocks for the header row. Someone else's: what they pinned. */
     val achievementBadges: List<ApiAchItem> = emptyList(),
     val tiers: List<ApiTierInfo> = emptyList(),
+    /**
+     * This account on the energy board, when it made the first page the server
+     * serves: the only public source of someone else's balance and rank.
+     */
+    val boardRow: ApiLeaderRow? = null,
     /** The day the account last checked in, as the server counted it. */
     val checkinDate: String? = null,
     val isCheckingIn: Boolean = false,
@@ -197,6 +202,9 @@ class ProfileViewModel : ViewModel() {
             val showcaseJob = async { if (!own) runCatchingCancellable { growth.showcase(username) }.getOrNull() else null }
             val checkinJob = async { if (own) runCatchingCancellable { growth.checkinStatus() }.getOrNull() else null }
             val tiersJob = async { TierDirectory.get() }
+            // One request for the whole first page, not one per profile field:
+            // the board is the same for every profile opened.
+            val boardJob = async { runCatchingCancellable { growth.leaderboard() }.getOrNull() }
 
             val outcome = profileJob.await()
             val profile = outcome.getOrNull()?.user
@@ -222,6 +230,7 @@ class ProfileViewModel : ViewModel() {
                     ?.take(4)
                     ?: showcase?.showcase.orEmpty(),
                 tiers = tiersJob.await(),
+                boardRow = boardJob.await()?.firstOrNull { it.username.equals(username, ignoreCase = true) },
                 isFollowing = profile?.isFollowed == true,
                 isLoading = false,
                 // The transport error itself, not a stand-in for it. The screen

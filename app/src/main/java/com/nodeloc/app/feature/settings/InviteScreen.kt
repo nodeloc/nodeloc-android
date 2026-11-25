@@ -1,10 +1,18 @@
 package com.nodeloc.app.feature.settings
 
 import android.content.ClipData
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,23 +21,35 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
@@ -42,21 +62,29 @@ import androidx.compose.ui.unit.em
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.composables.icons.lucide.Check
+import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.Copy
+import com.composables.icons.lucide.Gift
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Share
-import com.composables.icons.lucide.Trophy
 import com.composables.icons.lucide.UserPlus
 import com.nodeloc.app.R
 import com.nodeloc.app.ServiceLocator
 import com.nodeloc.app.core.design.EmptyStateView
+import com.nodeloc.app.core.design.FilterPill
+import com.nodeloc.app.core.design.LocalReduceMotion
 import com.nodeloc.app.core.design.Nocturne
 import com.nodeloc.app.core.design.PillTone
+import com.nodeloc.app.core.design.PrimaryButton
 import com.nodeloc.app.core.design.RemoteAvatar
+import com.nodeloc.app.core.design.SecondaryButton
 import com.nodeloc.app.core.design.StatusPill
 import com.nodeloc.app.core.design.ToastCenter
 import com.nodeloc.app.core.design.Type
+import com.nodeloc.app.core.design.pressScale
+import com.nodeloc.app.core.design.rememberPressSource
 import com.nodeloc.app.core.network.ApiInviteFriend
+import com.nodeloc.app.core.network.ApiInviteMilestone
 import com.nodeloc.app.core.network.ApiInviteOverview
 import com.nodeloc.app.core.network.DiscourseConfig
 import com.nodeloc.app.core.network.PersonalApi
@@ -64,7 +92,6 @@ import com.nodeloc.app.core.util.DiscourseFormat
 import com.nodeloc.app.core.util.runCatchingCancellable
 import com.nodeloc.app.feature.feed.RowsSkeleton
 import com.nodeloc.app.feature.moderation.ModScaffold
-import com.nodeloc.app.feature.moderation.ModSectionLabel
 import com.nodeloc.app.feature.nav.Navigator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -119,6 +146,10 @@ class InviteViewModel : ViewModel() {
     }
 }
 
+private enum class FriendFilter { All, Effective, Pending }
+
+private val ApiInviteFriend.isEffective get() = stage == "verified" || stage == "leveled"
+
 @Composable
 fun InviteScreen(navigator: Navigator) {
     val viewModel: InviteViewModel = viewModel()
@@ -126,7 +157,9 @@ fun InviteScreen(navigator: Navigator) {
 
     LaunchedEffect(Unit) { if (state.overview == null) viewModel.load() }
 
-    ModScaffold(stringResource(R.string.invite_title), navigator::back) {
+    // The page names itself in its own heading, as the board does; the bar
+    // above it carries only the way back.
+    ModScaffold("", navigator::back) {
         val overview = state.overview
         when {
             overview == null && state.loading -> RowsSkeleton(rows = 6)
@@ -148,339 +181,547 @@ private fun InviteBody(
     navigator: Navigator,
     onRemind: (ApiInviteFriend) -> Unit,
 ) {
-    val rules = rewardRules(overview)
+    var filter by rememberSaveable { mutableStateOf(FriendFilter.All) }
+    val friends = overview.friends.filter {
+        when (filter) {
+            FriendFilter.All -> true
+            FriendFilter.Effective -> it.isEffective
+            FriendFilter.Pending -> it.stage == "pending"
+        }
+    }
     LazyColumn(
-        Modifier.fillMaxSize().background(Nocturne.surface),
-        contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp),
+        Modifier.fillMaxSize().background(Nocturne.bg),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item { Hero(overview, code, navigator) }
+        item {
+            Text(stringResource(R.string.invite_title), style = Type.heading(24, FontWeight.Bold), color = Nocturne.text)
+        }
+        item { Hero(overview) }
+        item { LinkCard(code, navigator) }
         item { Stats(overview) }
+        if (overview.milestones.isNotEmpty()) item { Milestones(overview) }
 
-        if (rules.isNotEmpty()) {
-            item { ModSectionLabel(stringResource(R.string.invite_rules), Modifier.padding(horizontal = 4.dp)) }
-            item {
-                InviteCard {
-                    rules.forEachIndexed { index, (label, amount) ->
-                        Row(
-                            Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            Box(
-                                Modifier.size(26.dp).clip(CircleShape).background(Nocturne.accent100),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text("${index + 1}", style = Type.body(13, FontWeight.Bold), color = Nocturne.accent)
-                            }
-                            Text(label, style = Type.body(14), color = Nocturne.text, modifier = Modifier.weight(1f))
-                            Text(amount, style = Type.body(13, FontWeight.Bold), color = Nocturne.accent)
+        item {
+            Column(Modifier.padding(top = 12.dp)) {
+                Text(stringResource(R.string.invite_friends), style = Type.heading(16, FontWeight.Bold), color = Nocturne.text)
+                if (overview.friends.isNotEmpty()) {
+                    Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        FilterPill(stringResource(R.string.invite_filter_all), filter == FriendFilter.All, count = overview.friends.size) {
+                            filter = FriendFilter.All
                         }
+                        FilterPill(
+                            stringResource(R.string.invite_filter_effective),
+                            filter == FriendFilter.Effective,
+                            count = overview.friends.count { it.isEffective },
+                        ) { filter = FriendFilter.Effective }
+                        FilterPill(
+                            stringResource(R.string.invite_filter_pending),
+                            filter == FriendFilter.Pending,
+                            count = overview.friends.count { it.stage == "pending" },
+                        ) { filter = FriendFilter.Pending }
                     }
                 }
             }
         }
-
-        if (overview.milestones.isNotEmpty()) {
-            item { ModSectionLabel(stringResource(R.string.invite_milestones), Modifier.padding(horizontal = 4.dp)) }
-            item { Milestone(overview) }
-        }
-
-        item {
-            ModSectionLabel(stringResource(R.string.invite_friends), Modifier.padding(horizontal = 4.dp)) {
-                if (overview.friends.isNotEmpty()) {
-                    Text(
-                        stringResource(R.string.invite_friends_all, overview.friends.size),
-                        style = Type.body(13, FontWeight.SemiBold),
-                        color = Nocturne.accent,
-                    )
-                }
-            }
-        }
-        if (overview.friends.isEmpty()) {
+        if (friends.isEmpty()) {
             item {
-                InviteCard {
-                    Text(
-                        stringResource(R.string.invite_friends_empty),
-                        style = Type.body(14),
-                        color = Nocturne.textSecondary,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-                    )
-                }
+                Text(
+                    stringResource(if (overview.friends.isEmpty()) R.string.invite_friends_empty else R.string.invite_filter_empty),
+                    style = Type.body(14),
+                    color = Nocturne.textSecondary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
+                )
             }
         } else {
-            itemsIndexed(overview.friends, key = { _, friend -> friend.id }) { index, friend ->
+            items(friends, key = { it.id }) { friend ->
                 FriendRow(
                     friend = friend,
-                    first = index == 0,
-                    last = index == overview.friends.lastIndex,
+                    levelName = overview.rewards.levelName,
                     onOpen = { navigator.openProfile(friend.username) },
                     onRemind = { onRemind(friend) },
                 )
+            }
+        }
+        item {
+            Text(
+                stringResource(R.string.invite_friends_note, overview.rewards.verifyDays),
+                style = Type.body(12),
+                color = Nocturne.textSecondary,
+            )
+        }
+        item { Faq(overview) }
+    }
+}
+
+/** The dark explainer: the headline offer, then the three ways a friend pays out. */
+@Composable
+private fun Hero(overview: ApiInviteOverview) {
+    val rewards = overview.rewards
+    // Ink stays light on the deep ground in both themes; the hero is a fixed
+    // dark panel in the design, not a surface that inverts.
+    val ink = Nocturne.neutral100
+    val soft = ink.copy(alpha = 0.78f)
+    val mint = Nocturne.accent300
+    val steps = buildList {
+        if (rewards.inviter > 0) {
+            add(stringResource(R.string.invite_rule_verify) to stringResource(R.string.invite_step_verify_amount, energy(rewards.inviter), energy(rewards.welcome)))
+        }
+        if (rewards.levelBonus > 0 && rewards.levelName.isNotBlank()) {
+            add(stringResource(R.string.invite_rule_level, rewards.levelName) to stringResource(R.string.invite_step_level_amount, energy(rewards.levelBonus)))
+        }
+        if (rewards.second > 0) {
+            add(stringResource(R.string.invite_rule_second) to stringResource(R.string.invite_step_second_amount, energy(rewards.second)))
+        }
+    }
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Nocturne.accent900)
+            .padding(horizontal = 16.dp, vertical = 20.dp),
+    ) {
+        Row(
+            Modifier.height(26.dp).clip(CircleShape).background(mint.copy(alpha = 0.16f)).padding(horizontal = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(Lucide.Gift, null, tint = mint, modifier = Modifier.size(14.dp))
+            Text(stringResource(R.string.invite_reward_badge), style = Type.body(12, FontWeight.Bold), color = mint)
+        }
+        Text(
+            if (rewards.inviter > 0) stringResource(R.string.invite_hero_headline, energy(rewards.inviter), energy(rewards.welcome))
+            else stringResource(R.string.invite_hero_title),
+            style = Type.heading(22, FontWeight.Bold),
+            color = ink,
+            modifier = Modifier.padding(top = 10.dp),
+        )
+        Text(stringResource(R.string.invite_hero_sub), style = Type.body(14), color = soft, modifier = Modifier.padding(top = 6.dp))
+        if (steps.isNotEmpty()) {
+            Column(Modifier.padding(top = 18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                steps.forEachIndexed { index, (label, amount) ->
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(ink.copy(alpha = 0.06f))
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Box(Modifier.size(28.dp).clip(CircleShape).background(mint), contentAlignment = Alignment.Center) {
+                            Text("${index + 1}", style = Type.body(14, FontWeight.Bold), color = Nocturne.accent900)
+                        }
+                        Column(Modifier.weight(1f)) {
+                            Text(label, style = Type.body(13), color = soft)
+                            Text(amount, style = Type.body(14, FontWeight.Bold), color = ink, modifier = Modifier.padding(top = 2.dp))
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun Hero(overview: ApiInviteOverview, code: String?, navigator: Navigator) {
+private fun LinkCard(code: String?, navigator: Navigator) {
     val context = LocalContext.current
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
-    // Dark mode keeps the hero deep rather than bright: white type on the
-    // dark theme's luminous accent would not read.
-    val ground = if (Nocturne.isDark) listOf(Nocturne.accent900, Nocturne.accent800) else listOf(Nocturne.accent, Nocturne.accent400)
-    val ink = Nocturne.neutral100
     val shareText = stringResource(R.string.invite_share_text)
-    val rewards = overview.rewards
-    Column(
-        Modifier
-            .padding(horizontal = 16.dp)
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(22.dp))
-            .background(Brush.linearGradient(ground))
-            .padding(start = 16.dp, end = 16.dp, top = 18.dp, bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Column {
-            Text(stringResource(R.string.invite_hero_title), style = Type.heading(20, FontWeight.Bold), color = ink)
-            if (rewards.inviter > 0 || rewards.welcome > 0) {
-                Text(
-                    stringResource(R.string.invite_hero_rewards, energy(rewards.inviter), energy(rewards.welcome)),
-                    style = Type.body(14, FontWeight.Medium),
-                    color = ink.copy(alpha = 0.85f),
-                )
-            }
-        }
+    OutlinedCard {
+        Text(stringResource(R.string.invite_link_title), style = Type.heading(16, FontWeight.Bold), color = Nocturne.text)
         if (code == null) {
             // Personal codes start at a member level; below it the page still
             // opens, and says why there is nothing to share.
             Text(
                 stringResource(R.string.invite_cannot_invite),
                 style = Type.body(14),
-                color = ink,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(ink.copy(alpha = 0.16f))
-                    .padding(14.dp),
+                color = Nocturne.textSecondary,
+                modifier = Modifier.padding(top = 8.dp),
             )
-            return@Column
+            return@OutlinedCard
         }
         // `/i/CODE` is the short landing page; the code alone still works in
         // the signup form, so it is shown as well as linked.
         val link = "${DiscourseConfig.BASE_URL}/i/$code"
-        Row(
-            Modifier
+        fun copy(label: String, text: String, toast: Int) {
+            scope.launch {
+                clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(label, text)))
+                ToastCenter.show(toast)
+            }
+        }
+        Text(
+            link,
+            style = Type.body(15),
+            color = Nocturne.text,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .padding(top = 12.dp)
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(ink.copy(alpha = 0.16f))
-                .padding(start = 14.dp, top = 6.dp, end = 6.dp, bottom = 6.dp),
+                .height(44.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Nocturne.surface)
+                .border(1.dp, Nocturne.neutral600, RoundedCornerShape(12.dp))
+                .padding(horizontal = 14.dp)
+                .wrapContentHeight(Alignment.CenterVertically),
+        )
+        PrimaryButton(
+            stringResource(R.string.invite_copy_link),
+            block = true,
+            modifier = Modifier.padding(top = 8.dp),
+        ) { copy(code, link, R.string.reader_link_copied) }
+        Row(
+            Modifier.fillMaxWidth().padding(top = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.invite_my_code), style = Type.body(12), color = ink.copy(alpha = 0.8f))
-                Text(
-                    code,
-                    style = Type.heading(22, FontWeight.Bold).copy(letterSpacing = 0.14.em),
-                    color = ink,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+            Text(stringResource(R.string.invite_code_label), style = Type.body(13), color = Nocturne.textSecondary)
+            CodeChip(code) { copy(code, code, R.string.invite_code_copied) }
+            Spacer(Modifier.weight(1f))
+            // No poster or QR renderer ships with the app, so the share sheet
+            // stands in for both: it reaches the same apps a poster would.
+            SecondaryButton(stringResource(R.string.invite_share)) { navigator.share(context, link, shareText) }
+        }
+    }
+}
+
+/** The code in a dashed box, the board's "tear-off" look; tapping copies it. */
+@Composable
+private fun CodeChip(code: String, onCopy: () -> Unit) {
+    val outline = Nocturne.neutral600
+    val press = rememberPressSource()
+    Row(
+        Modifier
+            .pressScale(press)
+            .height(36.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .drawBehind {
+                drawRoundRect(
+                    color = outline,
+                    cornerRadius = CornerRadius(10.dp.toPx()),
+                    style = Stroke(width = 1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx()))),
                 )
             }
-            Row(
-                Modifier
-                    .height(40.dp)
-                    .clip(CircleShape)
-                    .background(ink)
-                    .clickable {
-                        scope.launch {
-                            clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(code, link)))
-                            ToastCenter.show(R.string.reader_link_copied)
-                        }
-                    }
-                    .padding(horizontal = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Icon(Lucide.Copy, null, tint = Nocturne.accent, modifier = Modifier.size(16.dp))
-                Text(stringResource(R.string.invite_copy_link), style = Type.body(14, FontWeight.Bold), color = Nocturne.accent)
-            }
-        }
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .height(38.dp)
-                .clip(CircleShape)
-                .background(ink.copy(alpha = 0.14f))
-                .clickable { navigator.share(context, link, shareText) },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-        ) {
-            Icon(Lucide.Share, null, tint = ink, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.size(6.dp))
-            Text(stringResource(R.string.invite_share), style = Type.body(13, FontWeight.SemiBold), color = ink)
-        }
+            .clickable(interactionSource = press, indication = ripple(), onClick = onCopy)
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(code, style = Type.body(15, FontWeight.Bold).copy(letterSpacing = 0.12.em), color = Nocturne.text, maxLines = 1)
+        Icon(Lucide.Copy, null, tint = Nocturne.textSecondary, modifier = Modifier.size(14.dp))
     }
 }
 
 @Composable
 private fun Stats(overview: ApiInviteOverview) {
-    InviteCard {
-        Row(Modifier.fillMaxWidth()) {
-            Stat(overview.invited.toString(), stringResource(R.string.invite_stat_invited), Modifier.weight(1f))
-            Stat(overview.effective.toString(), stringResource(R.string.invite_stat_effective), Modifier.weight(1f), accent = true)
-            Stat("+" + energy(overview.earned), stringResource(R.string.invite_stat_earned), Modifier.weight(1f))
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            StatTile(
+                stringResource(R.string.invite_stat_invited),
+                overview.invited.toString(),
+                stringResource(R.string.invite_stat_invited_sub),
+                Modifier.weight(1f),
+            )
+            StatTile(
+                stringResource(R.string.invite_stat_effective),
+                overview.effective.toString(),
+                stringResource(R.string.invite_stat_effective_sub),
+                Modifier.weight(1f),
+                accent = true,
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            StatTile(
+                stringResource(R.string.invite_stat_total),
+                "+" + energy(overview.earned),
+                if (overview.earnedSecond > 0) stringResource(R.string.invite_stat_earned_sub, energy(overview.earnedSecond))
+                else stringResource(R.string.invite_stat_energy),
+                Modifier.weight(1f),
+                accent = true,
+            )
+            StatTile(
+                stringResource(R.string.invite_stat_pending),
+                energy(overview.pending),
+                stringResource(R.string.invite_stat_pending_sub),
+                Modifier.weight(1f),
+            )
         }
     }
 }
 
 @Composable
-private fun Stat(value: String, label: String, modifier: Modifier, accent: Boolean = false) {
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, style = Type.heading(19, FontWeight.Bold), color = if (accent) Nocturne.accent else Nocturne.text)
+private fun StatTile(label: String, value: String, sub: String, modifier: Modifier, accent: Boolean = false) {
+    Column(
+        modifier
+            .clip(RoundedCornerShape(16.dp))
+            .border(1.dp, Nocturne.divider, RoundedCornerShape(16.dp))
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+    ) {
         Text(label, style = Type.body(12), color = Nocturne.textSecondary)
+        Text(
+            value,
+            style = Type.heading(24, FontWeight.Bold),
+            color = if (accent) Nocturne.accent700 else Nocturne.text,
+            maxLines = 1,
+            modifier = Modifier.padding(top = 2.dp),
+        )
+        Text(sub, style = Type.body(12), color = Nocturne.textSecondary, maxLines = 2)
     }
 }
 
+/**
+ * The track: each milestone sits at an even step along the bar, and the fill
+ * moves piecewise between them — a linear scale up to 100 would leave the
+ * first three rungs crowded into the opening few millimetres.
+ */
 @Composable
-private fun rewardRules(overview: ApiInviteOverview): List<Pair<String, String>> {
-    val rewards = overview.rewards
-    return buildList {
-        if (rewards.inviter > 0) {
-            add(stringResource(R.string.invite_rule_verify) to "+" + energy(rewards.inviter))
-        }
-        if (rewards.levelBonus > 0 && rewards.levelName.isNotBlank()) {
-            add(stringResource(R.string.invite_rule_level, rewards.levelName) to stringResource(R.string.invite_rule_level_amount, energy(rewards.levelBonus)))
-        }
-        if (rewards.second > 0) {
-            add(stringResource(R.string.invite_rule_second) to stringResource(R.string.invite_rule_second_amount, energy(rewards.second)))
-        }
-    }
-}
-
-@Composable
-private fun Milestone(overview: ApiInviteOverview) {
+private fun Milestones(overview: ApiInviteOverview) {
+    val milestones = overview.milestones.sortedBy { it.target }
     val count = overview.milestoneCount
-    val next = overview.milestones.firstOrNull { !it.reached }
-    val cap = overview.rewards.monthlyCap
-    InviteCard {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Box(
-                Modifier.size(40.dp).clip(CircleShape).background(if (next == null) Nocturne.accent100 else Nocturne.neutral400),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(Lucide.Trophy, null, tint = if (next == null) Nocturne.accent else Nocturne.textSecondary, modifier = Modifier.size(20.dp))
-            }
-            Column(Modifier.weight(1f)) {
-                if (next == null) {
-                    Text(stringResource(R.string.invite_milestone_all_done), style = Type.body(15, FontWeight.SemiBold), color = Nocturne.text)
-                } else {
-                    val left = (next.target - count).coerceAtLeast(1)
-                    val badge = next.badge?.takeIf { it.isNotBlank() }
-                    Text(
-                        if (badge != null) stringResource(R.string.invite_milestone_badge, left, badge)
-                        else stringResource(R.string.invite_milestone_reward, left, energy(next.reward)),
-                        style = Type.body(15, FontWeight.SemiBold),
-                        color = Nocturne.text,
-                    )
-                    val prize = when {
-                        badge != null && next.reward > 0 -> stringResource(R.string.invite_milestone_prize_both, energy(next.reward))
-                        badge != null -> stringResource(R.string.invite_milestone_prize_badge)
-                        else -> null
+    val next = milestones.firstOrNull { !it.reached }
+    val steps = milestones.size
+    val fraction = run {
+        val index = milestones.indexOfFirst { it.target > count }
+        if (index < 0) return@run 1f
+        val fromTarget = if (index == 0) 0 else milestones[index - 1].target
+        val fromAt = index.toFloat() / steps
+        val toAt = (index + 1).toFloat() / steps
+        val span = (milestones[index].target - fromTarget).coerceAtLeast(1)
+        fromAt + (count - fromTarget).toFloat() / span * (toAt - fromAt)
+    }
+    val fill by animateFloatAsState(fraction.coerceIn(0f, 1f), label = "milestoneFill")
+    OutlinedCard {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.invite_milestones), style = Type.heading(16, FontWeight.Bold), color = Nocturne.text)
+            Spacer(Modifier.width(12.dp))
+            Text(
+                if (next == null) stringResource(R.string.invite_milestone_all_done)
+                else stringResource(R.string.invite_milestone_next, (next.target - count).coerceAtLeast(1), prize(next)),
+                style = Type.body(13, FontWeight.Bold),
+                color = Nocturne.accent700,
+                textAlign = TextAlign.End,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        BoxWithConstraints(Modifier.fillMaxWidth().padding(top = 18.dp, start = 14.dp, end = 14.dp)) {
+            val width = maxWidth
+            Box(Modifier.fillMaxWidth().height(28.dp), contentAlignment = Alignment.CenterStart) {
+                Box(Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)).background(Nocturne.neutral400))
+                Box(Modifier.fillMaxWidth(fill).height(8.dp).clip(RoundedCornerShape(4.dp)).background(Nocturne.accent))
+                milestones.forEachIndexed { index, milestone ->
+                    val at = width * ((index + 1).toFloat() / steps)
+                    Box(
+                        Modifier
+                            .offset(x = at - 14.dp)
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(if (milestone.reached) Nocturne.accent else Nocturne.bg)
+                            .border(2.dp, if (milestone.reached) Nocturne.accent else Nocturne.neutral600, CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (milestone.reached) {
+                            Icon(Lucide.Check, null, tint = Nocturne.bg, modifier = Modifier.size(14.dp))
+                        } else {
+                            Text(milestone.target.toString(), style = Type.body(11, FontWeight.Bold), color = Nocturne.textSecondary)
+                        }
                     }
-                    prize?.let { Text(it, style = Type.body(12), color = Nocturne.textSecondary) }
                 }
             }
         }
-        val target = next?.target ?: overview.milestones.maxOf { it.target }
-        val fraction = if (target > 0) (count.toFloat() / target).coerceIn(0f, 1f) else 1f
-        Box(
-            Modifier
-                .padding(top = 10.dp)
-                .fillMaxWidth()
-                .height(8.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(Nocturne.neutral400),
-        ) {
-            Box(Modifier.fillMaxWidth(fraction).height(8.dp).clip(RoundedCornerShape(4.dp)).background(Nocturne.accent))
-        }
-        Row(Modifier.fillMaxWidth().padding(top = 4.dp)) {
-            Text("$count / $target", style = Type.body(12), color = Nocturne.textTertiary, modifier = Modifier.weight(1f))
-            if (cap > 0) {
-                Text(stringResource(R.string.invite_monthly_cap, cap), style = Type.body(12), color = Nocturne.textTertiary)
+        BoxWithConstraints(Modifier.fillMaxWidth().padding(top = 6.dp)) {
+            val width = maxWidth
+            val labelWidth = 76.dp
+            Box(Modifier.fillMaxWidth().heightIn(min = 44.dp)) {
+                milestones.forEachIndexed { index, milestone ->
+                    val last = index == milestones.lastIndex
+                    // The rail is inset by a node's radius; labels line up under
+                    // their node, except the last, which keeps to the edge.
+                    val center = 14.dp + (width - 28.dp) * ((index + 1).toFloat() / steps)
+                    val x = if (last) width - labelWidth else (center - labelWidth / 2).coerceAtLeast(0.dp)
+                    Column(
+                        Modifier.offset(x = x).width(labelWidth),
+                        horizontalAlignment = if (last) Alignment.End else Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            stringResource(R.string.invite_milestone_people, milestone.target),
+                            style = Type.body(12, FontWeight.Bold),
+                            color = if (milestone.reached) Nocturne.accent700 else Nocturne.text,
+                        )
+                        Text(
+                            prize(milestone),
+                            style = Type.body(12),
+                            color = Nocturne.textSecondary,
+                            textAlign = if (last) TextAlign.End else TextAlign.Center,
+                        )
+                    }
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun prize(milestone: ApiInviteMilestone): String {
+    val badge = milestone.badge?.takeIf { it.isNotBlank() }
+    return when {
+        badge != null && milestone.reward > 0 -> stringResource(R.string.invite_prize_badge_energy, badge, energy(milestone.reward))
+        badge != null -> stringResource(R.string.invite_prize_badge, badge)
+        else -> stringResource(R.string.invite_prize_energy, energy(milestone.reward))
     }
 }
 
 @Composable
 private fun FriendRow(
     friend: ApiInviteFriend,
-    first: Boolean,
-    last: Boolean,
+    levelName: String,
     onOpen: () -> Unit,
     onRemind: () -> Unit,
 ) {
-    // One card made of rows: each row rounds only the corners it owns, so the
-    // list can stay lazy without losing the card's outline.
-    val shape = RoundedCornerShape(
-        topStart = if (first) 18.dp else 0.dp,
-        topEnd = if (first) 18.dp else 0.dp,
-        bottomStart = if (last) 18.dp else 0.dp,
-        bottomEnd = if (last) 18.dp else 0.dp,
-    )
-    Column(Modifier.padding(horizontal = 16.dp).clip(shape).background(Nocturne.bg)) {
+    Column {
+        Box(Modifier.fillMaxWidth().height(1.dp).background(Nocturne.divider))
         Row(
             Modifier
                 .fillMaxWidth()
+                .heightIn(min = 68.dp)
                 .clickable(onClick = onOpen)
-                .padding(horizontal = 16.dp, vertical = 10.dp),
+                .padding(vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             val display = friend.name?.takeIf { it.isNotBlank() } ?: friend.username
-            RemoteAvatar(DiscourseConfig.absoluteUrl(friend.avatarUrl), display, variant = (friend.id % 2).toInt(), size = 36.dp)
+            RemoteAvatar(DiscourseConfig.absoluteUrl(friend.avatarUrl), display, variant = (friend.id % 2).toInt(), size = 40.dp)
             Column(Modifier.weight(1f)) {
-                Text(display, style = Type.body(15, FontWeight.SemiBold), color = Nocturne.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(
-                    stringResource(R.string.invite_joined_on, monthDay(friend.joinedAt)),
-                    style = Type.body(12),
-                    color = Nocturne.textSecondary,
-                )
-            }
-            when (friend.stage) {
-                "leveled" -> StatusPill(stringResource(R.string.invite_stage_leveled, friend.levelName.orEmpty()), PillTone.Accent)
-                "verified" -> StatusPill(stringResource(R.string.invite_stage_verified), PillTone.Info)
-                "expired" -> StatusPill(stringResource(R.string.invite_stage_expired), PillTone.Neutral)
-                else -> {
-                    StatusPill(stringResource(R.string.invite_stage_pending), PillTone.Warning)
-                    if (friend.canRemind) {
-                        Text(
-                            stringResource(R.string.invite_remind),
-                            style = Type.body(13, FontWeight.SemiBold),
-                            color = Nocturne.accent,
-                            modifier = Modifier.clip(CircleShape).clickable(onClick = onRemind).padding(horizontal = 8.dp, vertical = 6.dp),
-                        )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        display,
+                        style = Type.body(15, FontWeight.Medium),
+                        color = Nocturne.text,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    if (friend.subInvites > 0) {
+                        StatusPill(stringResource(R.string.invite_sub_invites, friend.subInvites), PillTone.Info)
                     }
                 }
+                StageLine(friend)
+            }
+            when {
+                friend.isEffective -> Column(horizontalAlignment = Alignment.End) {
+                    Text("+" + energy(friend.earned), style = Type.body(15, FontWeight.Bold), color = Nocturne.accent700)
+                    val note = when {
+                        friend.capped -> stringResource(R.string.invite_friend_capped)
+                        friend.pending > 0 && levelName.isNotBlank() ->
+                            stringResource(R.string.invite_friend_level_pending, levelName, energy(friend.pending))
+                        friend.second > 0 -> stringResource(R.string.invite_friend_second, energy(friend.second))
+                        else -> stringResource(R.string.invite_friend_all_paid)
+                    }
+                    Text(note, style = Type.body(12), color = Nocturne.textSecondary, maxLines = 1)
+                }
+                friend.stage == "pending" && friend.canRemind ->
+                    SecondaryButton(stringResource(R.string.invite_remind_verify), compact = true, onClick = onRemind)
+                friend.stage == "pending" && friend.remindedAt != null ->
+                    Text(stringResource(R.string.invite_reminded), style = Type.body(12), color = Nocturne.textTertiary)
             }
         }
-        if (!last) Box(Modifier.fillMaxWidth().height(1.dp).background(Nocturne.neutral300))
+    }
+}
+
+/** "Joined Nov 15 · ▬▬▬ · stage": three bars for signed up, verified, levelled. */
+@Composable
+private fun StageLine(friend: ApiInviteFriend) {
+    val (done, label, color) = when (friend.stage) {
+        "leveled" -> Triple(3, stringResource(R.string.invite_stage_leveled, friend.levelName.orEmpty()), Nocturne.accent700)
+        "verified" -> Triple(2, stringResource(R.string.invite_stage_verified), Nocturne.textSecondary)
+        "expired" -> Triple(0, stringResource(R.string.invite_stage_expired), Nocturne.textTertiary)
+        else -> Triple(1, stringResource(R.string.invite_stage_pending_long), Nocturne.warning)
+    }
+    Row(
+        Modifier.padding(top = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(stringResource(R.string.invite_joined_on, monthDay(friend.joinedAt)), style = Type.body(12), color = Nocturne.textSecondary, maxLines = 1)
+        Text("·", style = Type.body(12), color = Nocturne.textSecondary)
+        Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+            repeat(3) { index ->
+                Box(
+                    Modifier
+                        .size(width = 18.dp, height = 4.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(if (index < done) Nocturne.accent else Nocturne.neutral400),
+                )
+            }
+        }
+        Text(label, style = Type.body(12, FontWeight.Medium), color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+/** The rules, each answer filled in from the live reward settings. */
+@Composable
+private fun Faq(overview: ApiInviteOverview) {
+    val rewards = overview.rewards
+    val entries = buildList {
+        add(stringResource(R.string.invite_faq_q_valid) to stringResource(R.string.invite_faq_a_valid, rewards.verifyDays))
+        add(
+            stringResource(R.string.invite_faq_q_when) to
+                if (rewards.levelBonus > 0 && rewards.levelName.isNotBlank()) stringResource(R.string.invite_faq_a_when, rewards.levelName)
+                else stringResource(R.string.invite_faq_a_when_plain),
+        )
+        if (rewards.second > 0) {
+            add(stringResource(R.string.invite_faq_q_second) to stringResource(R.string.invite_faq_a_second, energy(rewards.second)))
+        }
+        if (rewards.monthlyCap > 0) {
+            add(stringResource(R.string.invite_faq_q_cap) to stringResource(R.string.invite_faq_a_cap, rewards.monthlyCap))
+        }
+    }
+    var open by rememberSaveable { mutableStateOf(0) }
+    val reduceMotion = LocalReduceMotion.current
+    Column(Modifier.padding(top = 8.dp)) {
+        Text(stringResource(R.string.invite_faq_title), style = Type.heading(14, FontWeight.Bold), color = Nocturne.text)
+        entries.forEachIndexed { index, (question, answer) ->
+            val expanded = open == index
+            val turn by animateFloatAsState(if (expanded) 180f else 0f, label = "faqChevron")
+            Column(Modifier.fillMaxWidth()) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 44.dp)
+                        .clickable { open = if (expanded) -1 else index }
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(question, style = Type.body(14, FontWeight.Medium), color = Nocturne.text, modifier = Modifier.weight(1f))
+                    Icon(
+                        Lucide.ChevronDown,
+                        null,
+                        tint = Nocturne.textSecondary,
+                        modifier = Modifier.size(18.dp).rotate(if (reduceMotion) (if (expanded) 180f else 0f) else turn),
+                    )
+                }
+                AnimatedVisibility(
+                    visible = expanded,
+                    enter = if (reduceMotion) fadeIn(initialAlpha = 1f) else expandVertically() + fadeIn(),
+                    exit = if (reduceMotion) fadeOut(targetAlpha = 1f) else shrinkVertically() + fadeOut(),
+                ) {
+                    Text(answer, style = Type.body(13), color = Nocturne.textSecondary, modifier = Modifier.padding(bottom = 12.dp))
+                }
+                Box(Modifier.fillMaxWidth().height(1.dp).background(Nocturne.divider))
+            }
+        }
     }
 }
 
 @Composable
-private fun InviteCard(content: @Composable ColumnScope.() -> Unit) {
+private fun OutlinedCard(content: @Composable ColumnScope.() -> Unit) {
     Column(
         Modifier
-            .padding(horizontal = 16.dp)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
-            .background(Nocturne.bg)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .clip(RoundedCornerShape(16.dp))
+            .border(1.dp, Nocturne.divider, RoundedCornerShape(16.dp))
+            .padding(16.dp),
         content = content,
     )
 }
