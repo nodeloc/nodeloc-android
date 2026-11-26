@@ -37,6 +37,9 @@ data class ApiCustomFeed(
 )
 
 @Serializable
+data class ApiNodePage(val nodes: List<ApiNode> = emptyList(), val nextCursor: String? = null)
+
+@Serializable
 private data class ApiCustomFeedEnvelope(val feed: ApiCustomFeed = ApiCustomFeed())
 
 /**
@@ -55,6 +58,24 @@ class CustomFeedApi(private val api: NodelocApi) {
     }
 
     suspend fun mine(): ApiCustomFeedList = api.get("api/v1/custom-feeds")
+
+    /**
+     * One page of the node catalogue for the feed picker, searched on the
+     * server. Any of `cursor`/`q`/`limit` switches `/api/v1/nodes` from its
+     * whole-directory answer to this paged one, so an empty cursor is sent
+     * even for the first page. Busiest nodes first; sections are included and
+     * left to the caller. The server allows 120 of these a minute per account,
+     * which typing behind a debounce stays well under.
+     */
+    suspend fun nodePage(query: String, cursor: String?, limit: Int = 30): ApiNodePage =
+        api.get(
+            "api/v1/nodes",
+            buildList {
+                add("cursor" to cursor.orEmpty())
+                add("limit" to limit.toString())
+                if (query.isNotBlank()) add("q" to query.trim())
+            },
+        )
 
     suspend fun feed(id: Long): ApiCustomFeed = api.get<ApiCustomFeedEnvelope>("api/v1/custom-feeds/$id").feed
 

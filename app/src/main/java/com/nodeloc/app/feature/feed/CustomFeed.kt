@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -59,6 +60,7 @@ import com.nodeloc.app.core.design.FloatingHeaderBar
 import com.nodeloc.app.core.design.HeaderGroup
 import com.nodeloc.app.core.design.HeaderIconButton
 import com.nodeloc.app.core.design.Nocturne
+import com.nodeloc.app.core.design.NodelocLoader
 import com.nodeloc.app.core.design.OnReachedEnd
 import com.nodeloc.app.core.design.PrimaryButton
 import com.nodeloc.app.core.design.SettingsToggleRow
@@ -73,6 +75,8 @@ import com.nodeloc.app.core.model.NodeReadingMode
 import com.nodeloc.app.core.model.NodeSummary
 import com.nodeloc.app.core.model.Post
 import com.nodeloc.app.core.model.VoteDirection
+import com.nodeloc.app.core.network.ApiNode
+import com.nodeloc.app.core.network.ApiNodePage
 import com.nodeloc.app.core.network.CustomFeedApi
 import com.nodeloc.app.core.network.DiscourseConfig
 import com.nodeloc.app.core.network.Legacy
@@ -89,6 +93,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 // ------------------------------------------------------------------ reading a feed
@@ -297,16 +303,30 @@ fun CustomFeedScreen(feedId: Long, name: String, navigator: Navigator) {
 // ------------------------------------------------------------------ making or editing one
 
 data class CreateFeedState(
-    val nodes: List<NodeSummary> = emptyList(),
-    val selected: Set<String> = emptySet(),
+    /** What is ticked, by slug: kept apart from [results], which a new search replaces. */
+    val picked: Map<String, NodeSummary> = emptyMap(),
+    /**
+     * Editing only: the nodes the feed had when opened, listed above the
+     * catalogue whether still ticked or not, so one unticked by mistake is
+     * where it was to tick again. Ticks made here stay in place in the list.
+     */
+    val original: List<NodeSummary> = emptyList(),
+    /** The current search's pages so far, sections already dropped. */
+    val results: List<NodeSummary> = emptyList(),
+    val query: String = "",
+    val nextCursor: String? = null,
     val loadingNodes: Boolean = true,
+    val loadingMore: Boolean = false,
+    val nodesFailed: Boolean = false,
     val saving: Boolean = false,
     val deleting: Boolean = false,
     /** Editing only: false until the feed itself has arrived, so the form never offers blank values as its own. */
     val loaded: Boolean = true,
     val name: String = "",
     val public: Boolean = false,
-)
+) {
+    val selected: Set<String> get() = picked.keys
+}
 
 /** One form for both: [bind] with an id turns it into the editor of that feed. */
 class CreateCustomFeedViewModel : ViewModel() {
@@ -337,22 +357,90 @@ class CreateCustomFeedViewModel : ViewModel() {
             if (feed != null) {
                 description = feed.description.orEmpty()
                 original = feed.nodes.mapTo(linkedSetOf()) { it.slug }
-                _state.value = _state.value.copy(name = feed.name, public = feed.public, selected = original, loaded = true)
+                // The feed names its nodes without logos. The site's own
+                // copy of the catalogue, loaded at start, has them; failing
+                // that, a search page carrying the node fills one in later.
+                val site = ServiceLocator.get.siteRepository
+                val picked = feed.nodes.associate { node ->
+                    node.slug to NodeSummaryFactory.summary(
+                        site.categoryBySlug(node.slug)
+                            ?: Legacy.category(ApiNode(id = 0, parentId = 0, slug = node.slug, name = node.name, color = node.color)),
+                    )
+                }
+                _state.value = _state.value.copy(name = feed.name, public = feed.public, picked = picked, original = picked.values.toList(), loaded = true)
             }
-            // The nodes that hold topics (sections only group them): those
-            // already in the feed first, then the reader's own, which is what
-            // a feed is most often made of.
-            val inFeed = _state.value.selected
-            val nodes = runCatchingCancellable { client.nodeDirectory() }.getOrDefault(emptyList())
-                .filter { it.parentId != null }
-                .sortedWith(
-                    compareByDescending<com.nodeloc.app.core.network.ApiNode> { it.slug in inFeed }
-                        .thenByDescending { it.joined }
-                        .thenByDescending { it.memberCount ?: 0 },
-                )
-                .map { NodeSummaryFactory.summary(Legacy.category(it)) }
-            _state.value = _state.value.copy(nodes = nodes, loadingNodes = false)
+            // After the feed, so the first page can fill in its nodes' logos.
+            if (_state.value.query.isEmpty()) fetchFirstPage("")
         }
+    }
+
+    private var searchJob: Job? = null
+
+    /** Typing searches on the server, a beat after the last key; clearing the box goes back at once. */
+    fun setQuery(value: String) {
+        if (value == _state.value.query) return
+        _state.value = _state.value.copy(query = value)
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            if (value.isNotBlank()) delay(SEARCH_DEBOUNCE_MS)
+            loadFirstPage(value)
+        }
+    }
+
+    fun retryNodes() = if (_state.value.results.isEmpty()) fetchFirstPage(_state.value.query) else loadMore(retry = true)
+
+    private fun fetchFirstPage(query: String) {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch { loadFirstPage(query) }
+    }
+
+    private suspend fun loadFirstPage(query: String) {
+        _state.value = _state.value.copy(loadingNodes = true, nodesFailed = false, loadingMore = false)
+        try {
+            val page = api.nodePage(query, cursor = null)
+            publish(page, replace = true)
+        } catch (error: Throwable) {
+            error.rethrowIfCancellation()
+            _state.value = _state.value.copy(results = emptyList(), nextCursor = null, loadingNodes = false, nodesFailed = true)
+        }
+    }
+
+    /**
+     * The next page of the same search. Runs as the search job, so a new
+     * query cancels a page still in flight for the old one rather than letting
+     * it land in the wrong list.
+     */
+    fun loadMore(retry: Boolean = false) {
+        val current = _state.value
+        val cursor = current.nextCursor ?: return
+        if (current.loadingNodes || current.loadingMore || (current.nodesFailed && !retry)) return
+        searchJob = viewModelScope.launch {
+            _state.value = _state.value.copy(loadingMore = true, nodesFailed = false)
+            try {
+                publish(api.nodePage(current.query, cursor), replace = false)
+            } catch (error: Throwable) {
+                error.rethrowIfCancellation()
+                _state.value = _state.value.copy(loadingMore = false, nodesFailed = true)
+            }
+        }
+    }
+
+    private fun publish(page: ApiNodePage, replace: Boolean) {
+        // Sections only group nodes; a feed is made of the nodes that hold topics.
+        val fresh = page.nodes.filter { it.parentId != null }.map { NodeSummaryFactory.summary(Legacy.category(it)) }
+        val now = _state.value
+        val known = if (replace) emptySet() else now.results.mapTo(hashSetOf()) { it.slug }
+        val results = (if (replace) emptyList() else now.results) + fresh.filterNot { it.slug in known }
+        val bySlug = fresh.associateBy { it.slug }
+        _state.value = now.copy(
+            results = results,
+            nextCursor = page.nextCursor?.takeIf { it.isNotEmpty() },
+            loadingNodes = false,
+            loadingMore = false,
+            nodesFailed = false,
+            picked = now.picked.mapValues { (slug, node) -> bySlug[slug] ?: node },
+            original = now.original.map { bySlug[it.slug] ?: it },
+        )
     }
 
     fun setName(value: String) {
@@ -363,14 +451,14 @@ class CreateCustomFeedViewModel : ViewModel() {
         _state.value = _state.value.copy(public = value)
     }
 
-    fun toggle(slug: String) {
-        val selected = _state.value.selected
+    fun toggle(node: NodeSummary) {
+        val picked = _state.value.picked
         _state.value = _state.value.copy(
-            selected = when {
-                slug in selected -> selected - slug
+            picked = when {
+                node.slug in picked -> picked - node.slug
                 // The server's own ceiling; past it the add would be refused one node at a time.
-                selected.size >= MAX_FEED_NODES -> selected
-                else -> selected + slug
+                picked.size >= MAX_FEED_NODES -> picked
+                else -> picked + (node.slug to node)
             },
         )
     }
@@ -419,21 +507,25 @@ class CreateCustomFeedViewModel : ViewModel() {
 }
 
 private const val MAX_FEED_NODES = 50
+private const val SEARCH_DEBOUNCE_MS = 300L
 
 @Composable
 fun CreateCustomFeedScreen(navigator: Navigator, editId: Long? = null) {
     val viewModel: CreateCustomFeedViewModel = viewModel()
     val state by viewModel.state.collectAsState()
-    var query by remember { mutableStateOf("") }
     var confirmDelete by remember { mutableStateOf(false) }
     val editing = editId != null
-    val shown = remember(state.nodes, query) {
-        val q = query.trim()
-        if (q.isEmpty()) state.nodes
-        else state.nodes.filter { it.name.contains(q, ignoreCase = true) || it.slug.contains(q, ignoreCase = true) }
+    val searching = state.query.isNotBlank()
+    // Without a search the feed's own nodes lead, and the catalogue below
+    // leaves them out; with one, the results stand alone, ticks and all.
+    val pinned = if (searching) emptyList() else state.original
+    val results = remember(state.results, pinned) {
+        if (pinned.isEmpty()) state.results else pinned.mapTo(hashSetOf()) { it.slug }.let { slugs -> state.results.filterNot { it.slug in slugs } }
     }
+    val listState = rememberLazyListState()
 
     LaunchedEffect(editId) { viewModel.bind(editId) }
+    listState.OnReachedEnd { viewModel.loadMore() }
 
     if (confirmDelete) {
         ConfirmDialog(
@@ -464,7 +556,7 @@ fun CreateCustomFeedScreen(navigator: Navigator, editId: Long? = null) {
                 }
             }
         }
-        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 16.dp)) {
+        LazyColumn(Modifier.weight(1f), state = listState, contentPadding = PaddingValues(bottom = 16.dp)) {
             item(key = "form") {
                 Column(
                     Modifier.fillMaxWidth().padding(horizontal = Space.page),
@@ -490,29 +582,40 @@ fun CreateCustomFeedScreen(navigator: Navigator, editId: Long? = null) {
                         style = Type.body(12),
                         color = Nocturne.muted(0.55f),
                     )
-                    PlainField(query, stringResource(R.string.feed_create_search), leading = true) { query = it }
+                    PlainField(state.query, stringResource(R.string.feed_create_search), leading = true, onValueChange = viewModel::setQuery)
                 }
             }
-            items(shown, key = { it.slug }) { node ->
-                val checked = node.slug in state.selected
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .clickable { viewModel.toggle(node.slug) }
-                        .padding(horizontal = Space.page, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    NodeMark(node, 32.dp)
-                    Column(Modifier.weight(1f)) {
-                        Text(node.name, style = Type.body(15, FontWeight.Medium), color = Nocturne.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text("n/${node.slug}", style = Type.body(12), color = Nocturne.textSecondary, maxLines = 1)
+            // Keys carry the section: the two lists are filtered apart, but a
+            // stale frame must not trip the duplicate-key check.
+            items(pinned, key = { "picked:" + it.slug }) { node ->
+                PickRow(node, checked = node.slug in state.picked) { viewModel.toggle(node) }
+            }
+            if (state.loadingNodes) {
+                item(key = "loading") { NodelocLoader(Modifier.fillMaxWidth().padding(vertical = 16.dp)) }
+            } else {
+                items(results, key = { "result:" + it.slug }) { node ->
+                    PickRow(node, checked = node.slug in state.picked) { viewModel.toggle(node) }
+                }
+                when {
+                    state.loadingMore -> item(key = "more") { NodelocLoader(Modifier.fillMaxWidth().padding(vertical = 8.dp), height = 32.dp) }
+                    state.nodesFailed -> item(key = "failed") {
+                        Text(
+                            stringResource(R.string.common_retry),
+                            style = Type.body(14, FontWeight.Medium),
+                            color = Nocturne.accent,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth().clickable(onClick = viewModel::retryNodes).padding(vertical = 16.dp),
+                        )
                     }
-                    Checkbox(
-                        checked = checked,
-                        onCheckedChange = { viewModel.toggle(node.slug) },
-                        colors = CheckboxDefaults.colors(checkedColor = Nocturne.accent, uncheckedColor = Nocturne.neutral400),
-                    )
+                    searching && results.isEmpty() -> item(key = "none") {
+                        Text(
+                            stringResource(R.string.nodes2_no_match),
+                            style = Type.body(14),
+                            color = Nocturne.textSecondary,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                        )
+                    }
                 }
             }
         }
@@ -533,6 +636,29 @@ fun CreateCustomFeedScreen(navigator: Navigator, editId: Long? = null) {
                 },
             )
         }
+    }
+}
+
+@Composable
+private fun PickRow(node: NodeSummary, checked: Boolean, onToggle: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onToggle)
+            .padding(horizontal = Space.page, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        NodeMark(node, 32.dp)
+        Column(Modifier.weight(1f)) {
+            Text(node.name, style = Type.body(15, FontWeight.Medium), color = Nocturne.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("n/${node.slug}", style = Type.body(12), color = Nocturne.textSecondary, maxLines = 1)
+        }
+        Checkbox(
+            checked = checked,
+            onCheckedChange = { onToggle() },
+            colors = CheckboxDefaults.colors(checkedColor = Nocturne.accent, uncheckedColor = Nocturne.neutral400),
+        )
     }
 }
 
