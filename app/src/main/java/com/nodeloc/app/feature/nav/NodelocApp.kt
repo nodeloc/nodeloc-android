@@ -301,6 +301,9 @@ private fun NodelocNavHost(
             com.nodeloc.app.feature.feed.CustomFeedScreen(route.id, route.name, navigator)
         }
         composable<Route.CreateCustomFeed> { com.nodeloc.app.feature.feed.CreateCustomFeedScreen(navigator) }
+        composable<Route.EditCustomFeed> { entry ->
+            com.nodeloc.app.feature.feed.CreateCustomFeedScreen(navigator, editId = entry.toRoute<Route.EditCustomFeed>().id)
+        }
         composable<Route.Compose> { entry ->
             val route = entry.toRoute<Route.Compose>()
             ComposeScreen(route, navigator)

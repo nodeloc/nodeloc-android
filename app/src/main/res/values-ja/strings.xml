@@ -2016,4 +2016,9 @@
     <string name="feed_create_search">ノードを検索</string>
     <string name="feed_create_save">作成</string>
     <string name="feed_empty">このフィードにはまだトピックがありません</string>
+    <string name="feed_edit_title">フィードを編集</string>
+    <string name="feed_edit_save">保存</string>
+    <string name="feed_delete">フィードを削除</string>
+    <string name="feed_delete_title">このフィードを削除しますか？</string>
+    <string name="feed_delete_body">「%1$s」を削除します。含まれるノードには影響しません。</string>
 </resources>

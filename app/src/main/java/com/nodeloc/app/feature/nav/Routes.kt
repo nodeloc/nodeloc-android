@@ -22,6 +22,7 @@ object Route {
     @Serializable data object CreateNode
     @Serializable data class CustomFeed(val id: Long, val name: String)
     @Serializable data object CreateCustomFeed
+    @Serializable data class EditCustomFeed(val id: Long)
     @Serializable data class Compose(
         val categoryId: Int? = null,
         val repostTopicId: Int? = null,

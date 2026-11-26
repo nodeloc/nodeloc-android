@@ -61,6 +61,13 @@ class Navigator(private val controller: NavHostController) {
 
     fun openCreateCustomFeed() = push(Route.CreateCustomFeed)
 
+    fun openEditCustomFeed(id: Long) = push(Route.EditCustomFeed(id))
+
+    /** After deleting a feed: the editor and the feed it was opened from both go. */
+    fun leaveDeletedCustomFeed() {
+        if (!controller.popBackStack<Route.CustomFeed>(inclusive = true)) controller.popBackStack()
+    }
+
     /** After creating a feed: the form gives way to the feed, so back leads to where the form was opened. */
     fun replaceWithCustomFeed(id: Long, name: String) {
         controller.popBackStack()

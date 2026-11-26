@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,10 +46,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Inbox
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.Search
+import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.WifiOff
 import com.nodeloc.app.R
 import com.nodeloc.app.ServiceLocator
+import com.nodeloc.app.core.design.ConfirmDialog
 import com.nodeloc.app.core.design.EmptyStateView
 import com.nodeloc.app.core.design.FieldSurface
 import com.nodeloc.app.core.design.FloatingHeaderBar
@@ -96,6 +100,10 @@ data class CustomFeedState(
     val hasMore: Boolean = false,
     val loadMoreFailed: Boolean = false,
     val error: Throwable? = null,
+    /** The name as the server has it now; null until fetched, when the route's copy stands in. */
+    val title: String? = null,
+    /** Only the owner gets the edit button. */
+    val mine: Boolean = false,
 )
 
 /** A custom feed's topics: the nodes it names, read as one list, newest activity first. */
@@ -103,6 +111,7 @@ class CustomFeedViewModel : ViewModel() {
     private val services = ServiceLocator.get
     private val client = services.client
     private val site = services.siteRepository
+    private val api = CustomFeedApi(client.api)
 
     private val _state = MutableStateFlow(CustomFeedState())
     val state: StateFlow<CustomFeedState> = _state.asStateFlow()
@@ -117,10 +126,21 @@ class CustomFeedViewModel : ViewModel() {
     fun bind(id: Long) {
         if (feedId == id) return
         feedId = id
-        load()
+        // The first value is the current revision: that is the initial load.
+        // Every later one is an edit made in the editor over this screen.
+        viewModelScope.launch { CustomFeedApi.revision.collect { load() } }
+    }
+
+    private fun loadInfo() {
+        viewModelScope.launch {
+            runCatchingCancellable { api.feed(feedId) }.onSuccess { feed ->
+                _state.value = _state.value.copy(title = feed.name.ifEmpty { null }, mine = feed.mine)
+            }
+        }
     }
 
     fun load() {
+        loadInfo()
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
             try {
@@ -129,8 +149,11 @@ class CustomFeedViewModel : ViewModel() {
                 page = 0
                 usersById.clear()
                 latest.users.orEmpty().forEach { usersById[it.id] = it }
-                _state.value = CustomFeedState(
+                _state.value = _state.value.copy(
                     posts = latest.topicList.topics.map(::map),
+                    isLoadingMore = false,
+                    loadMoreFailed = false,
+                    error = null,
                     isLoading = false,
                     hasMore = latest.topicList.moreTopicsUrl != null,
                 )
@@ -251,7 +274,7 @@ fun CustomFeedScreen(feedId: Long, name: String, navigator: Navigator) {
             center = {
                 HeaderGroup {
                     Text(
-                        name,
+                        state.title ?: name,
                         style = Type.heading(17, FontWeight.SemiBold),
                         color = Nocturne.headerText,
                         maxLines = 1,
@@ -260,19 +283,32 @@ fun CustomFeedScreen(feedId: Long, name: String, navigator: Navigator) {
                     )
                 }
             },
+            trailing = {
+                if (state.mine) {
+                    HeaderIconButton(Lucide.Pencil, stringResource(R.string.feed_edit_title)) {
+                        navigator.openEditCustomFeed(feedId)
+                    }
+                }
+            },
         )
     }
 }
 
-// ------------------------------------------------------------------ making one
+// ------------------------------------------------------------------ making or editing one
 
 data class CreateFeedState(
     val nodes: List<NodeSummary> = emptyList(),
     val selected: Set<String> = emptySet(),
     val loadingNodes: Boolean = true,
     val saving: Boolean = false,
+    val deleting: Boolean = false,
+    /** Editing only: false until the feed itself has arrived, so the form never offers blank values as its own. */
+    val loaded: Boolean = true,
+    val name: String = "",
+    val public: Boolean = false,
 )
 
+/** One form for both: [bind] with an id turns it into the editor of that feed. */
 class CreateCustomFeedViewModel : ViewModel() {
     private val client = ServiceLocator.get.client
     private val api = CustomFeedApi(client.api)
@@ -280,16 +316,51 @@ class CreateCustomFeedViewModel : ViewModel() {
     private val _state = MutableStateFlow(CreateFeedState())
     val state: StateFlow<CreateFeedState> = _state.asStateFlow()
 
-    init {
+    private var editId: Long? = null
+    private var bound = false
+
+    /** The feed as loaded: the description goes back unchanged, and the nodes are what a save diffs against. */
+    private var description = ""
+    private var original: Set<String> = emptySet()
+
+    fun bind(id: Long?) {
+        if (bound) return
+        bound = true
+        editId = id
+        if (id != null) _state.value = _state.value.copy(loaded = false)
         viewModelScope.launch {
-            // The nodes that hold topics (sections only group them), the
-            // reader's own first: a feed is most often made of those.
+            val feed = id?.let { feedId ->
+                runCatchingCancellable { api.feed(feedId) }
+                    .onFailure { ToastCenter.showError(it) }
+                    .getOrNull()
+            }
+            if (feed != null) {
+                description = feed.description.orEmpty()
+                original = feed.nodes.mapTo(linkedSetOf()) { it.slug }
+                _state.value = _state.value.copy(name = feed.name, public = feed.public, selected = original, loaded = true)
+            }
+            // The nodes that hold topics (sections only group them): those
+            // already in the feed first, then the reader's own, which is what
+            // a feed is most often made of.
+            val inFeed = _state.value.selected
             val nodes = runCatchingCancellable { client.nodeDirectory() }.getOrDefault(emptyList())
                 .filter { it.parentId != null }
-                .sortedWith(compareByDescending<com.nodeloc.app.core.network.ApiNode> { it.joined }.thenByDescending { it.memberCount ?: 0 })
+                .sortedWith(
+                    compareByDescending<com.nodeloc.app.core.network.ApiNode> { it.slug in inFeed }
+                        .thenByDescending { it.joined }
+                        .thenByDescending { it.memberCount ?: 0 },
+                )
                 .map { NodeSummaryFactory.summary(Legacy.category(it)) }
             _state.value = _state.value.copy(nodes = nodes, loadingNodes = false)
         }
+    }
+
+    fun setName(value: String) {
+        _state.value = _state.value.copy(name = value)
+    }
+
+    fun setPublic(value: Boolean) {
+        _state.value = _state.value.copy(public = value)
     }
 
     fun toggle(slug: String) {
@@ -305,22 +376,42 @@ class CreateCustomFeedViewModel : ViewModel() {
     }
 
     /**
-     * Creates the feed, then adds its nodes one by one — the API has no way to
-     * do both at once. A node that fails is left out rather than failing the
-     * whole feed: what was made is still the reader's, and nodes can be added
-     * on the web.
+     * Creates or updates the feed, then brings its nodes in line one call at a
+     * time; the API has no way to set them all at once. A node that fails is
+     * left as it was rather than failing the whole save: the rest still landed.
      */
-    fun create(name: String, public: Boolean, onDone: (Long, String) -> Unit) {
-        if (_state.value.saving) return
-        _state.value = _state.value.copy(saving = true)
+    fun save(onDone: (Long, String) -> Unit) {
+        val current = _state.value
+        if (current.saving || current.deleting) return
+        val name = current.name.trim()
+        _state.value = current.copy(saving = true)
         viewModelScope.launch {
             try {
-                val feed = api.create(name.trim(), public)
-                _state.value.selected.forEach { slug -> runCatchingCancellable { api.addNode(feed.id, slug) } }
-                onDone(feed.id, feed.name.ifEmpty { name.trim() })
+                val id = editId
+                val feed = if (id == null) api.create(name, current.public) else api.update(id, name, description, current.public)
+                (current.selected - original).forEach { slug -> runCatchingCancellable { api.addNode(feed.id, slug) } }
+                (original - current.selected).forEach { slug -> runCatchingCancellable { api.removeNode(feed.id, slug) } }
+                CustomFeedApi.revision.value += 1
+                onDone(feed.id, feed.name.ifEmpty { name })
             } catch (error: Throwable) {
                 error.rethrowIfCancellation()
                 _state.value = _state.value.copy(saving = false)
+                ToastCenter.showError(error)
+            }
+        }
+    }
+
+    fun delete(onDone: () -> Unit) {
+        val id = editId ?: return
+        if (_state.value.saving || _state.value.deleting) return
+        _state.value = _state.value.copy(deleting = true)
+        viewModelScope.launch {
+            try {
+                api.delete(id)
+                onDone()
+            } catch (error: Throwable) {
+                error.rethrowIfCancellation()
+                _state.value = _state.value.copy(deleting = false)
                 ToastCenter.showError(error)
             }
         }
@@ -330,16 +421,31 @@ class CreateCustomFeedViewModel : ViewModel() {
 private const val MAX_FEED_NODES = 50
 
 @Composable
-fun CreateCustomFeedScreen(navigator: Navigator) {
+fun CreateCustomFeedScreen(navigator: Navigator, editId: Long? = null) {
     val viewModel: CreateCustomFeedViewModel = viewModel()
     val state by viewModel.state.collectAsState()
-    var name by remember { mutableStateOf("") }
-    var public by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
+    var confirmDelete by remember { mutableStateOf(false) }
+    val editing = editId != null
     val shown = remember(state.nodes, query) {
         val q = query.trim()
         if (q.isEmpty()) state.nodes
         else state.nodes.filter { it.name.contains(q, ignoreCase = true) || it.slug.contains(q, ignoreCase = true) }
+    }
+
+    LaunchedEffect(editId) { viewModel.bind(editId) }
+
+    if (confirmDelete) {
+        ConfirmDialog(
+            title = stringResource(R.string.feed_delete_title),
+            body = stringResource(R.string.feed_delete_body, state.name),
+            confirmLabel = stringResource(R.string.feed_delete),
+            onConfirm = {
+                confirmDelete = false
+                viewModel.delete { navigator.leaveDeletedCustomFeed() }
+            },
+            onDismiss = { confirmDelete = false },
+        )
     }
 
     Column(Modifier.fillMaxSize().background(Nocturne.bg).imePadding()) {
@@ -351,6 +457,12 @@ fun CreateCustomFeedScreen(navigator: Navigator) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             HeaderIconButton(Lucide.ArrowLeft, stringResource(R.string.common_back), onClick = navigator::back)
+            Spacer(Modifier.weight(1f))
+            if (editing && state.loaded) {
+                HeaderIconButton(Lucide.Trash2, stringResource(R.string.feed_delete)) {
+                    if (!state.deleting) confirmDelete = true
+                }
+            }
         }
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 16.dp)) {
             item(key = "form") {
@@ -358,13 +470,17 @@ fun CreateCustomFeedScreen(navigator: Navigator) {
                     Modifier.fillMaxWidth().padding(horizontal = Space.page),
                     verticalArrangement = Arrangement.spacedBy(Space.s4),
                 ) {
-                    Text(stringResource(R.string.feed_create_title), style = Type.heading(26, FontWeight.Bold), color = Nocturne.text)
+                    Text(
+                        stringResource(if (editing) R.string.feed_edit_title else R.string.feed_create_title),
+                        style = Type.heading(26, FontWeight.Bold),
+                        color = Nocturne.text,
+                    )
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(stringResource(R.string.feed_create_name), style = Type.body(12), color = Nocturne.muted(0.55f))
-                        PlainField(name, stringResource(R.string.feed_create_name_hint)) { name = it }
+                        PlainField(state.name, stringResource(R.string.feed_create_name_hint), onValueChange = viewModel::setName)
                     }
                 }
-                SettingsToggleRow(stringResource(R.string.feed_create_public), public) { public = it }
+                SettingsToggleRow(stringResource(R.string.feed_create_public), state.public) { viewModel.setPublic(it) }
                 Column(
                     Modifier.fillMaxWidth().padding(horizontal = Space.page, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -407,10 +523,14 @@ fun CreateCustomFeedScreen(navigator: Navigator) {
                 .padding(horizontal = Space.page, vertical = 10.dp),
         ) {
             PrimaryButton(
-                stringResource(R.string.feed_create_save),
+                stringResource(if (editing) R.string.feed_edit_save else R.string.feed_create_save),
                 modifier = Modifier.fillMaxWidth(),
-                enabled = name.isNotBlank() && !state.saving,
-                onClick = { viewModel.create(name, public) { id, feedName -> navigator.replaceWithCustomFeed(id, feedName) } },
+                enabled = state.loaded && state.name.isNotBlank() && !state.saving && !state.deleting,
+                onClick = {
+                    viewModel.save { id, feedName ->
+                        if (editing) navigator.back() else navigator.replaceWithCustomFeed(id, feedName)
+                    }
+                },
             )
         }
     }

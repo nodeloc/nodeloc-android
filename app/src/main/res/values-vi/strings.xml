@@ -2017,4 +2017,9 @@
     <string name="feed_create_search">Tìm node</string>
     <string name="feed_create_save">Tạo</string>
     <string name="feed_empty">Bảng tin này chưa có chủ đề</string>
+    <string name="feed_edit_title">Sửa bảng tin</string>
+    <string name="feed_edit_save">Lưu</string>
+    <string name="feed_delete">Xóa bảng tin</string>
+    <string name="feed_delete_title">Xóa bảng tin này?</string>
+    <string name="feed_delete_body">“%1$s” sẽ bị xóa. Các nút trong đó không bị ảnh hưởng.</string>
 </resources>

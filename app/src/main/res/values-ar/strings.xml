@@ -2068,4 +2068,9 @@
     <string name="feed_create_search">ابحث عن العقد</string>
     <string name="feed_create_save">إنشاء</string>
     <string name="feed_empty">لا توجد مواضيع في هذه الخلاصة بعد</string>
+    <string name="feed_edit_title">تعديل الخلاصة</string>
+    <string name="feed_edit_save">حفظ</string>
+    <string name="feed_delete">حذف الخلاصة</string>
+    <string name="feed_delete_title">حذف هذه الخلاصة؟</string>
+    <string name="feed_delete_body">سيتم حذف «%1$s». العُقد التي فيها لن تتأثر.</string>
 </resources>

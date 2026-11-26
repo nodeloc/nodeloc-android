@@ -2017,4 +2017,9 @@
     <string name="feed_create_search">搜尋節點</string>
     <string name="feed_create_save">建立</string>
     <string name="feed_empty">這個資訊流裡還沒有主題</string>
+    <string name="feed_edit_title">編輯資訊流</string>
+    <string name="feed_edit_save">儲存</string>
+    <string name="feed_delete">刪除資訊流</string>
+    <string name="feed_delete_title">刪除這個資訊流？</string>
+    <string name="feed_delete_body">「%1$s」將被刪除，其中的節點不受影響。</string>
 </resources>

@@ -2027,4 +2027,9 @@
     <string name="feed_create_search">جستجوی گره‌ها</string>
     <string name="feed_create_save">ایجاد</string>
     <string name="feed_empty">هنوز موضوعی در این فید نیست</string>
+    <string name="feed_edit_title">ویرایش فید</string>
+    <string name="feed_edit_save">ذخیره</string>
+    <string name="feed_delete">حذف فید</string>
+    <string name="feed_delete_title">این فید حذف شود؟</string>
+    <string name="feed_delete_body">«%1$s» حذف می‌شود. گره‌های داخل آن تغییری نمی‌کنند.</string>
 </resources>

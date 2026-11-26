@@ -2047,4 +2047,9 @@
     <string name="feed_create_search">Пошук вузлів</string>
     <string name="feed_create_save">Створити</string>
     <string name="feed_empty">У цій стрічці ще немає тем</string>
+    <string name="feed_edit_title">Редагувати стрічку</string>
+    <string name="feed_edit_save">Зберегти</string>
+    <string name="feed_delete">Видалити стрічку</string>
+    <string name="feed_delete_title">Видалити цю стрічку?</string>
+    <string name="feed_delete_body">«%1$s» буде видалено. Вузли в ній не зачеплено.</string>
 </resources>

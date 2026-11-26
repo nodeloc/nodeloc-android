@@ -2047,4 +2047,9 @@
     <string name="feed_create_search">Поиск узлов</string>
     <string name="feed_create_save">Создать</string>
     <string name="feed_empty">В этой ленте пока нет тем</string>
+    <string name="feed_edit_title">Изменить ленту</string>
+    <string name="feed_edit_save">Сохранить</string>
+    <string name="feed_delete">Удалить ленту</string>
+    <string name="feed_delete_title">Удалить эту ленту?</string>
+    <string name="feed_delete_body">«%1$s» будет удалена. Узлы в ней не затронуты.</string>
 </resources>

@@ -2017,4 +2017,9 @@
     <string name="feed_create_search">搜索节点</string>
     <string name="feed_create_save">创建</string>
     <string name="feed_empty">这个信息流里还没有主题</string>
+    <string name="feed_edit_title">编辑信息流</string>
+    <string name="feed_edit_save">保存</string>
+    <string name="feed_delete">删除信息流</string>
+    <string name="feed_delete_title">删除这个信息流？</string>
+    <string name="feed_delete_body">“%1$s”将被删除，其中的节点不受影响。</string>
 </resources>

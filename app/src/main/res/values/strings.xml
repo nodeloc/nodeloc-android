@@ -2028,4 +2028,9 @@
     <string name="feed_create_search">Search nodes</string>
     <string name="feed_create_save">Create</string>
     <string name="feed_empty">No topics in this feed yet</string>
+    <string name="feed_edit_title">Edit feed</string>
+    <string name="feed_edit_save">Save</string>
+    <string name="feed_delete">Delete feed</string>
+    <string name="feed_delete_title">Delete this feed?</string>
+    <string name="feed_delete_body">“%1$s” will be removed. The nodes in it are not affected.</string>
 </resources>

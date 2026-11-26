@@ -2018,4 +2018,9 @@
     <string name="feed_create_search">Cari node</string>
     <string name="feed_create_save">Buat</string>
     <string name="feed_empty">Belum ada topik di feed ini</string>
+    <string name="feed_edit_title">Edit feed</string>
+    <string name="feed_edit_save">Simpan</string>
+    <string name="feed_delete">Hapus feed</string>
+    <string name="feed_delete_title">Hapus feed ini?</string>
+    <string name="feed_delete_body">“%1$s” akan dihapus. Node di dalamnya tidak terpengaruh.</string>
 </resources>
