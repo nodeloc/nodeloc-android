@@ -584,7 +584,6 @@
     <string name="media_no_more_videos">Tidak ada video lagi untuk saat ini</string>
     <string name="common_pause">Jeda</string>
     <string name="profile_message">Pesan</string>
-    <string name="profile_chat">Obrolan</string>
     <string name="profile_notification_level">Notifikasi</string>
     <string name="profile_notify_normal">Normal</string>
     <string name="profile_notify_muted">Dibisukan</string>
@@ -2023,4 +2022,5 @@
     <string name="feed_delete">Hapus feed</string>
     <string name="feed_delete_title">Hapus feed ini?</string>
     <string name="feed_delete_body">“%1$s” akan dihapus. Node di dalamnya tidak terpengaruh.</string>
+    <string name="profile_message_closed">Anggota ini tidak menerima pesan darimu.</string>
 </resources>

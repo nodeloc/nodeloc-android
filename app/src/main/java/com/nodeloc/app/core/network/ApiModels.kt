@@ -37,6 +37,8 @@ data class ApiUser(
     val viewerFollowing: Boolean? = null,
     val viewerBlocked: Boolean? = null,
     val canMessage: Boolean? = null,
+    /** Why [canMessage] is false, worded and localised by the server; absent when it is true. */
+    val messageNote: String? = null,
     /** How many achievements they hold; public even when the list itself is not. */
     val achievementCount: Int? = null,
     /** The nodes they own (主理人), slug and name. */

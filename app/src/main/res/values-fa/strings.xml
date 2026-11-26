@@ -593,7 +593,6 @@
     <string name="media_no_more_videos">فعلاً ویدیوی دیگری نیست</string>
     <string name="common_pause">مکث</string>
     <string name="profile_message">پیام</string>
-    <string name="profile_chat">گپ</string>
     <string name="profile_notification_level">اعلان‌ها</string>
     <string name="profile_notify_normal">عادی</string>
     <string name="profile_notify_muted">بی‌صدا</string>
@@ -2032,4 +2031,5 @@
     <string name="feed_delete">حذف فید</string>
     <string name="feed_delete_title">این فید حذف شود؟</string>
     <string name="feed_delete_body">«%1$s» حذف می‌شود. گره‌های داخل آن تغییری نمی‌کنند.</string>
+    <string name="profile_message_closed">این عضو از شما پیام نمی‌پذیرد.</string>
 </resources>

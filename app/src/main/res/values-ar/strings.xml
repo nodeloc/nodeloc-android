@@ -634,7 +634,6 @@
     <string name="media_no_more_videos">لا مزيد من الفيديوهات الآن</string>
     <string name="common_pause">إيقاف مؤقت</string>
     <string name="profile_message">رسالة</string>
-    <string name="profile_chat">دردشة</string>
     <string name="profile_notification_level">الإشعارات</string>
     <string name="profile_notify_normal">عادي</string>
     <string name="profile_notify_muted">مكتوم</string>
@@ -2073,4 +2072,5 @@
     <string name="feed_delete">حذف الخلاصة</string>
     <string name="feed_delete_title">حذف هذه الخلاصة؟</string>
     <string name="feed_delete_body">سيتم حذف «%1$s». العُقد التي فيها لن تتأثر.</string>
+    <string name="profile_message_closed">هذا العضو لا يستقبل رسائل منك.</string>
 </resources>

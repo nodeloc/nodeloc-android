@@ -1004,6 +1004,12 @@ data class UserProfile(
     val achievementCount: Int? = null,
     /** 2.0: slugs of the nodes this member owns, for the 主理人 pill. */
     val ownedNodes: List<String> = emptyList(),
+    /**
+     * 2.0: whether the viewer may message this member, by their privacy
+     * setting and any block. Null when unknown (signed out, older answers).
+     */
+    val canMessage: Boolean? = null,
+    val messageNote: String? = null,
 )
 
 @Serializable

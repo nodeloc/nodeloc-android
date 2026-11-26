@@ -508,6 +508,8 @@ object Legacy {
                 canIgnoreUsers = true,
                 achievementCount = u.achievementCount,
                 ownedNodes = u.ownedNodes.map { it.slug }.filter { it.isNotEmpty() },
+                canMessage = u.canMessage,
+                messageNote = u.messageNote?.takeIf { it.isNotBlank() },
             ),
         )
     }

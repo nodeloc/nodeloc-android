@@ -597,7 +597,6 @@
     <string name="media_no_more_videos">No more videos right now</string>
     <string name="common_pause">Pause</string>
     <string name="profile_message">Message</string>
-    <string name="profile_chat">Chat</string>
     <string name="profile_notification_level">Notifications</string>
     <string name="profile_notify_normal">Normal</string>
     <string name="profile_notify_muted">Muted</string>
@@ -2033,4 +2032,5 @@
     <string name="feed_delete">Delete feed</string>
     <string name="feed_delete_title">Delete this feed?</string>
     <string name="feed_delete_body">“%1$s” will be removed. The nodes in it are not affected.</string>
+    <string name="profile_message_closed">This member isn’t accepting messages from you.</string>
 </resources>

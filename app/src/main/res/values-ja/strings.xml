@@ -582,7 +582,6 @@
     <string name="media_no_more_videos">いまのところ動画はもうありません</string>
     <string name="common_pause">一時停止</string>
     <string name="profile_message">メッセージ</string>
-    <string name="profile_chat">チャット</string>
     <string name="profile_notification_level">通知</string>
     <string name="profile_notify_normal">通常</string>
     <string name="profile_notify_muted">ミュート</string>
@@ -2021,4 +2020,5 @@
     <string name="feed_delete">フィードを削除</string>
     <string name="feed_delete_title">このフィードを削除しますか？</string>
     <string name="feed_delete_body">「%1$s」を削除します。含まれるノードには影響しません。</string>
+    <string name="profile_message_closed">このメンバーはあなたからのメッセージを受け付けていません。</string>
 </resources>

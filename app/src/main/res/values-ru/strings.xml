@@ -613,7 +613,6 @@
     <string name="media_no_more_videos">Пока больше видео нет</string>
     <string name="common_pause">Пауза</string>
     <string name="profile_message">Написать</string>
-    <string name="profile_chat">Чат</string>
     <string name="profile_notification_level">Уведомления</string>
     <string name="profile_notify_normal">Обычные</string>
     <string name="profile_notify_muted">Без звука</string>
@@ -2052,4 +2051,5 @@
     <string name="feed_delete">Удалить ленту</string>
     <string name="feed_delete_title">Удалить эту ленту?</string>
     <string name="feed_delete_body">«%1$s» будет удалена. Узлы в ней не затронуты.</string>
+    <string name="profile_message_closed">Этот участник не принимает от вас сообщения.</string>
 </resources>

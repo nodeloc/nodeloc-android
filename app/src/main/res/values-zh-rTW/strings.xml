@@ -583,7 +583,6 @@
     <string name="media_no_more_videos">暫時沒有更多影片了</string>
     <string name="common_pause">暫停</string>
     <string name="profile_message">私訊</string>
-    <string name="profile_chat">聊天</string>
     <string name="profile_notification_level">通知方式</string>
     <string name="profile_notify_normal">一般</string>
     <string name="profile_notify_muted">靜音</string>
@@ -2022,4 +2021,5 @@
     <string name="feed_delete">刪除資訊流</string>
     <string name="feed_delete_title">刪除這個資訊流？</string>
     <string name="feed_delete_body">「%1$s」將被刪除，其中的節點不受影響。</string>
+    <string name="profile_message_closed">對方沒有開放私訊給你。</string>
 </resources>

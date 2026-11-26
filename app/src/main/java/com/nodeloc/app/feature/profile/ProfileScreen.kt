@@ -62,7 +62,6 @@ import com.composables.icons.lucide.FilePen
 import com.composables.icons.lucide.Flag
 import com.composables.icons.lucide.LayoutGrid
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.MessageCircle
 import com.composables.icons.lucide.Settings
 import com.composables.icons.lucide.TrendingUp
 import com.composables.icons.lucide.Trophy
@@ -239,8 +238,8 @@ fun PublicProfileScreen(username: String, app: AppViewModel, navigator: Navigato
             title = if (listState.isScrolledPastTop(threshold = 120)) username else "",
             onBack = navigator::back,
             actions = {
-                // What the website offers on someone's page: write to them,
-                // chat, or decide how loudly they reach you.
+                // What the website offers on someone's page beyond the 私信
+                // button: how loudly they reach you, reporting, blocking.
                 Box {
                     HeaderIconButton(
                         Lucide.EllipsisVertical,
@@ -248,14 +247,6 @@ fun PublicProfileScreen(username: String, app: AppViewModel, navigator: Navigato
                         onClick = { menuOpen = true },
                     )
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.profile_chat)) },
-                            leadingIcon = { Icon(Lucide.MessageCircle, null, Modifier.size(18.dp)) },
-                            onClick = {
-                                menuOpen = false
-                                viewModel.openChatWith { navigator.openChat(it) }
-                            },
-                        )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.profile_notification_level)) },
                             leadingIcon = { Icon(Lucide.Bell, null, Modifier.size(18.dp)) },
@@ -406,6 +397,17 @@ private fun ProfileBody(
                     if (isSignedIn) viewModel.toggleFollow() else navigator.openAuth()
                 },
                 onCheckin = onCheckin,
+                onMessage = {
+                    when {
+                        !isSignedIn -> navigator.openAuth()
+                        // Their privacy setting or a block closes it. Said
+                        // here, in the server's words, rather than after a
+                        // first message has been typed and refused.
+                        profile.canMessage == false ->
+                            profile.messageNote?.let(ToastCenter::show) ?: ToastCenter.show(R.string.profile_message_closed)
+                        else -> viewModel.openChatWith { navigator.openChat(it) }
+                    }
+                },
             )
         }
 
@@ -583,6 +585,7 @@ private fun ProfileHeader(
     navigator: Navigator,
     onToggleFollow: () -> Unit,
     onCheckin: () -> Unit,
+    onMessage: () -> Unit,
 ) {
     val tier = state.tiers.level(profile.trustLevel)
     val privileges by ServiceLocator.get.moderation.privileges.collectAsState()
@@ -625,9 +628,12 @@ private fun ProfileHeader(
                         )
                     }
                 } else {
-                    SecondaryButton(stringResource(R.string.profile_message)) {
-                        navigator.openCompose(pmRecipient = profile.username)
-                    }
+                    // Straight into the conversation: private messages are
+                    // chats on the 2.0 server, and the compose screen this
+                    // used to open wrote a topic-style message it no longer
+                    // has. The conversation itself starts with the first line
+                    // sent; opening it does not create an empty one.
+                    SecondaryButton(stringResource(R.string.profile_message), onClick = onMessage)
                     if (state.isFollowing) {
                         SecondaryButton(stringResource(R.string.profile_following), modifier = Modifier.widthIn(min = 84.dp), onClick = onToggleFollow)
                     } else {

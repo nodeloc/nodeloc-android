@@ -613,7 +613,6 @@
     <string name="media_no_more_videos">Поки що відео більше немає</string>
     <string name="common_pause">Пауза</string>
     <string name="profile_message">Написати</string>
-    <string name="profile_chat">Чат</string>
     <string name="profile_notification_level">Сповіщення</string>
     <string name="profile_notify_normal">Звичайні</string>
     <string name="profile_notify_muted">Без звуку</string>
@@ -2052,4 +2051,5 @@
     <string name="feed_delete">Видалити стрічку</string>
     <string name="feed_delete_title">Видалити цю стрічку?</string>
     <string name="feed_delete_body">«%1$s» буде видалено. Вузли в ній не зачеплено.</string>
+    <string name="profile_message_closed">Цей учасник не приймає від вас повідомлення.</string>
 </resources>
