@@ -56,8 +56,8 @@ android {
         applicationId = "com.nodeloc.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 31
-        versionName = "2.0.0"
+        versionCode = 32
+        versionName = "2.0.1"
 
         buildConfigField("String", "INVITE_CODE", "\"$inviteCode\"")
     }
