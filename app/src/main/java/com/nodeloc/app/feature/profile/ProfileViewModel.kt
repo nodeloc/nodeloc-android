@@ -13,6 +13,7 @@ import com.nodeloc.app.core.model.UserBookmark
 import com.nodeloc.app.core.model.UserProfile
 import com.nodeloc.app.core.model.UserSummary
 import com.nodeloc.app.core.model.VoteDirection
+import com.nodeloc.app.core.network.NodelocApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -111,9 +112,11 @@ data class ProfileState(
     val nodeDirectory: Map<String, com.nodeloc.app.core.model.NodeSummary> = emptyMap(),
     /**
      * This account on the energy board, when it made the first page the server
-     * serves: the only public source of someone else's balance and rank.
+     * serves: the one API source of someone else's rank.
      */
     val boardRow: ApiLeaderRow? = null,
+    /** Someone else's balance, read off the website's hover card; see [ProfileViewModel.cardEnergy]. */
+    val publicEnergy: Long? = null,
     /** The day the account last checked in, as the server counted it. */
     val checkinDate: String? = null,
     val isCheckingIn: Boolean = false,
@@ -240,6 +243,7 @@ class ProfileViewModel : ViewModel() {
             // One request for the whole first page, not one per profile field:
             // the board is the same for every profile opened.
             val boardJob = async { runCatchingCancellable { growth.leaderboard() }.getOrNull() }
+            val energyJob = async { if (own) null else cardEnergy(username) }
 
             val outcome = profileJob.await()
             val profile = outcome.getOrNull()?.user
@@ -268,6 +272,7 @@ class ProfileViewModel : ViewModel() {
                 joinedNodes = nodesJob.await(),
                 nodeDirectory = directoryJob.await(),
                 boardRow = boardJob.await()?.firstOrNull { it.username.equals(username, ignoreCase = true) },
+                publicEnergy = energyJob.await(),
                 isFollowing = profile?.isFollowed == true,
                 isLoading = false,
                 // The transport error itself, not a stand-in for it. The screen
@@ -604,9 +609,38 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Someone else's energy balance.
+     *
+     * The API has no public source for it: `/api/v1/users/{name}` leaves it
+     * out, and the energy board only reaches those near the top. The website
+     * shows it to anyone on the user hover card (`/u/{name}/card`, an HTML
+     * fragment), so the number is read from there: the `hc-energy` element,
+     * digits only, since the separator is the page's locale's. Null if the
+     * card changes shape; the figure then shows a dash as it did before.
+     * Once the API carries the balance this should read that instead.
+     *
+     * Asked for as HTML, as a browser asks: a JSON-only request to a website
+     * path is how the server recognises the retired Discourse-era app, and it
+     * answers that with 410 "app_outdated" (backend internal/web/oldapp.go).
+     */
+    private suspend fun cardEnergy(username: String): Long? {
+        val html = runCatchingCancellable {
+            val api = client.api
+            val path = "u/${java.net.URLEncoder.encode(username, "UTF-8").replace("+", "%20")}/card"
+            api.perform(api.requestBuilder(api.url(path)).header("Accept", "text/html").get().build(), NodelocApi.Channel.Read)
+        }.getOrNull() ?: return null
+        val raw = CARD_ENERGY.find(html)?.groupValues?.get(1) ?: return null
+        val negative = raw.trimStart().startsWith("-") || raw.trimStart().startsWith("−")
+        val digits = raw.filter { it in '0'..'9' }.takeIf { it.isNotEmpty() } ?: return null
+        return digits.toLongOrNull()?.let { if (negative) -it else it }
+    }
+
     private companion object {
         /** How far 评论 reads ahead past openers before it gives up on one page. */
         const val COMMENT_FILL_PAGES = 3
+
+        val CARD_ENERGY = Regex("""class="hc-energy"[^>]*>([^<]*)<""")
     }
 }
 

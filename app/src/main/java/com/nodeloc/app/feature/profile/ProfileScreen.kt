@@ -712,9 +712,11 @@ private fun ProfileHeader(
                 // 贡献 is topics and replies together, as the web counts it.
                 val contribution = if (topics == null && posts == null) null else (topics ?: 0) + (posts ?: 0)
                 val reputation = if (isOwn) state.reputation?.reputation?.toLong() else state.publicReputation
-                // Your own balance is always known; someone else's only when they
-                // made the board's first page, the one public source of it.
-                val balance = if (isOwn) state.pointsTotal?.toLong() ?: state.boardRow?.balance else state.boardRow?.balance
+                // Your own balance comes from the points API; someone else's
+                // from the board when they are on its first page, otherwise
+                // from the website's hover card.
+                val balance = if (isOwn) state.pointsTotal?.toLong() ?: state.boardRow?.balance
+                else state.boardRow?.balance ?: state.publicEnergy
                 // Four figures on both pages since v292. On your own the ones
                 // with a page behind them are the way there: the shortcut grid
                 // they replaced is gone, so 声望 is how 升级进度 is reached.
@@ -732,7 +734,8 @@ private fun ProfileHeader(
                     padded = true,
                     onClick = when {
                         isOwn -> ({ navigator.openEnergyHistory() })
-                        balance != null -> ({ navigator.openWealthRank() })
+                        // Only for someone the board actually lists; anyone else would not be found there.
+                        state.boardRow != null -> ({ navigator.openWealthRank() })
                         else -> null
                     },
                 )
