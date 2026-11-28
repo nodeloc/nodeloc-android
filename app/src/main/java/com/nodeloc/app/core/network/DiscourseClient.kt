@@ -1624,10 +1624,15 @@ class DiscourseClient(
     // ---------------------------------------------------------------- misc
 
     /**
-     * The native server answers in whatever language the request asks for, so
-     * there is no account language to adopt: the app's own choice is the one.
+     * The language saved on the account (`user.locale` on `GET /api/v1/me`,
+     * mobile-api.md 2026-11-28). Empty when the account never chose one.
      */
-    suspend fun effectiveLocale(): String? = null
+    suspend fun effectiveLocale(): String? = get<ApiUserEnvelope>("api/v1/me").user.locale?.trim()?.takeIf { it.isNotEmpty() }
+
+    /** Tells the server which language to speak (`POST /api/v1/locale`); kept on the account when signed in. */
+    suspend fun setServerLocale(code: String) {
+        api.sendRaw("POST", "api/v1/locale", kotlinx.serialization.json.buildJsonObject { put("locale", JsonPrimitive(code)) })
+    }
 
     val timezone: String get() = TimeZone.getDefault().id
 

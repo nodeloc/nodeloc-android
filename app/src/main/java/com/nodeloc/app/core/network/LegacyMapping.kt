@@ -52,6 +52,26 @@ object Legacy {
         // the old one as two post numbers; this rebuilds the pair.
         val highest = if (lastRead != null) lastRead + topic.unreadCount else replies + 1
         val images = topic.images.orEmpty().ifEmpty { listOfNotNull(topic.imageUrl) }
+        val card = topic.cardMedia
+        val video = card?.video
+        // Only an upload plays in the card; YouTube and bilibili show their poster.
+        val playable = video?.url?.takeIf { video.provider == "upload" && it.isNotBlank() }
+        val cardImages = card?.images.orEmpty().filter { it.url.isNotBlank() }
+            .map { TopicCardImage(url = it.url, fullUrl = it.originalUrl, width = it.w, height = it.h) }
+            .ifEmpty {
+                // No pictures, but a video: its poster stands in, as the clip's
+                // backdrop or as the picture itself. YouTube's is 4:3 with the
+                // 16:9 frame letterboxed inside, so it is sized 16:9 to crop the bars.
+                val poster = video?.poster?.takeIf { it.isNotBlank() }
+                if (poster == null) emptyList()
+                else listOf(
+                    TopicCardImage(
+                        url = poster,
+                        width = if (video.provider == "youtube") 1600 else video.w,
+                        height = if (video.provider == "youtube") 900 else video.h,
+                    ),
+                )
+            }
         return TopicListItem(
             id = topic.id,
             title = topic.title,
@@ -69,6 +89,8 @@ object Legacy {
             excerpt = topic.excerpt,
             imageUrl = topic.imageUrl ?: images.firstOrNull(),
             topicImages = images.takeIf { it.size > 1 },
+            cardImages = cardImages.takeIf { it.isNotEmpty() },
+            topicVideoUrl = playable,
             posters = topic.author?.let { listOf(TopicPoster(userId = topic.authorId ?: syntheticUserId(it))) },
             tags = topic.tags.map { TopicTag(name = it, slug = it) },
             opVoteScore = topic.voteScore,

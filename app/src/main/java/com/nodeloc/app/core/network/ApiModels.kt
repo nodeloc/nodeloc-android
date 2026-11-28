@@ -43,6 +43,8 @@ data class ApiUser(
     val achievementCount: Int? = null,
     /** The nodes they own (主理人), slug and name. */
     val ownedNodes: List<ApiNodeRef> = emptyList(),
+    /** The account's language (`zh-CN`, `en`…); empty when never chosen. Owner-only. */
+    val locale: String? = null,
 ) {
     val isAdmin: Boolean get() = role == "admin"
     val isModerator: Boolean get() = role == "moderator" || role == "admin"
@@ -83,10 +85,44 @@ data class ApiTopicSummary(
     val unreadCount: Int = 0,
     val imageUrl: String? = null,
     val images: List<String>? = null,
+    /**
+     * Every image (up to 12) and the first video of the first post, for the
+     * card (mobile-api.md 主题列表, 2026-11-27). Null when there are none or
+     * the body is gated. Absolute URLs.
+     */
+    val cardMedia: ApiCardMedia? = null,
     /** Lets a list row vote without opening the topic (absent on the personal feed). */
     val firstPostId: Int? = null,
     val viewerVote: Int? = null,
     val adult: Boolean = false,
+)
+
+@Serializable
+data class ApiCardMedia(
+    val images: List<ApiCardImage> = emptyList(),
+    val video: ApiCardVideo? = null,
+)
+
+@Serializable
+data class ApiCardImage(
+    /** The card-size thumbnail, scaled (not cropped) into 1280×1040. */
+    val url: String = "",
+    /** The full image, for the viewer. */
+    val originalUrl: String? = null,
+    /** The original's size; uploads only, external images have none. */
+    val w: Int? = null,
+    val h: Int? = null,
+)
+
+@Serializable
+data class ApiCardVideo(
+    /** `upload`, `youtube` or `bilibili`. */
+    val provider: String = "",
+    /** Uploads: what a native player plays (HLS or the file); null while transcoding. Otherwise the page. */
+    val url: String? = null,
+    val poster: String? = null,
+    val w: Int? = null,
+    val h: Int? = null,
 )
 
 @Serializable

@@ -155,7 +155,7 @@ class SessionRepository(
                     languageAdopted = false
                     return@launch
                 }
-            AppLocale.applyFromAccount(locale)
+            AppLocale.adoptAccountLocale(locale)
         }
     }
 

@@ -75,6 +75,15 @@ data class TopicPoster(
 @Serializable
 data class TopicTag(val id: Int? = null, val name: String? = null, val slug: String? = null)
 
+/** One card picture from `card_media`: the display copy, the original, and the original's size. */
+@Serializable
+data class TopicCardImage(
+    val url: String,
+    val fullUrl: String? = null,
+    val width: Int? = null,
+    val height: Int? = null,
+)
+
 /**
  * One resolution in a topic's responsive image set. The field is `thumbnails`
  * (not `topic_thumbnails`), and the largest entry is the original upload.
@@ -134,6 +143,8 @@ data class TopicListItem(
     val tags: List<TopicTag>? = null,
     /** discourse-community adds this expressly for card-mode autoplay. */
     val topicVideoUrl: String? = null,
+    /** The 2.0 list's `card_media` pictures, with their sizes; wins over [topicImages] when present. */
+    val cardImages: List<TopicCardImage>? = null,
 
     /**
      * discourse-vote, carried on the row so a feed needs no extra request.

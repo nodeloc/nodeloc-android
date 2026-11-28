@@ -56,6 +56,7 @@ import com.nodeloc.app.core.design.ConfirmDialog
 import com.nodeloc.app.core.design.EmptyStateView
 import com.nodeloc.app.core.design.Nocturne
 import com.nodeloc.app.core.design.Space
+import com.nodeloc.app.core.design.ToastCenter
 import com.nodeloc.app.core.design.Type
 import com.nodeloc.app.core.design.animatedColor
 import com.nodeloc.app.core.design.pressScale
@@ -594,14 +595,24 @@ private fun PrefsRows(top: Int) {
             colorMode,
         ) { value -> scope.launch { preferences.setColorMode(value) } }
     }
-    val language by AppLocale.tag.collectAsState()
+    // The server's languages, each in its own name; the app's own words follow
+    // in the closest language it has strings for.
+    val language by AppLocale.serverTag.collectAsState()
     val languageTitle = stringResource(R.string.settings_language)
-    SetRow(languageTitle) {
+    SetRow(languageTitle, desc = stringResource(R.string.settings_language_d)) {
         SetChoiceButton(
             languageTitle,
-            listOf(LANGUAGE_SYSTEM to stringResource(R.string.settings_language_system)) + AppLocale.endonyms.toList(),
+            listOf(LANGUAGE_SYSTEM to stringResource(R.string.settings_language_system)) + AppLocale.pickable.toList(),
             language ?: LANGUAGE_SYSTEM,
-        ) { value -> AppLocale.choose(value.takeUnless { it == LANGUAGE_SYSTEM }) }
+        ) { value ->
+            // The app scope, not this screen's: switching the app's words
+            // recreates the activity, which would cancel the request mid-flight.
+            services.appScope.launch {
+                AppLocale.chooseLanguage(value.takeUnless { it == LANGUAGE_SYSTEM }) { code ->
+                    ServiceLocator.get.client.setServerLocale(code)
+                }?.let(ToastCenter::showError)
+            }
+        }
     }
     val listTitle = stringResource(R.string.settings2_list_view)
     SetRow(listTitle, desc = stringResource(R.string.settings2_list_view_d)) {

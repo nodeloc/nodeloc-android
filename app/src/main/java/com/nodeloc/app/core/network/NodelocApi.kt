@@ -73,7 +73,9 @@ class NodelocApi(
             builder.header("Authorization", "Bearer $token")
         }
         if (original.header("Accept-Language") == null) {
-            builder.header("Accept-Language", Locale.getDefault().toLanguageTag())
+            // The language picked in Settings, which may be one the server speaks
+            // and this app has no strings for (한국어): the server's text still follows it.
+            builder.header("Accept-Language", com.nodeloc.app.core.util.AppLocale.requestLanguage())
         }
         chain.proceed(builder.build())
     }

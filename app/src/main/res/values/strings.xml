@@ -2145,4 +2145,5 @@
     <string name="mod_log_detail_context">Context</string>
     <string name="mod_log_detail_open">Open what was acted on</string>
     <string name="mod_log_detail_no_undo">This action can’t be undone from here.</string>
+    <string name="settings_language_d">The language the site speaks to you. The app’s own text uses the closest language it has.</string>
 </resources>

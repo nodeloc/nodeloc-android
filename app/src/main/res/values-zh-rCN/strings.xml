@@ -2133,4 +2133,5 @@
     <string name="mod_log_detail_context">范围</string>
     <string name="mod_log_detail_open">查看被处理的内容</string>
     <string name="mod_log_detail_no_undo">这项操作不能在这里撤销。</string>
+    <string name="settings_language_d">网站用这个语言和你说话，App 自己的文字会用最接近的语言。</string>
 </resources>

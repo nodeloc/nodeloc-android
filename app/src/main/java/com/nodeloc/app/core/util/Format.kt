@@ -119,6 +119,14 @@ object DiscourseFormat {
      * `topic_thumbnails` holding a display copy of each, index for index.
      */
     fun mediaItems(topic: TopicListItem): List<PostMedia> {
+        // The 2.0 list's own card media, sizes and originals included: no
+        // file-name guessing needed.
+        topic.cardImages?.takeIf { it.isNotEmpty() }?.let { cards ->
+            return cards.mapNotNull { card ->
+                val url = DiscourseConfig.absoluteUrl(card.url) ?: return@mapNotNull null
+                PostMedia(url = url, width = card.width, height = card.height, fullUrl = DiscourseConfig.absoluteUrl(card.fullUrl))
+            }
+        }
         val first = responsiveMedia(topic.thumbnails)
         val gallery = topic.topicImages.orEmpty()
         if (gallery.size > 1) {

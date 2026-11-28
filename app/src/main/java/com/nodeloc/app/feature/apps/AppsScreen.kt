@@ -208,6 +208,36 @@ class AppsViewModel : ViewModel() {
     }
 
     fun webviewUrl(installId: Int) = client.appWebviewUrl(installId)
+
+    private val _starting = MutableStateFlow<Int?>(null)
+    /** The game whose install is being looked up, for its card's spinner. */
+    val starting: StateFlow<Int?> = _starting.asStateFlow()
+
+    /**
+     * 开始 starts the game itself, as iOS does, rather than opening the post
+     * it is placed in; the discussion moves to the game's menu. The install
+     * id lives only in that post's markup, so it is read from there first.
+     * Without one — placed nowhere public, or the post is unreadable — the
+     * game's own page is the way in.
+     */
+    fun startGame(game: ApiDirectoryApp, onLaunch: (url: String, topicId: Int) -> Unit, onFallback: () -> Unit) {
+        val home = game.homeUrl?.let { GAME_HOME.find(it) }
+        val topicId = home?.groupValues?.get(1)?.toIntOrNull()
+        if (topicId == null) {
+            onFallback()
+            return
+        }
+        val postNumber = home.groupValues[2].toIntOrNull()
+        if (_starting.value != null) return
+        _starting.value = game.id
+        viewModelScope.launch {
+            val posts = runCatchingCancellable { client.topic(topicId) }.getOrNull()?.postStream?.posts.orEmpty()
+            val post = posts.firstOrNull { it.postNumber == postNumber } ?: posts.firstOrNull()
+            val installId = post?.cooked?.let { INSTALL_ID.find(it)?.groupValues?.get(1)?.toIntOrNull() }
+            _starting.value = null
+            if (installId != null) onLaunch(client.appWebviewUrl(installId), topicId) else onFallback()
+        }
+    }
 }
 
 @Composable
@@ -217,6 +247,7 @@ fun AppsScreen(navigator: Navigator) {
     val me by ServiceLocator.get.session.currentUser.collectAsState()
     val recentApps = me?.recentApps.orEmpty()
     val gridState = rememberLazyGridState()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) { viewModel.loadDirectory() }
 
@@ -270,12 +301,19 @@ fun AppsScreen(navigator: Navigator) {
             if (games.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     GameStrip(games) { game ->
-                        val home = game.homeUrl?.let { HOME_TOPIC.find(it) }
-                        val topicId = home?.groupValues?.get(1)?.toIntOrNull()
-                        // "Start" goes where the game runs: the post it is
-                        // placed in. One placed nowhere public has only its page.
-                        if (home != null && topicId != null) navigator.openTopic(topicId, home.groupValues[2].toIntOrNull())
-                        else navigator.openApp(game.slug)
+                        viewModel.startGame(
+                            game,
+                            onLaunch = { url, topicId ->
+                                MiniAppActivity.launch(
+                                    context = context,
+                                    url = url,
+                                    name = game.name,
+                                    iconUrl = DiscourseConfig.absoluteUrl(game.logoUrl),
+                                    discussionUrl = "${DiscourseConfig.BASE_URL}/t/$topicId",
+                                )
+                            },
+                            onFallback = { navigator.openApp(game.slug) },
+                        )
                     }
                 }
             }
@@ -327,7 +365,7 @@ fun AppsScreen(navigator: Navigator) {
 private const val GAME_STRIP_SIZE = 8
 
 /** `/t/<topic>?post=<n>` from a directory entry's `home_url`. */
-private val HOME_TOPIC = Regex("/t/(\\d+)(?:\\?post=(\\d+))?")
+private val GAME_HOME = Regex("/t/(\\d+)(?:\\?post=(\\d+))?")
 
 /**
  * The board's horizontally swiped game cards. Each takes one of four tinted
@@ -531,6 +569,7 @@ fun AppDetailScreen(slug: String, navigator: Navigator) {
                             url = viewModel.webviewUrl(it),
                             name = detail.name,
                             iconUrl = DiscourseConfig.absoluteUrl(detail.logoUrl),
+                            discussionUrl = detail.hostTopicId?.let { topic -> "${DiscourseConfig.BASE_URL}/t/$topic" },
                         )
                     }
                 }

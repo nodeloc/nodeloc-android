@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.composables.icons.lucide.EllipsisVertical
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.MessagesSquare
 import com.composables.icons.lucide.X
 import com.composables.icons.lucide.Type
 import com.composables.icons.lucide.Share2
@@ -77,6 +78,8 @@ fun MiniProgramShell(
     url: String,
     onClose: () -> Unit,
     onLinkOutsideShell: (String) -> Unit,
+    /** A game's host topic: 讨论 in the menu leaves the game for it. */
+    onDiscussion: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
 
@@ -167,6 +170,13 @@ fun MiniProgramShell(
                         menuOpen = true
                     }
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                        if (onDiscussion != null) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.apps_discussion)) },
+                                leadingIcon = { Icon(Lucide.MessagesSquare, null) },
+                                onClick = { menuOpen = false; onDiscussion() },
+                            )
+                        }
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.browser_text_size, textZoom)) },
                             leadingIcon = { Icon(Lucide.Type, null) },

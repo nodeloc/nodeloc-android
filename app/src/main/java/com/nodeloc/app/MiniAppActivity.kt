@@ -59,6 +59,7 @@ class MiniAppActivity : ComponentActivity() {
             return
         }
         val name = intent.getStringExtra(EXTRA_NAME)
+        val discussion = intent.getStringExtra(EXTRA_DISCUSSION)
         val label = name ?: getString(R.string.app_name)
 
         // Launched cold from Recents this process may be new, and the shell
@@ -81,6 +82,7 @@ class MiniAppActivity : ComponentActivity() {
                         url = url,
                         onClose = ::close,
                         onLinkOutsideShell = ::leaveShell,
+                        onDiscussion = discussion?.let { link -> { leaveShell(link) } },
                     )
                     ToastHost()
                 }
@@ -149,8 +151,10 @@ class MiniAppActivity : ComponentActivity() {
         private const val EXTRA_URL = "url"
         private const val EXTRA_NAME = "name"
         private const val EXTRA_ICON = "icon"
+        private const val EXTRA_DISCUSSION = "discussion"
 
-        fun launch(context: Context, url: String, name: String?, iconUrl: String?) {
+        /** [discussionUrl]: the game's host topic, offered as 讨论 in the capsule's menu. */
+        fun launch(context: Context, url: String, name: String?, iconUrl: String?, discussionUrl: String? = null) {
             val intent = Intent(context, MiniAppActivity::class.java).apply {
                 action = Intent.ACTION_VIEW
                 // Recents keys a document task on the intent's data, so this is
@@ -160,6 +164,7 @@ class MiniAppActivity : ComponentActivity() {
                 putExtra(EXTRA_URL, url)
                 putExtra(EXTRA_NAME, name)
                 putExtra(EXTRA_ICON, iconUrl)
+                putExtra(EXTRA_DISCUSSION, discussionUrl)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
             }
             runCatching { context.startActivity(intent) }

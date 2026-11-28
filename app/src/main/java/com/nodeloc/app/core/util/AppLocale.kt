@@ -69,6 +69,9 @@ object AppLocale {
     fun install(context: Context) {
         appContext = context.applicationContext
         _tag.value = stored(context)
+        _serverTag.value = prefs(context).getString(KEY_SERVER, null)?.takeIf { it in pickable }
+            // An app language picked before the server list existed is its own server language.
+            ?: _tag.value?.takeIf { it in pickable }
     }
 
     /**
@@ -119,6 +122,110 @@ object AppLocale {
         "ar" to "العربية",
         "fa" to "فارسی",
     )
+
+    /**
+     * The languages the server speaks — `internal/locale/locale.go`'s `all`,
+     * in its order — plus the two this app has strings for that the server
+     * does not (Persian, Ukrainian). No endpoint lists them; `POST
+     * /api/v1/locale` only checks against that table.
+     */
+    val serverLanguages: Map<String, String> = linkedMapOf(
+        "zh-CN" to "简体中文",
+        "zh-TW" to "繁體中文",
+        "en" to "English",
+        "ja" to "日本語",
+        "ko" to "한국어",
+        "ru" to "Русский",
+        "es" to "Español",
+        "fr" to "Français",
+        "de" to "Deutsch",
+        "pt" to "Português",
+        "it" to "Italiano",
+        "tr" to "Türkçe",
+        "vi" to "Tiếng Việt",
+        "id" to "Bahasa Indonesia",
+        "th" to "ไทย",
+        "ar" to "العربية",
+    )
+
+    /** App-only: there are strings for them here, but the server cannot be asked for them. */
+    private val appOnly = linkedMapOf("uk" to "Українська", "fa" to "فارسی")
+
+    /** What the language picker offers: the server's list, then the app-only ones. */
+    val pickable: Map<String, String> get() = serverLanguages + appOnly
+
+    private const val KEY_SERVER = "server_locale"
+    private const val KEY_SYNCED = "server_locale_synced"
+
+    private val _serverTag = MutableStateFlow<String?>(null)
+
+    /** The language chosen in Settings, as the picker shows it (may be one with no app strings, such as 한국어). */
+    val serverTag: StateFlow<String?> = _serverTag.asStateFlow()
+
+    /** What Accept-Language should ask for: the chosen server language when there is one, else the app's. */
+    fun requestLanguage(): String = _serverTag.value ?: Locale.getDefault().toLanguageTag()
+
+    /** The closest language this app has its own strings for. */
+    private fun appTagFor(code: String): String = when {
+        code in supported -> code
+        code.startsWith("zh") -> "zh-CN"
+        else -> fromDiscourse(code) ?: "en"
+    }
+
+    /**
+     * 设置 › 偏好 › 语言: a language from [pickable], or null to follow the
+     * system. The app's own words switch at once (to the closest language it
+     * has strings in); the server is told, which also keeps it on a signed-in
+     * account. A refusal puts everything back and returns the failure.
+     */
+    suspend fun chooseLanguage(code: String?, tellServer: suspend (String) -> Unit): Throwable? {
+        val context = appContext ?: return null
+        val previousServer = _serverTag.value
+        val previousApp = _tag.value
+        setServer(context, code)
+        set(code?.let(::appTagFor))
+        if (code != null && code in serverLanguages) {
+            try {
+                tellServer(code)
+                // What the account holds now, so the next sign-in's `user.locale`
+                // reads as "in agreement" rather than "changed elsewhere".
+                prefs(context).edit { putString(KEY_SYNCED, code) }
+            } catch (error: Throwable) {
+                error.rethrowIfCancellation()
+                setServer(context, previousServer)
+                set(previousApp)
+                return error
+            }
+        }
+        return null
+    }
+
+    /**
+     * The language saved on the account (`user.locale`).
+     *
+     * Empty says nothing — the choice on this device stays. The same code this
+     * device last sent is agreement. A different one was changed on the web or
+     * another phone, and the account wins.
+     */
+    fun adoptAccountLocale(raw: String?) {
+        val context = appContext ?: return
+        val code = raw?.trim()?.replace('_', '-')?.takeIf { it.isNotEmpty() } ?: return
+        if (code.equals(prefs(context).getString(KEY_SYNCED, null), ignoreCase = true)) return
+        val match = serverLanguages.keys.firstOrNull { it.equals(code, ignoreCase = true) }
+            ?: serverLanguages.keys.firstOrNull { it.take(2).equals(code.take(2), ignoreCase = true) }
+            ?: return
+        prefs(context).edit { putString(KEY_SYNCED, code) }
+        if (_serverTag.value == match) return
+        setServer(context, match)
+        set(appTagFor(match))
+    }
+
+    private fun setServer(context: Context, code: String?) {
+        prefs(context).edit { if (code == null) remove(KEY_SERVER) else putString(KEY_SERVER, code) }
+        _serverTag.value = code
+    }
+
+    private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     private fun stored(context: Context): String? =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
