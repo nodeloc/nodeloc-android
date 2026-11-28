@@ -105,7 +105,7 @@ fun NodesScreen(
     // cache; otherwise the read is answered from it and costs nothing.
     LaunchedEffect(isSignedIn) { viewModel.loadSquare() }
 
-    val createNode = { if (isSignedIn) navigator.openCreateNode() else navigator.openAuth() }
+    val createNode = { if (isSignedIn) navigator.openCreateNode() else com.nodeloc.app.feature.nav.LoginGate.show() }
 
     Column(Modifier.fillMaxSize().background(Nocturne.bg)) {
         Row(
@@ -205,7 +205,7 @@ fun NodesScreen(
                             node = node,
                             joined = isSignedIn && node.isJoined,
                             onClick = { navigator.openNode(node.id, node.slug) },
-                            onToggleJoin = { if (isSignedIn) viewModel.toggleJoin(node.id) else navigator.openAuth() },
+                            onToggleJoin = { if (isSignedIn) viewModel.toggleJoin(node.id) else com.nodeloc.app.feature.nav.LoginGate.show(com.nodeloc.app.feature.nav.LoginPromptContext.JoinNode(node.name)) },
                         )
                     }
                     if (shown.size > state.limit) {

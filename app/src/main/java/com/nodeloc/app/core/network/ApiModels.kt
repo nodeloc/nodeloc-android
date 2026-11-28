@@ -255,6 +255,9 @@ data class ApiSaved(
     val author: String? = null,
     val nodeSlug: String? = null,
     val createdAt: String? = null,
+    /** The 收藏夹 it is filed in; null is 未分类. */
+    val folderId: Int? = null,
+    val note: String? = null,
 )
 
 @Serializable

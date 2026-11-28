@@ -77,6 +77,42 @@ data class SignupState(
 }
 
 /**
+ * The one sign-up page (App-Android-Register): email and its 6-digit code,
+ * username, password, an optional invite code, and 申请理由 only once the
+ * server asks for it — there is no public flag for registration review.
+ */
+data class RegisterState(
+    val email: String = "",
+    val code: String = "",
+    val username: String = "",
+    val password: String = "",
+    val inviteCode: String = "",
+    val reason: String = "",
+    val agreed: Boolean = false,
+    val needsReason: Boolean = false,
+    val codeSent: Boolean = false,
+    val sendingCode: Boolean = false,
+    /** Seconds until 重新发送; 0 when it is live. */
+    val resendIn: Int = 0,
+    val usernameCheck: UsernameCheck = UsernameCheck(),
+    val isSubmitting: Boolean = false,
+    /** The server's sentence per field, shown under that field. */
+    val fieldErrors: Map<String, String> = emptyMap(),
+    val error: String? = null,
+) {
+    val emailValid: Boolean get() = EmailFormat.isValid(email.trim())
+    val passwordLongEnough: Boolean get() = password.length >= PASSWORD_MINIMUM
+    val canSubmit: Boolean
+        get() = emailValid && code.trim().length == 6 && username.trim().length >= 3 &&
+            passwordLongEnough && agreed && !isSubmitting && (!needsReason || reason.isNotBlank())
+
+    companion object {
+        /** The server's rule, not a client guess: at least ten characters. */
+        const val PASSWORD_MINIMUM = 10
+    }
+}
+
+/**
  * Both sign-in paths and the step-by-step signup.
  *
  * The 2FA branch is the subtle one: the server answering
@@ -98,6 +134,11 @@ class AuthViewModel : ViewModel() {
 
     private val _signup = MutableStateFlow(SignupState())
     val signup: StateFlow<SignupState> = _signup.asStateFlow()
+
+    private val _register = MutableStateFlow(RegisterState())
+    val register: StateFlow<RegisterState> = _register.asStateFlow()
+    private var registerUsernameJob: Job? = null
+    private var resendJob: Job? = null
 
     private var emailJob: Job? = null
     private var usernameJob: Job? = null
@@ -323,6 +364,118 @@ class AuthViewModel : ViewModel() {
             } catch (error: Throwable) {
                 error.rethrowIfCancellation()
                 _signup.value = _signup.value.copy(
+                    isSubmitting = false,
+                    error = context.getString(R.string.auth_error_signup_failed),
+                )
+            }
+        }
+    }
+
+    // ------------------------------------------------------------ register
+
+    fun updateRegister(transform: (RegisterState) -> RegisterState) {
+        val before = _register.value
+        val after = transform(before)
+        // A field that changed loses the server's complaint about it.
+        val cleared = after.fieldErrors.filterKeys { key ->
+            when (key) {
+                "email" -> after.email == before.email
+                "email_code" -> after.code == before.code && after.email == before.email
+                "username" -> after.username == before.username
+                "password" -> after.password == before.password
+                "invite_code" -> after.inviteCode == before.inviteCode
+                "reason" -> after.reason == before.reason
+                else -> true
+            }
+        }
+        _register.value = after.copy(fieldErrors = cleared, error = null)
+        if (after.username != before.username) checkRegisterUsername(after.username)
+    }
+
+    private fun checkRegisterUsername(value: String) {
+        registerUsernameJob?.cancel()
+        val name = value.trim()
+        if (name.length < 3) {
+            _register.value = _register.value.copy(usernameCheck = UsernameCheck())
+            return
+        }
+        _register.value = _register.value.copy(usernameCheck = UsernameCheck(checking = true))
+        registerUsernameJob = viewModelScope.launch {
+            delay(400)
+            val result = runCatchingCancellable { client.checkUsername(name) }.getOrNull()
+            _register.value = _register.value.copy(
+                usernameCheck = UsernameCheck(available = result?.available, suggestion = result?.suggestion),
+            )
+        }
+    }
+
+    /** 发送验证码, then a minute before it can be asked again. */
+    fun sendRegisterCode() {
+        val current = _register.value
+        if (!current.emailValid || current.sendingCode || current.resendIn > 0) return
+        _register.value = current.copy(sendingCode = true, error = null, fieldErrors = current.fieldErrors - "email" - "email_code")
+        viewModelScope.launch {
+            try {
+                authService.requestSignupEmailCode(current.email)
+                _register.value = _register.value.copy(sendingCode = false, codeSent = true)
+                startResendCountdown()
+            } catch (error: AuthError.SignupRejected) {
+                _register.value = _register.value.copy(
+                    sendingCode = false,
+                    fieldErrors = _register.value.fieldErrors + error.fields.ifEmpty { mapOf("email" to error.text(context)) },
+                )
+            } catch (error: AuthError) {
+                _register.value = _register.value.copy(sendingCode = false, error = error.text(context))
+            } catch (error: Throwable) {
+                error.rethrowIfCancellation()
+                _register.value = _register.value.copy(sendingCode = false, error = context.getString(R.string.error_action_failed))
+            }
+        }
+    }
+
+    private fun startResendCountdown() {
+        resendJob?.cancel()
+        resendJob = viewModelScope.launch {
+            for (left in 60 downTo 1) {
+                _register.value = _register.value.copy(resendIn = left)
+                delay(1000)
+            }
+            _register.value = _register.value.copy(resendIn = 0)
+        }
+    }
+
+    fun submitRegister(onResult: (SignupResult) -> Unit) {
+        val current = _register.value
+        if (!current.canSubmit) return
+        _register.value = current.copy(isSubmitting = true, error = null, fieldErrors = emptyMap())
+        viewModelScope.launch {
+            try {
+                val result = authService.register(
+                    username = current.username,
+                    email = current.email,
+                    password = current.password,
+                    emailCode = current.code,
+                    inviteCode = current.inviteCode,
+                    reason = current.reason.takeIf { current.needsReason },
+                )
+                if (result is SignupResult.SignedIn) session.onSignedIn()
+                _register.value = _register.value.copy(isSubmitting = false)
+                onResult(result)
+            } catch (error: AuthError.SignupRejected) {
+                val fields = error.fields - "captcha"
+                _register.value = _register.value.copy(
+                    isSubmitting = false,
+                    // Asked for 申请理由: registration review is on. The field
+                    // appears now, with the server's words under it.
+                    needsReason = _register.value.needsReason || "reason" in fields,
+                    fieldErrors = fields,
+                    error = error.text(context).takeIf { fields.isEmpty() },
+                )
+            } catch (error: AuthError) {
+                _register.value = _register.value.copy(isSubmitting = false, error = error.text(context))
+            } catch (error: Throwable) {
+                error.rethrowIfCancellation()
+                _register.value = _register.value.copy(
                     isSubmitting = false,
                     error = context.getString(R.string.auth_error_signup_failed),
                 )

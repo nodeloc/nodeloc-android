@@ -2,6 +2,7 @@ package com.nodeloc.app.core.design
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,6 +40,8 @@ fun FilterPill(
     selected: Boolean,
     modifier: Modifier = Modifier,
     count: Int? = null,
+    /** A chip that is also something you manage (a 收藏夹): held down for its menu. */
+    onLongClick: (() -> Unit)? = null,
     onClick: () -> Unit,
 ) {
     val ground by animatedColor(if (selected) Nocturne.text else Nocturne.neutral400, "pillGround")
@@ -51,7 +54,19 @@ fun FilterPill(
             .clip(CircleShape)
             .background(ground)
             .semantics { this.selected = selected }
-            .clickable(interactionSource = press, indication = ripple(), role = Role.Tab, onClick = onClick)
+            .then(
+                if (onLongClick == null) {
+                    Modifier.clickable(interactionSource = press, indication = ripple(), role = Role.Tab, onClick = onClick)
+                } else {
+                    Modifier.combinedClickable(
+                        interactionSource = press,
+                        indication = ripple(),
+                        role = Role.Tab,
+                        onLongClick = onLongClick,
+                        onClick = onClick,
+                    )
+                },
+            )
             .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp),

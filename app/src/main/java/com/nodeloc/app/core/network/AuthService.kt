@@ -31,6 +31,9 @@ sealed class AuthError(
     class SignupFailed(message: String) : AuthError(serverMessage = message)
     class SignupNeedsActivation(message: String) : AuthError(serverMessage = message)
 
+    /** The server refused the form; [fields] carries its sentence per field (`email_code`, `username`, `reason`…). */
+    class SignupRejected(message: String, val fields: Map<String, String>, val type: String?) : AuthError(serverMessage = message)
+
     fun text(context: Context): String =
         serverMessage ?: messageRes?.let(context::getString) ?: context.getString(R.string.error_action_failed)
 }
@@ -216,6 +219,89 @@ class AuthService(
             ?: context.getString(R.string.auth_signup_activation_needed)
         return SignupResult.NeedsActivation(message)
     }
+
+    /**
+     * Sends the 6-digit registration code (`POST auth/register/email-code`).
+     * The site may want 人机验证 for it up front (`register_code`).
+     */
+    suspend fun requestSignupEmailCode(email: String) {
+        try {
+            Captcha.guarded(client.api, Captcha.Action.RegisterCode, upfront = true) { captcha ->
+                client.api.sendRaw(
+                    "POST",
+                    "api/v1/auth/register/email-code",
+                    buildJsonObject {
+                        put("email", email.trim())
+                        captcha?.let { put("captcha", it) }
+                    },
+                )
+            }
+        } catch (error: CaptchaCancelled) {
+            throw AuthError.SignupFailed(context.getString(R.string.captcha_cancelled))
+        } catch (error: DiscourseError.BadResponse) {
+            throw rejected(error)
+        }
+    }
+
+    /**
+     * The one-page registration (mobile-api.md 注册). With a verified email
+     * code the server signs the account straight in when no review is
+     * needed. 人机验证 is asked for only if the server says so: a code sent
+     * moments ago already passed it for this address.
+     */
+    suspend fun register(
+        username: String,
+        email: String,
+        password: String,
+        emailCode: String,
+        inviteCode: String?,
+        reason: String?,
+    ): SignupResult {
+        val user = username.trim()
+        val mail = email.trim()
+        if (user.isEmpty() || mail.isEmpty() || password.isEmpty()) throw AuthError.MissingCredentials
+        // A typed code wins; otherwise the build's own, which a release must carry.
+        val invite = inviteCode?.trim()?.takeIf { it.isNotEmpty() }?.let { listOf("invite_code" to it) } ?: inviteCodeField()
+        val body = try {
+            Captcha.guarded(client.api, Captcha.Action.Register, upfront = false) { captcha ->
+                client.api.sendRaw(
+                    "POST",
+                    "api/v1/auth/register",
+                    buildJsonObject {
+                        put("username", user)
+                        put("email", mail)
+                        put("password", password)
+                        emailCode.trim().takeIf { it.isNotEmpty() }?.let { put("email_code", it) }
+                        invite.forEach { (key, value) -> put(key, value) }
+                        reason?.trim()?.takeIf { it.isNotEmpty() }?.let { put("reason", it) }
+                        captcha?.let { put("captcha", it) }
+                        put("device", device())
+                    },
+                )
+            }
+        } catch (error: CaptchaCancelled) {
+            throw AuthError.SignupFailed(context.getString(R.string.captcha_cancelled))
+        } catch (error: DiscourseError.BadResponse) {
+            throw rejected(error)
+        }
+        val root = parse(body)
+        val loggedIn = (root?.get("logged_in") as? JsonPrimitive)?.contentOrNull == "true"
+        if (loggedIn && root?.get("token") != null) {
+            adopt(root)
+            return SignupResult.SignedIn
+        }
+        val pending = (root?.get("pending_approval") as? JsonPrimitive)?.contentOrNull == "true"
+        val message = (root?.get("message") as? JsonPrimitive)?.contentOrNull
+            ?: context.getString(if (pending) R.string.register_pending_review else R.string.auth_signup_activation_needed)
+        return SignupResult.NeedsActivation(message)
+    }
+
+    private fun rejected(error: DiscourseError.BadResponse): AuthError.SignupRejected =
+        AuthError.SignupRejected(
+            error.serverMessage ?: context.getString(error.messageRes),
+            error.fault?.fields.orEmpty(),
+            error.fault?.type,
+        )
 
     /** The name behind a session the app did not learn one from at sign-in. */
     fun rememberUsername(username: String) {

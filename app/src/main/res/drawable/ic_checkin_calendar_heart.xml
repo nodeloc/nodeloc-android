@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 签到 in the profile's top bar. Lucide calendar-heart v0.460.0 (ISC). Tinted at use. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#00000000" android:strokeColor="#FF000000" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M3,10h18V6a2,2 0,0 0,-2 -2H5a2,2 0,0 0,-2 2v14a2,2 0,0 0,2 2h7"/>
+    <path android:fillColor="#00000000" android:strokeColor="#FF000000" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M8,2v4"/>
+    <path android:fillColor="#00000000" android:strokeColor="#FF000000" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M16,2v4"/>
+    <path android:fillColor="#00000000" android:strokeColor="#FF000000" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M21.29,14.7a2.43,2.43 0,0 0,-2.65 -0.52c-0.3,0.12 -0.57,0.3 -0.8,0.53l-0.34,0.34 -0.35,-0.34a2.43,2.43 0,0 0,-2.65 -0.53c-0.3,0.12 -0.56,0.3 -0.79,0.53 -0.95,0.94 -1,2.53 0.2,3.74L17.5,22l3.6,-3.55c1.2,-1.21 1.14,-2.8 0.19,-3.74Z"/>
+</vector>

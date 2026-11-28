@@ -1535,13 +1535,68 @@ class ReaderViewModel : ViewModel() {
                 runCatchingCancellable { client.bookmark(postId) }
                     .onSuccess { created ->
                         created.id?.let { bookmarkIds[postId] = it }
-                        ToastCenter.show(R.string.reader_bookmarked)
+                        // Saved unfiled; the folder is one tap away rather than
+                        // a sheet in the way of every save.
+                        ToastCenter.showWithAction(R.string.reader_bookmarked_unfiled, R.string.bookmarks_choose_folder) {
+                            chooseFolder(postId)
+                        }
                     }
                     .onFailure {
                         setBookmarked(postId, false)
                         ToastCenter.showError(it)
                     }
             }
+        }
+    }
+
+    /** The save the folder sheet is open for, with the account's folders. */
+    data class FolderChoice(
+        val bookmark: com.nodeloc.app.core.network.ApiSaved,
+        val folders: List<com.nodeloc.app.core.network.ApiBookmarkFolder>,
+    )
+
+    private val bookmarkApi by lazy { com.nodeloc.app.core.network.BookmarkApi(client.api) }
+    private val _folderChoice = MutableStateFlow<FolderChoice?>(null)
+    val folderChoice: StateFlow<FolderChoice?> = _folderChoice.asStateFlow()
+
+    /** Finds the save just made — the server answers without its id — and opens the chooser on it. */
+    fun chooseFolder(postId: Int) {
+        viewModelScope.launch {
+            runCatchingCancellable {
+                val found = bookmarkApi.find(postId, _state.value.title)
+                found?.let { FolderChoice(it, bookmarkApi.folders().folders) }
+            }
+                .onSuccess { choice ->
+                    if (choice == null) ToastCenter.show(R.string.error_action_failed) else _folderChoice.value = choice
+                }
+                .onFailure(ToastCenter::showError)
+        }
+    }
+
+    fun dismissFolderChoice() {
+        _folderChoice.value = null
+    }
+
+    fun moveBookmark(folderId: Int?) {
+        val choice = _folderChoice.value ?: return
+        _folderChoice.value = null
+        viewModelScope.launch {
+            runCatchingCancellable { bookmarkApi.move(listOf(choice.bookmark.id), folderId) }
+                .onSuccess { ToastCenter.show(R.string.bookmarks_moved) }
+                .onFailure(ToastCenter::showError)
+        }
+    }
+
+    fun createFolderAndMove(name: String) {
+        val choice = _folderChoice.value ?: return
+        _folderChoice.value = null
+        viewModelScope.launch {
+            runCatchingCancellable {
+                val id = bookmarkApi.createFolder(name.trim())
+                bookmarkApi.move(listOf(choice.bookmark.id), id)
+            }
+                .onSuccess { ToastCenter.show(R.string.bookmarks_moved) }
+                .onFailure(ToastCenter::showError)
         }
     }
 

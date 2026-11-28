@@ -60,25 +60,20 @@ object Route {
 
     @Serializable data object Auth
 
-    /** The same flow, entered at the first signup step. */
+    /** The same flow, entered at the sign-up page. */
     @Serializable data object AuthSignup
     @Serializable data object AuthLogin
 
     /** Signing in through the website, for a provider Discourse owns the keys to. */
     /**
-     * The signup steps carry nothing.
+     * The sign-up page carries nothing.
      *
      * Route arguments are serialised into the back stack's saved state, which
      * the system writes to disk to survive process death — not where a
-     * plaintext password goes. The draft lives in `AuthViewModel`, scoped to
-     * the enclosing [Auth] entry, which is where every step already read it
-     * from; the arguments were passed and never used.
+     * plaintext password goes. The form lives in `AuthViewModel`, scoped to
+     * the enclosing [Auth] entry.
      */
     @Serializable data object SignupEmail
-    @Serializable data object SignupUsername
-    @Serializable data object SignupPassword
-    @Serializable data object SignupGender
-    @Serializable data object SignupInterests
     @Serializable data class SignupActivation(val email: String)
 
     @Serializable data object Welcome
@@ -100,6 +95,7 @@ object Route {
     @Serializable data object WealthRank
     @Serializable data object Invite
     @Serializable data object Drafts
+    @Serializable data object Bookmarks
 }
 
 /**

@@ -74,8 +74,6 @@ import com.nodeloc.app.ServiceLocator
 import com.nodeloc.app.core.design.BadgeTitleText
 import com.nodeloc.app.core.design.BlockUserDialog
 import com.nodeloc.app.core.design.EmptyStateView
-import com.nodeloc.app.core.design.FilterPill
-import com.nodeloc.app.core.design.FilterPillRow
 import com.nodeloc.app.core.design.FlairBadge
 import com.nodeloc.app.core.design.FloatingHeaderBar
 import com.nodeloc.app.core.design.GuestAvatar
@@ -99,6 +97,8 @@ import com.nodeloc.app.core.design.Space
 import com.nodeloc.app.core.design.StatusPill
 import com.nodeloc.app.core.design.ToastCenter
 import com.nodeloc.app.core.design.Type
+import androidx.compose.foundation.layout.offset
+import com.nodeloc.app.core.design.LocalHeaderContentColor
 import com.nodeloc.app.core.design.floatingHeaderInset
 import com.nodeloc.app.core.design.isScrolledPastTop
 import com.nodeloc.app.core.design.rememberPullToRefreshState
@@ -115,7 +115,6 @@ import com.nodeloc.app.feature.feed.RowsSkeleton
 import com.nodeloc.app.feature.moderation.ModTopBar
 import com.nodeloc.app.feature.nav.AppViewModel
 import com.nodeloc.app.feature.nav.Navigator
-import com.nodeloc.app.feature.nav.Route
 import java.time.ZoneId
 
 /** 我的 — the signed-in user's own profile, or the guest placeholder. */
@@ -201,9 +200,63 @@ fun ProfileScreen(
                 }
             },
             trailing = {
-                HeaderIconButton(ImageVector.vectorResource(R.drawable.ic_me_settings), stringResource(R.string.common_settings), onClick = { navigator.openSettings() })
+                // 签到 and 设置 share one group, check-in first. Editing the
+                // profile lives in 设置 › 个人资料, not on the page itself.
+                HeaderGroup {
+                    if (isSignedIn) {
+                        CheckInHeaderButton(
+                            checkedIn = state.checkedInToday,
+                            busy = state.isCheckingIn,
+                            onClick = {
+                                // See onCheckin above: a claimed day is answered from the device.
+                                if (state.checkedInToday) ToastCenter.show(R.string.checkin_done) else viewModel.checkin()
+                            },
+                        )
+                    }
+                    HeaderIconButton(ImageVector.vectorResource(R.drawable.ic_me_settings), stringResource(R.string.common_settings), onClick = { navigator.openSettings() })
+                }
             },
         )
+    }
+}
+
+/**
+ * 签到 in the profile's top bar: Lucide's calendar-heart at the settings
+ * glyph's size, with a small orange dot until today's check-in and greyed
+ * once it is done — spent, not disabled, since the tap explains why.
+ */
+@Composable
+private fun CheckInHeaderButton(checkedIn: Boolean, busy: Boolean, onClick: () -> Unit) {
+    Box(contentAlignment = Alignment.Center) {
+        if (busy) {
+            Box(Modifier.size(FloatingHeader.touchHeight), contentAlignment = Alignment.Center) {
+                androidx.compose.material3.CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = Nocturne.accent,
+                    strokeWidth = 2.dp,
+                )
+            }
+        } else {
+            androidx.compose.runtime.CompositionLocalProvider(
+                LocalHeaderContentColor provides if (checkedIn) Nocturne.textTertiary else Nocturne.headerText,
+            ) {
+                HeaderIconButton(
+                    ImageVector.vectorResource(R.drawable.ic_checkin_calendar_heart),
+                    stringResource(if (checkedIn) R.string.me2_checked_in else R.string.checkin_action),
+                    onClick = onClick,
+                )
+            }
+            if (!checkedIn) {
+                Box(
+                    Modifier
+                        .align(Alignment.Center)
+                        .offset(x = 9.dp, y = (-9).dp)
+                        .size(7.dp)
+                        .clip(CircleShape)
+                        .background(Nocturne.accent2),
+                )
+            }
+        }
     }
 }
 
@@ -394,12 +447,12 @@ private fun ProfileBody(
                 isOwn = isOwn,
                 navigator = navigator,
                 onToggleFollow = {
-                    if (isSignedIn) viewModel.toggleFollow() else navigator.openAuth()
+                    if (isSignedIn) viewModel.toggleFollow() else com.nodeloc.app.feature.nav.LoginGate.show(com.nodeloc.app.feature.nav.LoginPromptContext.Follow)
                 },
                 onCheckin = onCheckin,
                 onMessage = {
                     when {
-                        !isSignedIn -> navigator.openAuth()
+                        !isSignedIn -> com.nodeloc.app.feature.nav.LoginGate.show(com.nodeloc.app.feature.nav.LoginPromptContext.Chat)
                         // Their privacy setting or a block closes it. Said
                         // here, in the server's words, rather than after a
                         // first message has been typed and refused.
@@ -412,13 +465,28 @@ private fun ProfileBody(
         }
 
         item(key = "tabs") {
-            FilterPillRow(contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 0.dp, bottom = 10.dp)) {
-                tabs.forEach { tab ->
-                    FilterPill(
-                        text = stringResource(tab.labelRes),
+            // The platform's own segmented button, as iOS uses its system
+            // segmented control: two sections of one list, not filters.
+            androidx.compose.material3.SingleChoiceSegmentedButtonRow(
+                Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 2.dp, bottom = 10.dp),
+            ) {
+                tabs.forEachIndexed { index, tab ->
+                    androidx.compose.material3.SegmentedButton(
                         selected = tab == state.tab,
                         onClick = { viewModel.selectTab(tab) },
-                    )
+                        shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(index, tabs.size),
+                        colors = androidx.compose.material3.SegmentedButtonDefaults.colors(
+                            activeContainerColor = Nocturne.selected,
+                            activeContentColor = Nocturne.accent,
+                            activeBorderColor = Nocturne.divider,
+                            inactiveContainerColor = Nocturne.bg,
+                            inactiveContentColor = Nocturne.text,
+                            inactiveBorderColor = Nocturne.divider,
+                        ),
+                        icon = {},
+                    ) {
+                        Text(stringResource(tab.labelRes), style = Type.body(14, FontWeight.Medium), maxLines = 1)
+                    }
                 }
             }
             HairLine()
@@ -550,7 +618,7 @@ private fun TopicRow(
         onOpen = { navigator.openTopic(topic.id) },
         onNode = topic.nodeSlug?.let { { openNode(it) } },
         onVote = if (postId == null) null else { direction ->
-            if (isSignedIn) viewModel.vote(topic, direction) else navigator.openAuth()
+            if (isSignedIn) viewModel.vote(topic, direction) else com.nodeloc.app.feature.nav.LoginGate.show(com.nodeloc.app.feature.nav.LoginPromptContext.Vote)
         },
         onShare = { share("/t/${topic.id}", topic.title) },
         onSave = if (postId != null && isSignedIn) ({ viewModel.toggleSave(postId, saved) }) else null,
@@ -573,7 +641,7 @@ private fun Banner(profile: UserProfile, modifier: Modifier) {
 /**
  * The profile head, one layout for both pages since the 2026-11 v3 boards: a
  * short cover, the avatar breaking out of it with the page's two actions
- * beside it (编辑资料 / 签到 on your own, 私信 / 关注 on someone else's), then
+ * beside it (私信 / 关注 on someone else's; your own keeps 签到 in the top bar), then
  * name, handle and join month, bio, three figures, the energy line and the
  * achievements strip — each a quiet grey block.
  */
@@ -611,22 +679,8 @@ private fun ProfileHeader(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 if (isOwn) {
-                    SecondaryButton(stringResource(R.string.me3_edit_profile)) {
-                        navigator.openSettingsRoute(Route.ProfileEdit)
-                    }
-                    // Greyed once the day is claimed — spent, not broken. Still
-                    // live underneath: the tap is what says *why* it is grey,
-                    // and costs nothing, since the answer comes from the device.
-                    if (state.checkedInToday) {
-                        SecondaryButton(stringResource(R.string.me2_checked_in), modifier = Modifier.widthIn(min = 84.dp), onClick = onCheckin)
-                    } else {
-                        PrimaryButton(
-                            stringResource(R.string.checkin_action),
-                            modifier = Modifier.widthIn(min = 84.dp),
-                            enabled = !state.isCheckingIn,
-                            onClick = onCheckin,
-                        )
-                    }
+                    // Nothing here on your own page: 签到 and 设置 are in the
+                    // top bar, and editing the profile is 设置 › 个人资料.
                 } else {
                     // Straight into the conversation: private messages are
                     // chats on the 2.0 server, and the compose screen this

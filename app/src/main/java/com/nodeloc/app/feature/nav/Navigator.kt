@@ -108,6 +108,7 @@ class Navigator(private val controller: NavHostController) {
     fun openWealthRank() = push(Route.WealthRank)
     fun openInvite() = push(Route.Invite)
     fun openDrafts() = push(Route.Drafts)
+    fun openBookmarks() = push(Route.Bookmarks)
 
     fun openApps() = push(Route.Apps)
 

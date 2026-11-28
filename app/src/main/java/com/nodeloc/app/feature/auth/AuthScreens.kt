@@ -139,29 +139,27 @@ fun AuthNavHost(app: AppViewModel, navigator: Navigator, startAtSignup: Boolean 
             }
         }
         composable<Route.SignupEmail> {
-            // Opened from 注册 the email step is the root of this stack, and
-            // popping the root does nothing: back has to leave the flow instead.
-            SignupEmailScreen(viewModel, controller) {
-                if (controller.previousBackStackEntry != null) controller.popBackStack() else navigator.back()
-            }
-        }
-        composable<Route.SignupUsername> {
-            SignupUsernameScreen(viewModel, controller)
-        }
-        composable<Route.SignupPassword> {
-            SignupPasswordScreen(viewModel, controller)
-        }
-        composable<Route.SignupGender> {
-            SignupGenderScreen(viewModel, controller)
-        }
-        composable<Route.SignupInterests> {
-            SignupInterestsScreen(
+            val context = androidx.compose.ui.platform.LocalContext.current
+            RegisterScreen(
                 viewModel = viewModel,
-                controller = controller,
-                onSignedIn = {
-                    app.refreshSession()
-                    app.refreshBadge()
-                    navigator.finishAuth()
+                // Opened from 注册 this page is the root of the stack, and
+                // popping the root does nothing: back has to leave the flow.
+                onBack = { if (controller.previousBackStackEntry != null) controller.popBackStack() else navigator.back() },
+                onLogin = {
+                    if (controller.previousBackStackEntry != null) controller.popBackStack()
+                    else controller.navigate(Route.AuthLogin) { popUpTo(Route.SignupEmail) { inclusive = true } }
+                },
+                onSocial = { viewModel.startSocialLogin(context, it) },
+                onResult = { result ->
+                    when (result) {
+                        is SignupResult.SignedIn -> {
+                            app.refreshSession()
+                            app.refreshBadge()
+                            navigator.finishAuth()
+                        }
+                        is SignupResult.NeedsActivation ->
+                            controller.navigate(Route.SignupActivation(viewModel.register.value.email.trim()))
+                    }
                 },
             )
         }
@@ -471,45 +469,188 @@ private fun LoginScreen(
     }
 }
 
+/**
+ * 注册 nodeloc (App-Android-Register), one page: the email gets a 6-digit
+ * code first, and registering with it verifies the address and — where no
+ * review is needed — signs the new account in. The username is checked as it
+ * is typed; the invite code is optional; 申请理由 shows only once the server
+ * asks for it. 人机验证 comes from the server's config, through [Captcha].
+ */
 @Composable
-private fun SignupEmailScreen(viewModel: AuthViewModel, controller: NavHostController, onBack: () -> Unit) {
-    val state by viewModel.signup.collectAsState()
-    val check = state.emailCheck
-    val ready = state.email.isNotBlank() && check.settled
-    val next = { controller.navigate(Route.SignupUsername) }
+private fun RegisterScreen(
+    viewModel: AuthViewModel,
+    onBack: () -> Unit,
+    onLogin: () -> Unit,
+    onSocial: (String) -> Unit,
+    onResult: (SignupResult) -> Unit,
+) {
+    val state by viewModel.register.collectAsState()
+    var providers by remember { mutableStateOf(emptyList<AuthProvider>()) }
+    LaunchedEffect(Unit) {
+        runCatching {
+            val site = ServiceLocator.get.siteRepository
+            site.siteResponse()
+            providers = site.authProviders().filter { it.canConnect != false }
+        }
+    }
+    val errors = state.fieldErrors
+
     AuthScaffold(
-        stringResource(R.string.auth_email_step),
+        title = stringResource(R.string.register_title),
         onBack = onBack,
         action = {
+            state.error?.let {
+                Text(it, style = Type.body(13), color = Nocturne.danger, modifier = Modifier.padding(bottom = Space.s3))
+            }
             FilledAccentButton(
-                stringResource(R.string.common_continue),
-                enabled = ready,
-                onClick = { next() },
-            )
+                stringResource(R.string.common_signup),
+                enabled = state.canSubmit,
+                loading = state.isSubmitting,
+            ) { viewModel.submitRegister(onResult) }
         },
     ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.register_have_account), style = Type.body(15), color = Nocturne.textSecondary)
+            Text(
+                stringResource(R.string.register_go_login),
+                style = Type.body(15, FontWeight.Bold),
+                color = Nocturne.accent,
+                modifier = Modifier.clickable(onClick = onLogin).padding(horizontal = 4.dp, vertical = 6.dp),
+            )
+        }
+
         AuthField(
             label = stringResource(R.string.auth_email),
             value = state.email,
             placeholder = stringResource(R.string.auth_identifier_hint),
             keyboardType = KeyboardType.Email,
             contentType = ContentType.EmailAddress,
-            onImeAction = { if (ready) next() },
-            onValueChange = viewModel::updateEmail,
+            onValueChange = { value -> viewModel.updateRegister { it.copy(email = value) } },
         )
-        val rejected = check.rejected
-        when {
-            state.email.isBlank() -> Unit
-            check.checking -> Text(
-                stringResource(R.string.common_checking),
-                style = Type.body(12),
-                color = Nocturne.muted(0.45f),
+        errors["email"]?.let { FieldNote(false, it) }
+
+        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(Modifier.weight(1f)) {
+                AuthField(
+                    label = stringResource(R.string.register_code),
+                    value = state.code,
+                    placeholder = stringResource(R.string.register_code_hint),
+                    keyboardType = KeyboardType.Number,
+                    onValueChange = { value -> viewModel.updateRegister { it.copy(code = value.filter(Char::isDigit).take(6)) } },
+                )
+            }
+            val sendLabel = when {
+                state.resendIn > 0 -> stringResource(R.string.register_resend_in, state.resendIn)
+                state.codeSent -> stringResource(R.string.register_resend)
+                else -> stringResource(R.string.register_send_code)
+            }
+            SecondaryButton(
+                sendLabel,
+                modifier = Modifier.height(44.dp),
+                enabled = state.emailValid && !state.sendingCode && state.resendIn == 0,
+                onClick = viewModel::sendRegisterCode,
             )
-            check.malformed -> FieldNote(false, stringResource(R.string.auth_email_invalid))
-            rejected != null -> FieldNote(false, rejected)
-            // Not "available" — the server will not say. Only that this is an
-            // address the next step can be sent.
-            else -> FieldNote(true, stringResource(R.string.auth_email_ok))
+        }
+        when {
+            errors["email_code"] != null -> FieldNote(false, errors.getValue("email_code"))
+            state.codeSent -> Text(
+                stringResource(R.string.register_code_sent, state.email.trim()),
+                style = Type.body(12),
+                color = Nocturne.textSecondary,
+            )
+        }
+
+        AuthField(
+            label = stringResource(R.string.auth_username),
+            value = state.username,
+            placeholder = stringResource(R.string.auth_username_hint),
+            contentType = ContentType.NewUsername,
+            onValueChange = { value -> viewModel.updateRegister { it.copy(username = value) } },
+        )
+        val check = state.usernameCheck
+        when {
+            errors["username"] != null -> FieldNote(false, errors.getValue("username"))
+            check.checking -> Text(stringResource(R.string.common_checking), style = Type.body(12), color = Nocturne.textSecondary)
+            check.available == true -> FieldNote(true, stringResource(R.string.auth_username_available))
+            check.available == false -> {
+                FieldNote(false, stringResource(R.string.auth_username_taken))
+                check.suggestion?.let { suggestion ->
+                    Text(
+                        stringResource(R.string.auth_username_suggestion, suggestion),
+                        style = Type.body(12),
+                        color = Nocturne.accent,
+                        modifier = Modifier.clickable { viewModel.updateRegister { it.copy(username = suggestion) } },
+                    )
+                }
+            }
+        }
+
+        AuthField(
+            label = stringResource(R.string.auth_password),
+            value = state.password,
+            isPassword = true,
+            contentType = ContentType.NewPassword,
+            onValueChange = { value -> viewModel.updateRegister { it.copy(password = value) } },
+        )
+        when {
+            errors["password"] != null -> FieldNote(false, errors.getValue("password"))
+            state.password.isNotEmpty() -> FieldNote(
+                state.passwordLongEnough,
+                stringResource(
+                    if (state.passwordLongEnough) R.string.auth_password_ok else R.string.register_password_short,
+                    RegisterState.PASSWORD_MINIMUM,
+                ),
+            )
+        }
+
+        AuthField(
+            label = stringResource(R.string.register_invite),
+            value = state.inviteCode,
+            imeAction = if (state.needsReason) ImeAction.Next else ImeAction.Done,
+            onValueChange = { value -> viewModel.updateRegister { it.copy(inviteCode = value) } },
+        )
+        errors["invite_code"]?.let { FieldNote(false, it) }
+            ?: Text(stringResource(R.string.register_invite_hint), style = Type.body(12), color = Nocturne.textSecondary)
+
+        if (state.needsReason) {
+            AuthField(
+                label = stringResource(R.string.register_reason),
+                value = state.reason,
+                placeholder = stringResource(R.string.register_reason_hint),
+                imeAction = ImeAction.Done,
+                onValueChange = { value -> viewModel.updateRegister { it.copy(reason = value) } },
+            )
+            errors["reason"]?.let { FieldNote(false, it) }
+        }
+
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(Radius.md))
+                .clickable(role = androidx.compose.ui.semantics.Role.Checkbox) { viewModel.updateRegister { it.copy(agreed = !it.agreed) } }
+                .padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            androidx.compose.material3.Checkbox(
+                checked = state.agreed,
+                onCheckedChange = null,
+                colors = androidx.compose.material3.CheckboxDefaults.colors(
+                    checkedColor = Nocturne.accent,
+                    uncheckedColor = Nocturne.textTertiary,
+                    checkmarkColor = Nocturne.bg,
+                ),
+            )
+            Text(stringResource(R.string.register_agree), style = Type.body(13), color = Nocturne.textSecondary)
+        }
+
+        if (providers.isNotEmpty()) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(Modifier.weight(1f).height(1.dp).background(Nocturne.divider))
+                Text(stringResource(R.string.register_or_providers), style = Type.body(12), color = Nocturne.muted(0.4f))
+                Box(Modifier.weight(1f).height(1.dp).background(Nocturne.divider))
+            }
+            providers.forEach { provider -> ProviderButton(provider) { onSocial(provider.name) } }
         }
     }
 }
@@ -597,208 +738,6 @@ private fun FieldNote(good: Boolean, text: String) {
             style = Type.body(12),
             color = if (good) Nocturne.success else Nocturne.danger,
         )
-    }
-}
-
-@Composable
-private fun SignupUsernameScreen(viewModel: AuthViewModel, controller: NavHostController) {
-    val state by viewModel.signup.collectAsState()
-    val check = state.usernameCheck
-
-    AuthScaffold(stringResource(R.string.auth_username_step), onBack = { controller.popBackStack() },
-        action = {
-            FilledAccentButton(stringResource(R.string.common_continue), enabled = check.available == true) {
-                controller.navigate(Route.SignupPassword)
-            }
-        },
-    ) {
-        AuthField(
-            label = stringResource(R.string.auth_username),
-            value = state.username,
-            placeholder = stringResource(R.string.auth_username_hint),
-            contentType = ContentType.NewUsername,
-            onValueChange = viewModel::updateUsername,
-        )
-        when {
-            check.checking -> Text(stringResource(R.string.common_checking), style = Type.body(12), color = Nocturne.muted(0.45f))
-            check.available == true -> FieldNote(true, stringResource(R.string.auth_username_available))
-            check.available == false -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                FieldNote(false, stringResource(R.string.auth_username_taken))
-                check.suggestion?.let { suggestion ->
-                    Text(
-                        stringResource(R.string.auth_username_suggestion, suggestion),
-                        style = Type.body(12),
-                        color = Nocturne.accent,
-                        modifier = Modifier.clickable { viewModel.updateUsername(suggestion) },
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SignupPasswordScreen(viewModel: AuthViewModel, controller: NavHostController) {
-    val state by viewModel.signup.collectAsState()
-    val longEnough = state.password.length >= 10
-
-    AuthScaffold(stringResource(R.string.auth_password_step), onBack = { controller.popBackStack() },
-        action = {
-            FilledAccentButton(stringResource(R.string.common_continue), enabled = longEnough) {
-                controller.navigate(Route.SignupGender)
-            }
-        },
-    ) {
-        AuthField(
-            label = stringResource(R.string.auth_password),
-            value = state.password,
-            placeholder = stringResource(R.string.auth_password_hint),
-            isPassword = true,
-            contentType = ContentType.NewPassword,
-            onValueChange = viewModel::updateSignupPassword,
-        )
-        Text(
-            stringResource(if (longEnough) R.string.auth_password_ok else R.string.auth_password_short),
-            style = Type.body(12),
-            color = if (longEnough) Nocturne.success else Nocturne.muted(0.45f),
-        )
-    }
-}
-
-@Composable
-private fun SignupGenderScreen(viewModel: AuthViewModel, controller: NavHostController) {
-    val state by viewModel.signup.collectAsState()
-    LaunchedEffect(Unit) { viewModel.loadSignupFields() }
-    // The site's own options are what the server will match against; the
-    // labels below are only translations of them, and an option nobody
-    // translated still shows, spelled the way the site spells it.
-    val options = state.genderField?.options.orEmpty()
-
-    AuthScaffold(stringResource(R.string.auth_gender_step), onBack = { controller.popBackStack() },
-        action = {
-            FilledAccentButton(stringResource(R.string.common_continue), enabled = state.gender != null) {
-                controller.navigate(Route.SignupInterests)
-            }
-        },
-    ) {
-        Text(stringResource(R.string.auth_gender_footer), style = Type.body(12), color = Nocturne.muted(0.45f))
-        options.forEach { option ->
-            val selected = state.gender == option
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(CircleShape)
-                    .background(if (selected) Nocturne.selected else Nocturne.surface)
-                    .clickable { viewModel.updateGender(option) }
-                    .padding(vertical = 14.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    genderLabel(option),
-                    style = Type.body(15, if (selected) FontWeight.SemiBold else FontWeight.Normal),
-                    color = if (selected) Nocturne.accent else Nocturne.text,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SignupInterestsScreen(
-    viewModel: AuthViewModel,
-    controller: NavHostController,
-    onSignedIn: () -> Unit,
-) {
-    val state by viewModel.signup.collectAsState()
-
-    LaunchedEffect(Unit) { viewModel.loadInterestCandidates() }
-
-    AuthScaffold(stringResource(R.string.auth_interests_step), onBack = { controller.popBackStack() },
-        action = {
-            state.error?.let {
-                Text(
-                    it,
-                    style = Type.body(13),
-                    color = Nocturne.danger,
-                    modifier = Modifier.padding(bottom = Space.s3),
-                )
-            }
-            FilledAccentButton(stringResource(R.string.auth_finish_signup), loading = state.isSubmitting) {
-                viewModel.submitSignup { result ->
-                    when (result) {
-                        SignupResult.SignedIn -> onSignedIn()
-                        is SignupResult.NeedsActivation -> controller.navigate(Route.SignupActivation(state.email))
-                    }
-                }
-            }
-        },
-    ) {
-        Text(stringResource(R.string.auth_interests_footer), style = Type.body(12), color = Nocturne.muted(0.45f))
-
-        // The picked ones stay above the batch and outlive it: "换一批" deals
-        // around them rather than through them.
-        if (state.picked.isNotEmpty()) {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                state.picked.forEach { node ->
-                    InterestChip(node.name, picked = true) { viewModel.toggleInterest(node) }
-                }
-            }
-        }
-
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            state.candidates.filterNot { it.id in state.interests }.forEach { node ->
-                InterestChip(node.name, picked = false) { viewModel.toggleInterest(node) }
-            }
-        }
-
-        SecondaryButton(stringResource(R.string.auth_shuffle), block = true) {
-            viewModel.shuffleInterestCandidates()
-        }
-    }
-}
-
-/** The site writes its options in English; these are the ones we can translate. */
-@Composable
-private fun genderLabel(option: String): String = when (option.lowercase()) {
-    "male" -> stringResource(R.string.auth_gender_male)
-    "female" -> stringResource(R.string.auth_gender_female)
-    "non-binary" -> stringResource(R.string.auth_gender_other)
-    "rather not say" -> stringResource(R.string.auth_gender_private)
-    else -> option
-}
-
-/**
- * A node to pick, sized to be tapped rather than read: this is the one screen
- * where the nodes are the content, so they get the room a tag chip elsewhere
- * would not deserve.
- */
-@Composable
-private fun InterestChip(name: String, picked: Boolean, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(Radius.lg)
-    Row(
-        Modifier
-            .clip(shape)
-            .background(if (picked) Nocturne.selected else Nocturne.surface)
-            .border(1.dp, if (picked) Nocturne.accent else Nocturne.divider, shape)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Text(
-            name,
-            style = Type.body(15, if (picked) FontWeight.SemiBold else FontWeight.Normal),
-            color = if (picked) Nocturne.accent else Nocturne.text,
-        )
-        if (picked) {
-            Icon(Lucide.X, null, tint = Nocturne.accent, modifier = Modifier.size(16.dp))
-        }
     }
 }
 

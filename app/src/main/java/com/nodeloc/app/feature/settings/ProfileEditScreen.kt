@@ -50,6 +50,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nodeloc.app.R
 import com.nodeloc.app.ServiceLocator
 import com.nodeloc.app.core.design.FilledAccentButton
+import com.nodeloc.app.core.design.PrimaryButton
 import com.nodeloc.app.core.design.Nocturne
 import com.nodeloc.app.core.design.RemoteAvatar
 import com.nodeloc.app.core.design.SecondaryButton
@@ -256,8 +257,21 @@ fun ProfileEditScreen(navigator: Navigator) {
 
     LaunchedEffect(Unit) { viewModel.load() }
 
-    SettingsScaffold(stringResource(R.string.settings_profile), navigator::back, loading = state.isLoading) {
-        ProfileEditBody(viewModel, onSaved = navigator::back)
+    SettingsScaffold(
+        stringResource(R.string.settings_profile),
+        navigator::back,
+        loading = state.isLoading,
+        saving = state.isSaving,
+        actions = {
+            PrimaryButton(
+                stringResource(R.string.common_save),
+                modifier = Modifier.padding(end = 8.dp),
+                enabled = state.canSave,
+                onClick = { viewModel.save(navigator::back) },
+            )
+        },
+    ) {
+        ProfileEditBody(viewModel, onSaved = navigator::back, saveInBody = false)
     }
 }
 
@@ -267,7 +281,15 @@ fun ProfileEditScreen(navigator: Navigator) {
  * save rather than closing.
  */
 @Composable
-internal fun ProfileEditBody(viewModel: ProfileEditViewModel, onSaved: () -> Unit) {
+internal fun ProfileEditBody(
+    viewModel: ProfileEditViewModel,
+    onSaved: () -> Unit,
+    /**
+     * The settings tab has no bar of its own to carry the save, so it keeps
+     * the button under the form; the standalone page puts it top right.
+     */
+    saveInBody: Boolean = true,
+) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
 
@@ -354,7 +376,7 @@ internal fun ProfileEditBody(viewModel: ProfileEditViewModel, onSaved: () -> Uni
         }
     }
 
-    Column(Modifier.padding(horizontal = Space.page, vertical = Space.s4)) {
+    if (saveInBody) Column(Modifier.padding(horizontal = Space.page, vertical = Space.s4)) {
         FilledAccentButton(
             stringResource(R.string.common_save),
             loading = state.isSaving,

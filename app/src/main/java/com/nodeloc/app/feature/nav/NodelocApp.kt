@@ -118,12 +118,6 @@ fun NodelocApp(startDestination: Any = Route.Home) {
                 onClose = { scope.launch { drawerState.close() } },
                 onOpenNode = { navigator.openNode(it.id, it.slug); scope.launch { drawerState.close() } },
                 onBrowseNodes = { navigator.openNodes(); scope.launch { drawerState.close() } },
-                // Creating a node needs an account, so a guest meets the same
-                // gate the nodes tab's own button raises.
-                onCreateNode = {
-                    if (isSignedIn) navigator.openCreateNode() else navigator.openAuth()
-                    scope.launch { drawerState.close() }
-                },
                 onOpenApps = { navigator.openApps(); scope.launch { drawerState.close() } },
                 onOpenRank = { navigator.openWealthRank(); scope.launch { drawerState.close() } },
                 onOpenInvite = { navigator.openInvite(); scope.launch { drawerState.close() } },
@@ -132,7 +126,7 @@ fun NodelocApp(startDestination: Any = Route.Home) {
                 onOpenProfile = { navigator.openMe(); scope.launch { drawerState.close() } },
                 onOpenModDashboard = { navigator.openModDashboard(it); scope.launch { drawerState.close() } },
                 onOpenNodeAdmin = { navigator.openNodeAdmin(it); scope.launch { drawerState.close() } },
-                onOpenSettings = { navigator.openSettings(); scope.launch { drawerState.close() } },
+                onOpenBookmarks = { navigator.openBookmarks(); scope.launch { drawerState.close() } },
                 onOpenFeed = { id, name -> navigator.openCustomFeed(id, name); scope.launch { drawerState.close() } },
                 onCreateFeed = { navigator.openCreateCustomFeed(); scope.launch { drawerState.close() } },
                 visible = drawerState.targetValue == DrawerValue.Open,
@@ -357,6 +351,7 @@ private fun NodelocNavHost(
         composable<Route.WealthRank> { com.nodeloc.app.feature.profile.WealthRankScreen(navigator) }
         composable<Route.Invite> { com.nodeloc.app.feature.settings.InviteScreen(navigator) }
         composable<Route.Drafts> { com.nodeloc.app.feature.settings.DraftsScreen(navigator) }
+        composable<Route.Bookmarks> { com.nodeloc.app.feature.profile.BookmarksScreen(navigator) }
 
         composable<Route.Apps> { AppsScreen(navigator) }
         composable<Route.AppDetail> { entry ->

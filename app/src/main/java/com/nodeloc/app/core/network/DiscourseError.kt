@@ -28,6 +28,8 @@ data class ServerFault(
     val type: String? = null,
     /** From a 429's `Retry-After`. */
     val waitSeconds: Int? = null,
+    /** `error.fields` by name (`email`, `email_code`, `username`, `reason`…), for forms. */
+    val fields: Map<String, String> = emptyMap(),
 )
 
 sealed class DiscourseError(message: String? = null, cause: Throwable? = null) :

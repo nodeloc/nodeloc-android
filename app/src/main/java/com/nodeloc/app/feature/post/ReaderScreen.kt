@@ -156,6 +156,7 @@ import com.nodeloc.app.feature.media.VideoViewerOverlay
 import com.nodeloc.app.feature.feed.ReaderSkeleton
 import com.nodeloc.app.feature.feed.RepliesSkeleton
 import com.nodeloc.app.feature.nav.AppViewModel
+import com.nodeloc.app.feature.nav.LoginPromptContext
 import com.nodeloc.app.feature.nav.Navigator
 import com.nodeloc.app.feature.nav.Route
 import kotlinx.coroutines.launch
@@ -177,6 +178,16 @@ fun ReaderScreen(
 ) {
     val viewModel: ReaderViewModel = viewModel()
     val state by viewModel.state.collectAsState()
+    val folderChoice by viewModel.folderChoice.collectAsState()
+    folderChoice?.let { choice ->
+        com.nodeloc.app.feature.profile.BookmarkFolderSheet(
+            folders = choice.folders,
+            current = choice.bookmark.folderId,
+            onDismiss = viewModel::dismissFolderChoice,
+            onCreate = viewModel::createFolderAndMove,
+            onChoose = viewModel::moveBookmark,
+        )
+    }
     val isSignedIn by app.isSignedIn.collectAsState()
     val currentUser by app.currentUser.collectAsState()
     // Node moderators count too: on 2.0 the node's own moderators pin, lock
@@ -468,11 +479,11 @@ fun ReaderScreen(
                         state = state,
                         isSignedIn = isSignedIn,
                         onLike = {
-                            if (isSignedIn) viewModel.toggleFirstPostLike() else app.showLoginGate()
+                            if (isSignedIn) viewModel.toggleFirstPostLike() else app.showLoginGate(LoginPromptContext.Vote)
                         },
                         onCastVote = { direction, face ->
                             if (isSignedIn) viewModel.voteOnFirstPost(direction, face)
-                            else app.showLoginGate()
+                            else app.showLoginGate(LoginPromptContext.Vote)
                         },
                         onComment = {
                             setReplyTarget(null)
@@ -558,10 +569,10 @@ fun ReaderScreen(
                     onToggleCollapse = { viewModel.toggleCollapsed(comment.postNumber) },
                     onOpenAuthor = { navigator.openProfile(it) },
                     onLike = {
-                        if (isSignedIn) viewModel.toggleReplyLike(comment.id) else app.showLoginGate()
+                        if (isSignedIn) viewModel.toggleReplyLike(comment.id) else app.showLoginGate(LoginPromptContext.Vote)
                     },
                     onVote = {
-                        if (isSignedIn) viewModel.voteOnReply(comment.id, it) else app.showLoginGate()
+                        if (isSignedIn) viewModel.voteOnReply(comment.id, it) else app.showLoginGate(LoginPromptContext.Vote)
                     },
                     onPickFace = if (isSignedIn) { direction, face ->
                         viewModel.voteOnReply(comment.id, direction, face)
@@ -576,7 +587,7 @@ fun ReaderScreen(
                             setReplyTarget(comment.postNumber to comment.author)
                             replySheetOpen = true
                         } else {
-                            app.showLoginGate()
+                            app.showLoginGate(LoginPromptContext.Reply)
                         }
                     },
                     onReactionDetail = { reactionDetail = comment.id },
@@ -591,7 +602,7 @@ fun ReaderScreen(
                     },
                     bookmarked = comment.isBookmarked,
                     onBookmark = {
-                        if (isSignedIn) viewModel.bookmarkPost(comment.id) else app.showLoginGate()
+                        if (isSignedIn) viewModel.bookmarkPost(comment.id) else app.showLoginGate(LoginPromptContext.Bookmark)
                     },
                     onReport = {
                         reportingPost = comment.id
@@ -732,7 +743,7 @@ fun ReaderScreen(
                         },
                     ),
                     retryLabel = stringResource(if (needsLogin) R.string.common_login else R.string.common_retry),
-                    onRetry = { if (needsLogin) app.showLoginGate() else viewModel.load(topicId) },
+                    onRetry = { if (needsLogin) app.showLoginGate(LoginPromptContext.Content) else viewModel.load(topicId) },
                 )
             }
         }
@@ -753,7 +764,7 @@ fun ReaderScreen(
             },
             onShare = { navigator.share(context, "${DiscourseConfig.BASE_URL}/t/$topicId", state.title) },
             onBookmark = {
-                if (isSignedIn) viewModel.bookmarkFirstPost() else app.showLoginGateAfterDismiss()
+                if (isSignedIn) viewModel.bookmarkFirstPost() else app.showLoginGateAfterDismiss(LoginPromptContext.Bookmark)
             },
             onOpenProfile = { navigator.openProfile(it) },
             onOpenMe = navigator::openMe,
@@ -802,7 +813,7 @@ fun ReaderScreen(
                 replyTarget = replyTarget,
                 draft = replyDraft,
                 onClearTarget = { setReplyTarget(null) },
-                onLogin = { app.showLoginGate() },
+                onLogin = { app.showLoginGate(LoginPromptContext.Reply) },
                 onOpen = { replySheetOpen = true },
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
@@ -827,10 +838,10 @@ fun ReaderScreen(
 
         val viewerActions = ViewerActions(
             onLike = {
-                if (!isSignedIn) app.showLoginGate() else if (!leaveFor(it)) viewModel.toggleFirstPostLike()
+                if (!isSignedIn) app.showLoginGate(LoginPromptContext.Vote) else if (!leaveFor(it)) viewModel.toggleFirstPostLike()
             },
             onCastVote = { post, direction, face ->
-                if (!isSignedIn) app.showLoginGate()
+                if (!isSignedIn) app.showLoginGate(LoginPromptContext.Vote)
                 else if (!leaveFor(post)) viewModel.voteOnFirstPost(direction, face)
             },
             onComment = {

@@ -53,8 +53,10 @@ enum class ActivityTab(@StringRes val labelRes: Int) {
     fun isPrivateFor(own: Boolean): Boolean = !own && (this == Points || this == Bookmarks)
 
     companion object {
-        val own = listOf(Overview, Topics, Comments, Points, Bookmarks)
-        val public = listOf(Overview, Topics, Comments, Points, Bookmarks, Achievements, About)
+        // Only 帖子 and 评论, as on iOS: saves have their own page (侧栏 › 我的收藏),
+        // energy its ledger, achievements the strip in the header.
+        val own = listOf(Topics, Comments)
+        val public = listOf(Topics, Comments)
     }
 }
 
@@ -63,7 +65,7 @@ data class ProfileState(
     val profile: UserProfile? = null,
     val summary: UserSummary? = null,
     val pointsTotal: Int? = null,
-    val tab: ActivityTab = ActivityTab.Overview,
+    val tab: ActivityTab = ActivityTab.Topics,
     /** Topics the person started, in the backend's own shape. */
     val topics: List<ApiUserTopicRow> = emptyList(),
     val topicsCursor: String? = null,
@@ -286,7 +288,7 @@ class ProfileViewModel : ViewModel() {
                 },
             )
             val tabs = if (own) ActivityTab.own else ActivityTab.public
-            selectTab(_state.value.tab.takeIf { it in tabs } ?: ActivityTab.Overview, force = true)
+            selectTab(_state.value.tab.takeIf { it in tabs } ?: ActivityTab.Topics, force = true)
         }
     }
 

@@ -43,11 +43,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.composables.icons.lucide.CirclePlus
+import com.composables.icons.lucide.Bookmark
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.LayoutGrid
 import com.composables.icons.lucide.Layers
-import com.composables.icons.lucide.Settings
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import com.nodeloc.app.R
@@ -70,7 +69,7 @@ import com.nodeloc.app.core.util.DiscourseFormat
 import com.nodeloc.app.feature.node.NodeCatalogViewModel
 
 /**
- * The global drawer: nodes, recent visits, the app directory and settings.
+ * The global drawer: nodes, custom feeds, recent visits and the app directory.
  * Reached from every root screen's hamburger, so it is defined once.
  */
 @Composable
@@ -78,7 +77,6 @@ fun SidebarDrawer(
     onClose: () -> Unit,
     onOpenNode: (NodeSummary) -> Unit,
     onBrowseNodes: () -> Unit,
-    onCreateNode: () -> Unit,
     onOpenApps: () -> Unit,
     onOpenRank: () -> Unit,
     onOpenInvite: () -> Unit,
@@ -87,7 +85,7 @@ fun SidebarDrawer(
     onOpenProfile: () -> Unit,
     onOpenModDashboard: (String?) -> Unit,
     onOpenNodeAdmin: (String) -> Unit,
-    onOpenSettings: () -> Unit,
+    onOpenBookmarks: () -> Unit,
     onOpenFeed: (Long, String) -> Unit,
     onCreateFeed: () -> Unit,
     /** Whether the drawer is open: the parts that change between openings are asked for again then. */
@@ -134,6 +132,8 @@ fun SidebarDrawer(
                             stringResource(R.string.me2_sc_drafts),
                             detail = state.drafts?.takeIf { it > 0 }?.let { stringResource(R.string.sidebar_drafts_count, it) },
                         ) { onOpenDrafts() }
+                        // Saves left the profile's tabs for a page of their own, with folders.
+                        SidebarAction(Lucide.Bookmark, stringResource(R.string.sidebar_bookmarks)) { onOpenBookmarks() }
                     }
                 }
 
@@ -199,8 +199,8 @@ fun SidebarDrawer(
 
                 item {
                     Spacer(Modifier.height(Space.s4))
+                    // 创建节点 lives on the nodes page; the drawer is for going places.
                     SidebarAction(Lucide.LayoutGrid, stringResource(R.string.node_browse)) { onBrowseNodes() }
-                    SidebarAction(Lucide.CirclePlus, stringResource(R.string.node_create_title)) { onCreateNode() }
                     Spacer(Modifier.height(Space.s4))
                 }
 
@@ -244,11 +244,9 @@ fun SidebarDrawer(
                     }
                 }
 
-                item {
-                    Spacer(Modifier.height(Space.s4))
-                    SidebarAction(Lucide.Settings, stringResource(R.string.common_settings)) { onOpenSettings() }
-                    Spacer(Modifier.height(Space.s4))
-                }
+                // No 设置 row at the bottom: it is one tap away on 我的, and
+                // the drawer is shorter for it.
+                item { Spacer(Modifier.height(Space.s8)) }
             }
         }
     }

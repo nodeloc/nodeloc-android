@@ -118,7 +118,7 @@ fun NodeGroupScreen(
                         node = node,
                         isSignedIn = isSignedIn,
                         onToggleJoin = {
-                            if (isSignedIn) viewModel.toggleJoin(node.id) else navigator.openAuth()
+                            if (isSignedIn) viewModel.toggleJoin(node.id) else com.nodeloc.app.feature.nav.LoginGate.show(com.nodeloc.app.feature.nav.LoginPromptContext.JoinNode(node.name))
                         },
                         onClick = { navigator.openNode(node.id, node.slug) },
                         modifier = Modifier.fillMaxWidth(),

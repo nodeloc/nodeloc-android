@@ -82,10 +82,12 @@ fun SettingsScaffold(
     /** A write is in flight. The rows already show the new value — this only
      *  says it has not reached the server yet. */
     saving: Boolean = false,
+    /** Trailing bar actions: a page's save sits here, top right, as on every Android editor. */
+    actions: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(Modifier.fillMaxSize().background(Nocturne.bg)) {
-        ModTopBar(title, onBack)
+        ModTopBar(title, onBack, actions = actions)
         // Preference writes are optimistic, so blocking the page would be a lie
         // about what already happened; a hairline is the honest amount of noise.
         Box(Modifier.fillMaxWidth().height(2.dp)) {

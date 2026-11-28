@@ -5,10 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.nodeloc.app.ServiceLocator
 import com.nodeloc.app.core.model.CurrentUser
 import com.nodeloc.app.core.network.DiscourseConfig
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.delay
@@ -44,32 +42,23 @@ class AppViewModel : ViewModel() {
         }
     }
 
-    /**
-     * The bottom sheet a guest sees when they tap something that needs an
-     * account. Raised, never two at once — chaining sheets loses the second,
-     * so callers dismiss first and wait ~450ms (see [LoginGateDelayMillis]).
-     */
-    private val _loginGateVisible = MutableStateFlow(false)
-    val loginGateVisible: StateFlow<Boolean> = _loginGateVisible.asStateFlow()
+    /** The guest gate; see [LoginGate]. Kept here for the screens that already hold the app model. */
+    val loginGate: StateFlow<LoginPromptContext?> = LoginGate.request
 
-    fun showLoginGate() {
-        _loginGateVisible.value = true
-    }
+    fun showLoginGate(context: LoginPromptContext = LoginPromptContext.Generic) = LoginGate.show(context)
 
     /**
      * For entry points that first close a menu or sheet of their own: raising
      * the gate in the same frame loses it behind the thing being dismissed.
      */
-    fun showLoginGateAfterDismiss() {
+    fun showLoginGateAfterDismiss(context: LoginPromptContext = LoginPromptContext.Generic) {
         viewModelScope.launch {
             delay(LoginGateDelayMillis)
-            _loginGateVisible.value = true
+            LoginGate.show(context)
         }
     }
 
-    fun dismissLoginGate() {
-        _loginGateVisible.value = false
-    }
+    fun dismissLoginGate() = LoginGate.dismiss()
 
     fun refreshSession() {
         viewModelScope.launch { session.refresh(force = true) }

@@ -253,8 +253,13 @@ class NodelocApi(
                 .orEmpty()
             (main + fields).mapNotNull { it.trim().takeIf(String::isNotEmpty) }.distinct().take(3).map { it.take(300) }
         }
+        // Kept by name as well, so a form can put each sentence under its own field.
+        val fieldMessages = if (!quotable) emptyMap() else (envelope?.get("fields") as? JsonObject)
+            ?.mapNotNull { (key, value) -> (value as? JsonPrimitive)?.contentOrNull?.trim()?.takeIf(String::isNotEmpty)?.let { key to it.take(300) } }
+            ?.toMap()
+            .orEmpty()
         if (messages.isEmpty() && type == null && retryAfter == null) return null
-        return ServerFault(messages, type, retryAfter)
+        return ServerFault(messages, type, retryAfter, fieldMessages)
     }
 
     /** Headers only; the caller consumes the body itself (the event stream does). */
