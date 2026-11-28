@@ -1,5 +1,6 @@
 package com.nodeloc.app.feature.nav
 
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -141,7 +142,13 @@ fun NodelocApp(startDestination: Any = Route.Home) {
                     enter = slideInVertically { it } + fadeIn(),
                     exit = slideOutVertically { it } + fadeOut(),
                 ) {
-                    androidx.compose.foundation.layout.Column {
+                    // On home it folds away with the sort row as the list is read.
+                    val onHome = backStackEntry.matches(TabItem.Home)
+                    androidx.compose.foundation.layout.Column(
+                        Modifier.graphicsLayer {
+                            translationY = if (onHome) size.height * com.nodeloc.app.core.design.HomeChrome.collapse else 0f
+                        },
+                    ) {
                         com.nodeloc.app.core.design.HairLine()
                         BottomTabBar(navController, unread)
                     }

@@ -70,6 +70,9 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.UserPlus
 import com.nodeloc.app.R
 import com.nodeloc.app.ServiceLocator
+import androidx.compose.ui.graphics.asImageBitmap
+import com.nodeloc.app.core.design.NodelocLoader
+import androidx.compose.runtime.remember
 import com.nodeloc.app.core.design.EmptyStateView
 import com.nodeloc.app.core.design.FilterPill
 import com.nodeloc.app.core.design.LocalReduceMotion
@@ -198,7 +201,7 @@ private fun InviteBody(
             Text(stringResource(R.string.invite_title), style = Type.heading(24, FontWeight.Bold), color = Nocturne.text)
         }
         item { Hero(overview) }
-        item { LinkCard(code, navigator) }
+        item { LinkCard(code, navigator, welcome = overview.rewards.welcome) }
         item { Stats(overview) }
         if (overview.milestones.isNotEmpty()) item { Milestones(overview) }
 
@@ -324,11 +327,12 @@ private fun Hero(overview: ApiInviteOverview) {
 }
 
 @Composable
-private fun LinkCard(code: String?, navigator: Navigator) {
+private fun LinkCard(code: String?, navigator: Navigator, welcome: Long) {
     val context = LocalContext.current
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
     val shareText = stringResource(R.string.invite_share_text)
+    var posterOpen by remember { mutableStateOf(false) }
     OutlinedCard {
         Text(stringResource(R.string.invite_link_title), style = Type.heading(16, FontWeight.Bold), color = Nocturne.text)
         if (code == null) {
@@ -380,11 +384,62 @@ private fun LinkCard(code: String?, navigator: Navigator) {
             Text(stringResource(R.string.invite_code_label), style = Type.body(13), color = Nocturne.textSecondary)
             CodeChip(code) { copy(code, code, R.string.invite_code_copied) }
             Spacer(Modifier.weight(1f))
-            // No poster or QR renderer ships with the app, so the share sheet
-            // stands in for both: it reaches the same apps a poster would.
+            SecondaryButton(stringResource(R.string.invite_poster)) { posterOpen = true }
             SecondaryButton(stringResource(R.string.invite_share)) { navigator.share(context, link, shareText) }
         }
+        if (posterOpen) PosterDialog(code, link, welcome) { posterOpen = false }
     }
+}
+
+/**
+ * 生成海报: the poster drawn for the invitee, previewed, then handed to the
+ * share sheet — which is also where saving it to the gallery lives.
+ */
+@Composable
+private fun PosterDialog(code: String, link: String, welcome: Long, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val me by ServiceLocator.get.session.currentUser.collectAsState()
+    val inviter = me?.name?.takeIf { it.isNotBlank() } ?: me?.username ?: "nodeloc"
+    var poster by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+    LaunchedEffect(code, inviter) {
+        val avatar = runCatchingCancellable {
+            InvitePoster.loadAvatar(context, DiscourseConfig.avatarUrl(me?.avatarTemplate, 240))
+        }.getOrNull()
+        poster = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            InvitePoster.render(context, inviter, avatar, code, link, welcome)
+        }
+    }
+    val title = stringResource(R.string.invite_poster_from, inviter)
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Nocturne.bg,
+        title = { Text(stringResource(R.string.invite_poster), style = Type.heading(20), color = Nocturne.text) },
+        text = {
+            val bitmap = poster
+            if (bitmap == null) {
+                Box(Modifier.fillMaxWidth().height(320.dp), contentAlignment = Alignment.Center) { NodelocLoader(height = 40.dp) }
+            } else {
+                androidx.compose.foundation.Image(
+                    bitmap.asImageBitmap(),
+                    contentDescription = title,
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).border(1.dp, Nocturne.divider, RoundedCornerShape(16.dp)),
+                )
+            }
+        },
+        confirmButton = {
+            androidx.compose.material3.TextButton(
+                enabled = poster != null,
+                onClick = { poster?.let { InvitePoster.share(context, it, title) } },
+            ) {
+                Text(stringResource(R.string.invite_poster_share), color = Nocturne.accent)
+            }
+        },
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.common_done), color = Nocturne.textSecondary)
+            }
+        },
+    )
 }
 
 /** The code in a dashed box, the board's "tear-off" look; tapping copies it. */

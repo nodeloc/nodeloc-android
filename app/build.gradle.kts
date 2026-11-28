@@ -261,6 +261,7 @@ dependencies {
     implementation(libs.androidx.browser)
     implementation(libs.androidx.exifinterface)
     implementation(libs.icons.lucide)
+    implementation(libs.zxing.core)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

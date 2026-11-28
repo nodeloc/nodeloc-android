@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.semantics.Role
-import com.composables.icons.lucide.ChartBar
+import com.composables.icons.lucide.ChartNoAxesColumn
 import com.composables.icons.lucide.Square
 import com.composables.icons.lucide.SquareCheck
 import com.nodeloc.app.core.design.LocalReduceMotion
@@ -237,7 +237,7 @@ private fun PollHeader(poll: PostPoll) {
             Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(Nocturne.selected),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Lucide.ChartBar, null, tint = Nocturne.accent, modifier = Modifier.size(18.dp))
+            Icon(Lucide.ChartNoAxesColumn, null, tint = Nocturne.accent, modifier = Modifier.size(18.dp))
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             val kind = stringResource(if (poll.isMultiple) R.string.poll_kind_multiple else R.string.poll_kind_single)

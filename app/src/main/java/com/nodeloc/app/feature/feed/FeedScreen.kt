@@ -1,5 +1,13 @@
 package com.nodeloc.app.feature.feed
 
+import com.nodeloc.app.core.design.HomeChrome
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -110,6 +118,16 @@ fun FeedScreen(
     LaunchedEffect(Unit) { viewModel.loadIfNeeded() }
     listState.OnReachedEnd { viewModel.loadMore() }
 
+    // The sort row is pinned under the bar and folds away with the bottom tab
+    // bar (HomeChrome); the bar itself always stays.
+    val chromeScope = rememberCoroutineScope()
+    val chrome = remember { HomeChrome.connection(chromeScope) }
+    var chipsHeight by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+    val atTop by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 } }
+    LaunchedEffect(atTop) { if (atTop) HomeChrome.expand(chromeScope) }
+    DisposableEffect(Unit) { onDispose { HomeChrome.reset() } }
+
     Box(Modifier.fillMaxSize().background(Nocturne.bg)) {
         // Back to the top afterwards; see scrollToTopAfterRefresh for why that
         // is not simply a scrollToItem. Pulling means "show me what arrived",
@@ -127,13 +145,12 @@ fun FeedScreen(
             // the new list arrived. Inside the list the chips never move.
             LazyColumn(
                 state = listState,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().nestedScroll(chrome),
                 contentPadding = PaddingValues(
-                    top = headerInset,
+                    top = headerInset + with(density) { chipsHeight.toDp() },
                     bottom = contentPadding.calculateBottomPadding() + 24.dp,
                 ),
             ) {
-                item(key = "sorts") { sortChips() }
                 state.offlineSavedAt?.let { savedAt ->
                     item(key = "offline") {
                         OfflineBanner(savedAt, Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp))
@@ -192,8 +209,22 @@ fun FeedScreen(
             ImageViewerOverlay(open.images, open.index, open.source) { viewer = null }
         }
 
+        // Under the bar in z-order, so folding slides it up behind the bar.
+        Box(
+            Modifier
+                .padding(top = headerInset)
+                .fillMaxWidth()
+                .onSizeChanged {
+                    chipsHeight = it.height
+                    HomeChrome.spanPx = it.height.toFloat().coerceAtLeast(1f)
+                }
+                .graphicsLayer { translationY = -HomeChrome.collapse * chipsHeight }
+                .background(Nocturne.bg),
+        ) { sortChips() }
+
         FeedHeader(
-            scrolled = listState.isScrolledPastTop(threshold = 0),
+            // Filled whenever the list has moved: the pinned row is under it.
+            scrolled = listState.isScrolledPastTop(threshold = 0) || HomeChrome.collapse > 0f,
             isSignedIn = isSignedIn,
             onOpenDrawer = onOpenDrawer,
             onCompose = { navigator.openCompose() },

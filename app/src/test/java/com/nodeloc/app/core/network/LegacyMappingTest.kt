@@ -230,4 +230,36 @@ class LegacyMappingTest {
         assertEquals(listOf("mp4", "mov"), uploads.map { it.fileExtension })
         assertEquals("", cooked)
     }
+
+    @Test
+    fun `card media fills the card with its own sizes and the playable upload`() {
+        val json = """
+            {"id": 9, "title": "t", "card_media": {
+              "images": [
+                {"url": "https://www.nodeloc.com/c/1.jpg", "original_url": "https://www.nodeloc.com/o/1.jpg", "w": 1600, "h": 900},
+                {"url": "https://www.nodeloc.com/c/2.jpg"}
+              ],
+              "video": {"provider": "upload", "url": "https://v.nodeloc.com/a.m3u8", "poster": "https://v.nodeloc.com/a.jpg", "w": 720, "h": 1280}
+            }}
+        """.trimIndent()
+        val row = Legacy.topicListItem(NodelocApi.json.decodeFromString<ApiTopicSummary>(json), null)
+        val cards = requireNotNull(row.cardImages)
+        assertEquals(2, cards.size)
+        assertEquals(1600, cards[0].width)
+        assertEquals("https://www.nodeloc.com/o/1.jpg", cards[0].fullUrl)
+        assertEquals("https://v.nodeloc.com/a.m3u8", row.topicVideoUrl)
+    }
+
+    @Test
+    fun `a youtube card shows its poster cropped to 16 by 9 and plays nothing`() {
+        val json = """
+            {"id": 10, "title": "t", "card_media": {"video": {"provider": "youtube", "url": "https://youtu.be/x", "poster": "https://i.ytimg.com/x.jpg"}}}
+        """.trimIndent()
+        val row = Legacy.topicListItem(NodelocApi.json.decodeFromString<ApiTopicSummary>(json), null)
+        assertNull(row.topicVideoUrl)
+        val poster = requireNotNull(row.cardImages).single()
+        assertEquals("https://i.ytimg.com/x.jpg", poster.url)
+        assertEquals(1600, poster.width)
+        assertEquals(900, poster.height)
+    }
 }

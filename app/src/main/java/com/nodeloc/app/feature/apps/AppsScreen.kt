@@ -227,7 +227,7 @@ class AppsViewModel : ViewModel() {
             onFallback()
             return
         }
-        val postNumber = home.groupValues[2].toIntOrNull()
+        val postNumber = home?.groupValues?.get(2)?.toIntOrNull()
         if (_starting.value != null) return
         _starting.value = game.id
         viewModelScope.launch {

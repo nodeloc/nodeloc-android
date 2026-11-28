@@ -2134,4 +2134,12 @@
     <string name="mod_log_detail_open">查看被处理的内容</string>
     <string name="mod_log_detail_no_undo">这项操作不能在这里撤销。</string>
     <string name="settings_language_d">网站用这个语言和你说话，App 自己的文字会用最接近的语言。</string>
+    <string name="invite_poster">生成海报</string>
+    <string name="invite_poster_share">保存或分享</string>
+    <string name="invite_poster_from">%1$s 邀请你加入 nodeloc</string>
+    <string name="invite_poster_headline">找到一群聊同一件事的人</string>
+    <string name="invite_poster_sub">独立开发、摄影、咖啡、骑行……总有一个节点是你的。</string>
+    <string name="invite_poster_welcome">注册即得 %1$d 能量</string>
+    <string name="invite_poster_welcome_d">用这个邀请码注册，验证邮箱后到账。</string>
+    <string name="invite_poster_how">扫码注册，或在注册时填写邀请码</string>
 </resources>

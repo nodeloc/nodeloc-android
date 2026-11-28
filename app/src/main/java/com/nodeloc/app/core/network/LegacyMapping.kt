@@ -55,7 +55,7 @@ object Legacy {
         val card = topic.cardMedia
         val video = card?.video
         // Only an upload plays in the card; YouTube and bilibili show their poster.
-        val playable = video?.url?.takeIf { video.provider == "upload" && it.isNotBlank() }
+        val playable = video?.url?.takeIf { video?.provider == "upload" && it.isNotBlank() }
         val cardImages = card?.images.orEmpty().filter { it.url.isNotBlank() }
             .map { TopicCardImage(url = it.url, fullUrl = it.originalUrl, width = it.w, height = it.h) }
             .ifEmpty {
@@ -67,8 +67,8 @@ object Legacy {
                 else listOf(
                     TopicCardImage(
                         url = poster,
-                        width = if (video.provider == "youtube") 1600 else video.w,
-                        height = if (video.provider == "youtube") 900 else video.h,
+                        width = if (video?.provider == "youtube") 1600 else video?.w,
+                        height = if (video?.provider == "youtube") 900 else video?.h,
                     ),
                 )
             }

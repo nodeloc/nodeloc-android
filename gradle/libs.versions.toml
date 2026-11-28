@@ -19,6 +19,7 @@ work = "2.11.2"
 browser = "1.10.0"
 exifinterface = "1.4.1"
 lucide = "1.1.0"
+zxing = "3.5.3"
 junit = "4.13.2"
 turbine = "1.2.1"
 
@@ -58,6 +59,8 @@ firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging
 androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "browser" }
 androidx-exifinterface = { group = "androidx.exifinterface", name = "exifinterface", version.ref = "exifinterface" }
 icons-lucide = { group = "com.composables", name = "icons-lucide", version.ref = "lucide" }
+# QR for the invite poster; the core encoder only, no camera or scanning parts.
+zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }

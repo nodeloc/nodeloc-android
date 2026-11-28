@@ -2146,4 +2146,12 @@
     <string name="mod_log_detail_open">Open what was acted on</string>
     <string name="mod_log_detail_no_undo">This action can’t be undone from here.</string>
     <string name="settings_language_d">The language the site speaks to you. The app’s own text uses the closest language it has.</string>
+    <string name="invite_poster">Poster</string>
+    <string name="invite_poster_share">Save or share</string>
+    <string name="invite_poster_from">%1$s invites you to NodeLoc</string>
+    <string name="invite_poster_headline">Find people who talk about the same things</string>
+    <string name="invite_poster_sub">Indie apps, photography, coffee, cycling… there’s a node for you.</string>
+    <string name="invite_poster_welcome">Get %1$d energy for joining</string>
+    <string name="invite_poster_welcome_d">Sign up with this code; it arrives once your email is verified.</string>
+    <string name="invite_poster_how">Scan to sign up, or enter the code when you register</string>
 </resources>
