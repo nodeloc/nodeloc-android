@@ -323,7 +323,8 @@ private fun NodelocNavHost(
             com.nodeloc.app.feature.moderation.ModDashboardScreen(entry.toRoute<Route.ModDashboard>().nodeSlug, navigator)
         }
         composable<Route.ReviewQueue> { entry ->
-            com.nodeloc.app.feature.moderation.ReviewQueueScreen(entry.toRoute<Route.ReviewQueue>().nodeSlug, navigator)
+            val route = entry.toRoute<Route.ReviewQueue>()
+            com.nodeloc.app.feature.moderation.ReviewQueueScreen(route.nodeSlug, navigator, initialTab = route.tab)
         }
         composable<Route.ReviewItem> { entry ->
             val route = entry.toRoute<Route.ReviewItem>()
@@ -335,7 +336,8 @@ private fun NodelocNavHost(
             com.nodeloc.app.feature.moderation.ModUserScreen(route.userId, route.username, route.nodeSlug, navigator)
         }
         composable<Route.AuditLog> { entry ->
-            com.nodeloc.app.feature.moderation.AuditLogScreen(entry.toRoute<Route.AuditLog>().nodeSlug, navigator)
+            val route = entry.toRoute<Route.AuditLog>()
+            com.nodeloc.app.feature.moderation.AuditLogScreen(route.nodeSlug, navigator, initialFilter = route.filter)
         }
         composable<Route.NodeAdmin> { entry ->
             com.nodeloc.app.feature.moderation.NodeAdminScreen(entry.toRoute<Route.NodeAdmin>().slug, navigator)

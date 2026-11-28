@@ -81,11 +81,13 @@ object Route {
     // Moderation. A null nodeSlug means the site-wide view (staff); a slug
     // scopes the page to one node, which is all a node moderator can see.
     @Serializable data class ModDashboard(val nodeSlug: String? = null)
-    @Serializable data class ReviewQueue(val nodeSlug: String? = null)
+    /** [tab] is a `ReviewTab` name, for the dashboard's counts that open one tab. */
+    @Serializable data class ReviewQueue(val nodeSlug: String? = null, val tab: String? = null)
     @Serializable data class ReviewItem(val itemId: Long, val nodeSlug: String? = null)
     @Serializable data object ModUsers
     @Serializable data class ModUser(val userId: Long, val username: String, val nodeSlug: String? = null)
-    @Serializable data class AuditLog(val nodeSlug: String? = null)
+    /** [filter] is a `LogFilter` name, for the dashboard's 今日 counts. */
+    @Serializable data class AuditLog(val nodeSlug: String? = null, val filter: String? = null)
     @Serializable data class NodeAdmin(val slug: String)
     @Serializable data class NodeChannels(val slug: String)
 

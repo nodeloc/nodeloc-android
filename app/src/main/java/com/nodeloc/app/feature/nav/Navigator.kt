@@ -95,11 +95,11 @@ class Navigator(private val controller: NavHostController) {
     fun openUpgradeProgress(username: String) = push(Route.UpgradeProgress(username))
 
     fun openModDashboard(nodeSlug: String? = null) = push(Route.ModDashboard(nodeSlug))
-    fun openReviewQueue(nodeSlug: String? = null) = push(Route.ReviewQueue(nodeSlug))
+    fun openReviewQueue(nodeSlug: String? = null, tab: String? = null) = push(Route.ReviewQueue(nodeSlug, tab))
     fun openReviewItem(itemId: Long, nodeSlug: String? = null) = push(Route.ReviewItem(itemId, nodeSlug))
     fun openModUsers() = push(Route.ModUsers)
     fun openModUser(userId: Long, username: String, nodeSlug: String? = null) = push(Route.ModUser(userId, username, nodeSlug))
-    fun openAuditLog(nodeSlug: String? = null) = push(Route.AuditLog(nodeSlug))
+    fun openAuditLog(nodeSlug: String? = null, filter: String? = null) = push(Route.AuditLog(nodeSlug, filter))
     fun openNodeAdmin(slug: String) = push(Route.NodeAdmin(slug))
     fun openNodeChannels(slug: String) = push(Route.NodeChannels(slug))
 

@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -35,6 +37,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.composables.icons.lucide.ArrowUpDown
 import com.composables.icons.lucide.Ban
 import com.composables.icons.lucide.CircleAlert
+import com.composables.icons.lucide.ExternalLink
 import com.composables.icons.lucide.History
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.ScrollText
@@ -241,13 +244,18 @@ class AuditLogViewModel(private val nodeSlug: String?) : ViewModel() {
 }
 
 @Composable
-fun AuditLogScreen(nodeSlug: String?, navigator: Navigator) {
+fun AuditLogScreen(nodeSlug: String?, navigator: Navigator, initialFilter: String? = null) {
     val viewModel: AuditLogViewModel = viewModel(key = "audit-log-$nodeSlug") { AuditLogViewModel(nodeSlug) }
     val state by viewModel.state.collectAsState()
+    LaunchedEffect(initialFilter) {
+        LogFilter.entries.firstOrNull { it.name == initialFilter }?.let(viewModel::setFilter)
+    }
     val privileges by ServiceLocator.get.moderation.privileges.collectAsState()
     val snackbar = remember { SnackbarHostState() }
     val resources = androidx.compose.ui.platform.LocalResources.current
     var confirming by remember { mutableStateOf<LogEntry?>(null) }
+    // The entry opened on its own page; undo lives there, not on the row.
+    var opened by remember { mutableStateOf<LogEntry?>(null) }
     val listState = rememberLazyListState()
     listState.OnReachedEnd { viewModel.loadMore() }
 
@@ -289,12 +297,23 @@ fun AuditLogScreen(nodeSlug: String?, navigator: Navigator) {
                     else -> LogList(
                         state = state,
                         listState = listState,
-                        canUndo = viewModel::canUndo,
-                        onUndo = { confirming = it },
-                        onOpen = { entry -> openEntry(entry, navigator, privileges.managesUsers) },
+                        onOpen = { opened = it },
                     )
                 }
             }
+        }
+        opened?.let { entry ->
+            androidx.activity.compose.BackHandler { opened = null }
+            LogDetailPage(
+                entry = entry,
+                undoable = viewModel.canUndo(entry),
+                undone = entry.id in state.undone,
+                undoing = entry.id in state.undoing,
+                canOpenTarget = hasTarget(entry, privileges.managesUsers),
+                onBack = { opened = null },
+                onUndo = { confirming = entry },
+                onOpenTarget = { openEntry(entry, navigator, privileges.managesUsers) },
+            )
         }
         DashSnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
     }
@@ -311,6 +330,11 @@ fun AuditLogScreen(nodeSlug: String?, navigator: Navigator) {
     }
 }
 
+private fun hasTarget(entry: LogEntry, managesUsers: Boolean): Boolean =
+    entry.details.long("topic_id") != null ||
+        (entry.targetType == "user" && entry.targetId != null && managesUsers) ||
+        (entry.targetType == null && entry.targetName != null)
+
 private fun openEntry(entry: LogEntry, navigator: Navigator, managesUsers: Boolean) {
     val topicId = entry.details.long("topic_id")
     when {
@@ -325,8 +349,6 @@ private fun openEntry(entry: LogEntry, navigator: Navigator, managesUsers: Boole
 private fun LogList(
     state: AuditLogState,
     listState: androidx.compose.foundation.lazy.LazyListState,
-    canUndo: (LogEntry) -> Boolean,
-    onUndo: (LogEntry) -> Unit,
     onOpen: (LogEntry) -> Unit,
 ) {
     val today = LocalDate.now()
@@ -350,10 +372,7 @@ private fun LogList(
                 LogRow(
                     entry = entry,
                     meta = logMeta(entry, time),
-                    undoable = canUndo(entry),
                     undone = entry.id in state.undone,
-                    undoing = entry.id in state.undoing,
-                    onUndo = { onUndo(entry) },
                     onOpen = { onOpen(entry) },
                 )
             }
@@ -372,38 +391,125 @@ private fun LogList(
 private fun LogRow(
     entry: LogEntry,
     meta: String,
-    undoable: Boolean,
     undone: Boolean,
-    undoing: Boolean,
-    onUndo: () -> Unit,
     onOpen: () -> Unit,
 ) {
-    val trailing: (@Composable RowScope.() -> Unit)? = when {
-            undone -> {
-                { Text(stringResource(R.string.mod_log_undone), style = Type.body(14), color = Nocturne.textTertiary) }
-            }
-            undoable -> {
-                {
-                    Text(
-                        stringResource(R.string.common_undo),
-                        style = Type.body(14, FontWeight.Medium),
-                        color = if (undoing) Nocturne.textTertiary else Nocturne.accent,
-                        modifier = Modifier
-                            .clickable(enabled = !undoing, onClick = onUndo)
-                            .padding(horizontal = 4.dp, vertical = 8.dp),
-                    )
-                }
-            }
-            else -> null
-        }
+    val trailing: (@Composable RowScope.() -> Unit)? = if (undone) {
+        { Text(stringResource(R.string.mod_log_undone), style = Type.body(14), color = Nocturne.textTertiary) }
+    } else {
+        null
+    }
     DashListRow(
         icon = logIcon(entry.action),
         title = logSentence(entry),
         supporting = meta.ifEmpty { null },
-        chevron = false,
+        chevron = !undone,
         onClick = onOpen,
         trailing = trailing,
     )
+}
+
+/**
+ * One entry on its own page (App-Android-Log › detail): the sentence, who and
+ * when, every detail the server recorded, a way to the thing acted on, and —
+ * where this reader may — 撤销, confirmed first.
+ */
+@Composable
+private fun LogDetailPage(
+    entry: LogEntry,
+    undoable: Boolean,
+    undone: Boolean,
+    undoing: Boolean,
+    canOpenTarget: Boolean,
+    onBack: () -> Unit,
+    onUndo: () -> Unit,
+    onOpenTarget: () -> Unit,
+) {
+    ModScaffold(
+        title = stringResource(R.string.mod_log_detail_title),
+        onBack = onBack,
+        bottomBar = if (undoable || undone) {
+            {
+                androidx.compose.foundation.layout.Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                ) {
+                    ModButton(
+                        stringResource(if (undone) R.string.mod_log_undone else R.string.common_undo),
+                        ModButtonStyle.Filled,
+                        Modifier.weight(1f),
+                        enabled = undoable && !undone && !undoing,
+                        onClick = onUndo,
+                    )
+                }
+            }
+        } else {
+            null
+        },
+    ) {
+        androidx.compose.foundation.layout.Column(
+            Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(androidx.compose.foundation.rememberScrollState())
+                .padding(bottom = 24.dp),
+        ) {
+            androidx.compose.foundation.layout.Row(
+                Modifier.fillMaxWidth().padding(16.dp),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(14.dp),
+            ) {
+                Icon(logIcon(entry.action), null, tint = Nocturne.textSecondary)
+                androidx.compose.foundation.layout.Column(Modifier.weight(1f)) {
+                    Text(logSentence(entry), style = Type.heading(18, FontWeight.Bold), color = Nocturne.text)
+                    Text(
+                        listOfNotNull(
+                            DiscourseFormat.dayAndTime(entry.createdAt).ifEmpty { null },
+                            modAgo(entry.createdAt).ifEmpty { null },
+                        ).joinToString(" · "),
+                        style = Type.body(13),
+                        color = Nocturne.textSecondary,
+                    )
+                }
+            }
+            DashSectionLabel(stringResource(R.string.mod_log_detail_section))
+            DetailLine(stringResource(R.string.mod_log_detail_actor), entry.actor ?: stringResource(R.string.mod_log_system))
+            entry.targetName?.let { DetailLine(stringResource(R.string.mod_log_detail_target), it) }
+            DetailLine(stringResource(R.string.mod_log_detail_action), entry.action)
+            val meta = logMeta(entry, "")
+            if (meta.isNotBlank()) DetailLine(stringResource(R.string.mod_log_detail_context), meta.trim(' ', '·'))
+            // What else the server wrote down, as it wrote it: a moderator
+            // checking an action wants the record, not a paraphrase.
+            entry.details?.forEach { (key, value) ->
+                val text = (value as? kotlinx.serialization.json.JsonPrimitive)?.content ?: value.toString()
+                if (text.isNotBlank() && key !in setOf("topic_id", "post_number")) DetailLine(key, text)
+            }
+            if (canOpenTarget) {
+                DashListRow(
+                    icon = Lucide.ExternalLink,
+                    title = stringResource(R.string.mod_log_detail_open),
+                    onClick = onOpenTarget,
+                )
+            }
+            if (!undoable && !undone) {
+                Text(
+                    stringResource(R.string.mod_log_detail_no_undo),
+                    style = Type.body(12),
+                    color = Nocturne.textTertiary,
+                    modifier = Modifier.padding(16.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailLine(label: String, value: String) {
+    androidx.compose.foundation.layout.Row(
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
+    ) {
+        Text(label, style = Type.body(14), color = Nocturne.textSecondary, modifier = Modifier.width(96.dp))
+        Text(value, style = Type.body(14), color = Nocturne.text, modifier = Modifier.weight(1f))
+    }
 }
 
 private fun logIcon(action: String): ImageVector = when {

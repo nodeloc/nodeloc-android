@@ -350,9 +350,13 @@ class ReviewQueueViewModel(private val nodeSlug: String?) : ViewModel() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ReviewQueueScreen(nodeSlug: String?, navigator: Navigator) {
+fun ReviewQueueScreen(nodeSlug: String?, navigator: Navigator, initialTab: String? = null) {
     val viewModel: ReviewQueueViewModel = viewModel(key = "review-queue-$nodeSlug") { ReviewQueueViewModel(nodeSlug) }
     val state by viewModel.state.collectAsState()
+    // Once, on arrival: the dashboard's count said which tab it meant.
+    LaunchedEffect(initialTab) {
+        ReviewTab.entries.firstOrNull { it.name == initialTab }?.let(viewModel::selectTab)
+    }
     val resolved by ReviewItemStore.resolved.collectAsState()
     var filter by remember { mutableStateOf(HeldFilter.All) }
     var statusMenu by remember { mutableStateOf(false) }
@@ -542,28 +546,54 @@ private fun ReviewTabs(
 @Composable
 private fun BatchBar(state: ReviewQueueState, viewModel: ReviewQueueViewModel) {
     val n = state.selected.size
+    // Every batch decision is confirmed: it lands on n items at once.
+    var pending by remember { mutableStateOf<BatchDecision?>(null) }
     Row(
         Modifier.fillMaxWidth().background(Nocturne.neutral300).padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         if (state.tab == ReviewTab.Held) {
             ModButton(stringResource(R.string.mod_review_batch_reject, n), ModButtonStyle.Outlined, Modifier.weight(1f), enabled = !state.busy) {
-                // Rejecting a held post is deleting it; the author is told it did not pass review.
-                viewModel.resolveSelected { "delete_post" }
+                pending = BatchDecision.RejectHeld
             }
             ModButton(stringResource(R.string.mod_review_batch_approve, n), ModButtonStyle.Filled, Modifier.weight(1f), enabled = !state.busy) {
-                viewModel.resolveSelected { "approve" }
+                pending = BatchDecision.Approve
             }
         } else {
             ModButton(stringResource(R.string.mod_review_batch_ignore, n), ModButtonStyle.Outlined, Modifier.weight(1f), enabled = !state.busy) {
-                viewModel.resolveSelected { "ignore" }
+                pending = BatchDecision.Ignore
             }
             ModButton(stringResource(R.string.mod_review_batch_dismiss, n), ModButtonStyle.Filled, Modifier.weight(1f), enabled = !state.busy) {
-                // `reject` (report unfounded, un-hide) exists only for posts and links; a node or account flag is ignored.
-                viewModel.resolveSelected { item -> if (item.isPost || item.kind == "link_report") "reject" else "ignore" }
+                pending = BatchDecision.Dismiss
             }
         }
     }
+    pending?.let { decision ->
+        DecisionDialog(
+            title = stringResource(decision.titleRes, n),
+            body = stringResource(decision.bodyRes),
+            confirmLabel = stringResource(R.string.common_confirm),
+            destructive = decision == BatchDecision.RejectHeld,
+            onDismiss = { pending = null },
+        ) {
+            pending = null
+            when (decision) {
+                // Rejecting a held post is deleting it; the author is told it did not pass review.
+                BatchDecision.RejectHeld -> viewModel.resolveSelected { "delete_post" }
+                BatchDecision.Approve -> viewModel.resolveSelected { "approve" }
+                BatchDecision.Ignore -> viewModel.resolveSelected { "ignore" }
+                // `reject` (report unfounded, un-hide) exists only for posts and links; a node or account flag is ignored.
+                BatchDecision.Dismiss -> viewModel.resolveSelected { item -> if (item.isPost || item.kind == "link_report") "reject" else "ignore" }
+            }
+        }
+    }
+}
+
+private enum class BatchDecision(val titleRes: Int, val bodyRes: Int) {
+    RejectHeld(R.string.mod_confirm_batch_reject, R.string.mod_confirm_batch_reject_d),
+    Approve(R.string.mod_confirm_batch_approve, R.string.mod_confirm_approve_d),
+    Ignore(R.string.mod_confirm_batch_ignore, R.string.mod_confirm_ignore_d),
+    Dismiss(R.string.mod_confirm_batch_dismiss, R.string.mod_confirm_reject_d),
 }
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
@@ -845,7 +875,7 @@ class ReviewItemViewModel(private val itemId: Long, private val nodeSlug: String
     }
 }
 
-private enum class ItemSheet { None, Delete, DeleteThenPenalty, Reject, Penalty }
+private enum class ItemSheet { None, Delete, DeleteThenPenalty, Hide, Reject, Penalty }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -854,6 +884,7 @@ fun ReviewItemScreen(itemId: Long, nodeSlug: String?, navigator: Navigator) {
     val state by viewModel.state.collectAsState()
     val privileges by ServiceLocator.get.moderation.privileges.collectAsState()
     var sheet by remember { mutableStateOf(ItemSheet.None) }
+    var pendingDecision by remember { mutableStateOf<String?>(null) }
     val item = state.item
 
     val title = when (item?.kind) {
@@ -867,7 +898,7 @@ fun ReviewItemScreen(itemId: Long, nodeSlug: String?, navigator: Navigator) {
             title = title,
             onBack = navigator::back,
             bottomBar = if (item != null) {
-                { ItemActions(item, state.busy, viewModel.siteTools, viewModel) { sheet = it } }
+                { ItemActions(item, state.busy, viewModel.siteTools, viewModel, confirm = { pendingDecision = it }) { sheet = it } }
             } else {
                 null
             },
@@ -900,6 +931,16 @@ fun ReviewItemScreen(itemId: Long, nodeSlug: String?, navigator: Navigator) {
                 sheet = ItemSheet.None
                 viewModel.resolve("delete_post", reason, reputationPenalty) { if (thenPenalty) sheet = ItemSheet.Penalty }
             }
+            ItemSheet.Hide -> DeleteContentSheet(
+                title = stringResource(R.string.mod_review_hide_title),
+                subtitle = subtitle,
+                confirmLabel = stringResource(R.string.mod_review_hide),
+                onDismiss = { sheet = ItemSheet.None },
+                penaltyMax = state.penaltyMax?.takeIf { item.targetUserId != null },
+            ) { reason, reputationPenalty ->
+                sheet = ItemSheet.None
+                viewModel.resolve("hide_post", reason, reputationPenalty)
+            }
             ItemSheet.Reject -> DeleteContentSheet(
                 title = stringResource(R.string.mod_review_reject_title),
                 subtitle = subtitle,
@@ -926,7 +967,74 @@ fun ReviewItemScreen(itemId: Long, nodeSlug: String?, navigator: Navigator) {
             }
             ItemSheet.None -> Unit
         }
+        pendingDecision?.let { action ->
+            val copy = decisionCopy(action, item)
+            DecisionDialog(
+                title = stringResource(copy.first),
+                body = copy.second?.let { stringResource(it) }.orEmpty(),
+                confirmLabel = stringResource(decisionConfirmLabel(action)),
+                destructive = copy.third,
+                onDismiss = { pendingDecision = null },
+            ) {
+                pendingDecision = null
+                viewModel.resolve(action, null)
+            }
+        }
     }
+}
+
+/** What the confirmation says will happen: title, detail, and whether it is the severe kind. */
+private fun decisionCopy(action: String, item: ApiReviewItem?): Triple<Int, Int?, Boolean> = when (action) {
+    "reject" -> Triple(R.string.mod_confirm_reject, R.string.mod_confirm_reject_d, false)
+    "ignore" -> Triple(R.string.mod_confirm_ignore, R.string.mod_confirm_ignore_d, false)
+    "approve" -> Triple(R.string.mod_confirm_approve, R.string.mod_confirm_approve_d, false)
+    "confirm" -> if (item?.targetType == "user") {
+        Triple(R.string.mod_confirm_risk_account, R.string.mod_confirm_risk_account_d, true)
+    } else {
+        Triple(R.string.mod_confirm_risk, R.string.mod_confirm_risk_d, true)
+    }
+    "flag_link" -> Triple(R.string.mod_confirm_flag_link, R.string.mod_confirm_flag_link_d, true)
+    else -> Triple(R.string.mod_confirm_generic, null, false)
+}
+
+private fun decisionConfirmLabel(action: String): Int = when (action) {
+    "approve" -> R.string.mod_review_approve
+    "ignore" -> R.string.mod_review_ignore
+    "reject" -> R.string.mod_review_dismiss
+    "flag_link" -> R.string.mod_review_flag_link
+    else -> R.string.common_confirm
+}
+
+/** [ConfirmDialog], but only a severe decision is drawn in the danger colour. */
+@Composable
+internal fun DecisionDialog(
+    title: String,
+    body: String,
+    confirmLabel: String,
+    destructive: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Nocturne.bg,
+        title = { Text(title, style = Type.heading(17), color = Nocturne.text) },
+        text = if (body.isNotEmpty()) {
+            { Text(body, style = Type.body(13), color = Nocturne.textSecondary) }
+        } else {
+            null
+        },
+        confirmButton = {
+            androidx.compose.material3.TextButton(onClick = onConfirm) {
+                Text(confirmLabel, color = if (destructive) Nocturne.danger else Nocturne.accent)
+            }
+        },
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.common_cancel), color = Nocturne.textSecondary)
+            }
+        },
+    )
 }
 
 @Composable
@@ -935,6 +1043,8 @@ private fun ItemActions(
     busy: Boolean,
     siteTools: Boolean,
     viewModel: ReviewItemViewModel,
+    /** A decision that neither removes nor hides content, waiting for 确认. */
+    confirm: (String) -> Unit,
     open: (ItemSheet) -> Unit,
 ) {
     val canPenalize = !item.targetUsername.isNullOrBlank()
@@ -960,16 +1070,21 @@ private fun ItemActions(
             item.kind == QUEUE_HELD_KIND -> {
                 Spacer(Modifier.weight(1f))
                 ModButton(stringResource(R.string.mod_review_reject), ModButtonStyle.Outlined, enabled = !busy) { open(ItemSheet.Reject) }
-                ModButton(stringResource(R.string.mod_review_approve), ModButtonStyle.Filled, enabled = !busy) { viewModel.resolve("approve", null) }
+                ModButton(stringResource(R.string.mod_review_approve), ModButtonStyle.Filled, enabled = !busy) { confirm("approve") }
             }
             item.isPost -> {
                 // An auto-hidden post stays hidden when ignored; "unfounded" is what puts it back.
                 if (item.postHidden) {
-                    ModButton(stringResource(R.string.mod_review_dismiss), ModButtonStyle.Text, enabled = !busy) { viewModel.resolve("reject", null) }
+                    ModButton(stringResource(R.string.mod_review_dismiss), ModButtonStyle.Text, enabled = !busy) { confirm("reject") }
                 } else {
-                    ModButton(stringResource(R.string.mod_review_ignore), ModButtonStyle.Text, enabled = !busy) { viewModel.resolve("ignore", null) }
+                    ModButton(stringResource(R.string.mod_review_ignore), ModButtonStyle.Text, enabled = !busy) { confirm("ignore") }
                 }
                 Spacer(Modifier.weight(1f))
+                // Hiding takes the same reason and reputation as deleting: the
+                // author sees why, and can edit the post back into view.
+                if (!item.postHidden) {
+                    ModButton(stringResource(R.string.mod_review_hide), ModButtonStyle.Outlined, enabled = !busy) { open(ItemSheet.Hide) }
+                }
                 ModButton(stringResource(R.string.common_delete), ModButtonStyle.Outlined, enabled = !busy) { open(ItemSheet.Delete) }
                 if (canPenalize) {
                     ModButton(stringResource(R.string.mod_review_delete_penalize), ModButtonStyle.Danger, enabled = !busy) {
@@ -978,19 +1093,19 @@ private fun ItemActions(
                 }
             }
             item.kind == "link_report" -> {
-                ModButton(stringResource(R.string.mod_review_ignore), ModButtonStyle.Text, enabled = !busy) { viewModel.resolve("ignore", null) }
+                ModButton(stringResource(R.string.mod_review_ignore), ModButtonStyle.Text, enabled = !busy) { confirm("ignore") }
                 Spacer(Modifier.weight(1f))
-                ModButton(stringResource(R.string.mod_review_dismiss), ModButtonStyle.Outlined, enabled = !busy) { viewModel.resolve("reject", null) }
-                ModButton(stringResource(R.string.mod_review_flag_link), ModButtonStyle.Danger, enabled = !busy) { viewModel.resolve("flag_link", null) }
+                ModButton(stringResource(R.string.mod_review_dismiss), ModButtonStyle.Outlined, enabled = !busy) { confirm("reject") }
+                ModButton(stringResource(R.string.mod_review_flag_link), ModButtonStyle.Danger, enabled = !busy) { confirm("flag_link") }
             }
             item.kind == "risk_flag" -> {
-                ModButton(stringResource(R.string.mod_review_ignore), ModButtonStyle.Text, enabled = !busy) { viewModel.resolve("ignore", null) }
+                ModButton(stringResource(R.string.mod_review_ignore), ModButtonStyle.Text, enabled = !busy) { confirm("ignore") }
                 Spacer(Modifier.weight(1f))
-                ModButton(stringResource(R.string.mod_review_confirm_risk), ModButtonStyle.Filled, enabled = !busy) { viewModel.resolve("confirm", null) }
+                ModButton(stringResource(R.string.mod_review_confirm_risk), ModButtonStyle.Filled, enabled = !busy) { confirm("confirm") }
             }
             item.kind == "node_report" -> {
                 Text(stringResource(R.string.mod_review_node_report_hint), style = Type.body(13), color = Nocturne.textSecondary, modifier = Modifier.weight(1f))
-                ModButton(stringResource(R.string.mod_review_ignore), ModButtonStyle.Outlined, enabled = !busy) { viewModel.resolve("ignore", null) }
+                ModButton(stringResource(R.string.mod_review_ignore), ModButtonStyle.Outlined, enabled = !busy) { confirm("ignore") }
             }
             else -> {
                 // Registrations, app reviews, certifications…: their own pages do the real work;

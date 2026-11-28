@@ -338,6 +338,8 @@ private fun DashboardBody(state: DashboardState, privileges: ModPrivileges, navi
             // land on it; 看举报 goes straight to the first report instead when
             // one is on hand, which is what the reader asked to see.
             onStart = { navigator.openReviewQueue(scope) },
+            // Each count opens the list it counts.
+            onOpenTab = { tab -> navigator.openReviewQueue(scope, tab.name) },
             onReports = {
                 val report = state.urgent.firstOrNull { it.kind in REPORT_KINDS }
                 if (report != null) navigator.openReviewItem(report.id, scope) else navigator.openReviewQueue(scope)
@@ -368,9 +370,15 @@ private fun DashboardBody(state: DashboardState, privileges: ModPrivileges, navi
                     modifier = Modifier.padding(bottom = 7.dp),
                 )
                 Row(Modifier.fillMaxWidth().dashCard(Nocturne.bg).padding(vertical = 14.dp, horizontal = 4.dp)) {
-                    TodayCell(today.handled, stringResource(R.string.mod_dash_today_handled), Modifier.weight(1f))
-                    TodayCell(today.deleted, stringResource(R.string.mod_dash_today_deleted), Modifier.weight(1f))
-                    TodayCell(today.penalized, stringResource(R.string.mod_dash_today_penalized), Modifier.weight(1f))
+                    TodayCell(today.handled, stringResource(R.string.mod_dash_today_handled), Modifier.weight(1f)) {
+                        navigator.openAuditLog(scope, LogFilter.Review.name)
+                    }
+                    TodayCell(today.deleted, stringResource(R.string.mod_dash_today_deleted), Modifier.weight(1f)) {
+                        navigator.openAuditLog(scope, LogFilter.Delete.name)
+                    }
+                    TodayCell(today.penalized, stringResource(R.string.mod_dash_today_penalized), Modifier.weight(1f)) {
+                        navigator.openAuditLog(scope, LogFilter.Penalty.name)
+                    }
                 }
             }
         }
@@ -426,6 +434,7 @@ private fun PendingCard(
     scope: String?,
     onStart: () -> Unit,
     onReports: () -> Unit,
+    onOpenTab: (ReviewTab) -> Unit,
 ) {
     val ink = Nocturne.neutral100
     val soft = ink.copy(alpha = 0.72f)
@@ -472,10 +481,16 @@ private fun PendingCard(
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            PendingCount(Lucide.Hourglass, stringResource(R.string.mod_dash_tile_pending), tiles.pending, ink, soft, Modifier.weight(1f))
-            PendingCount(Lucide.Flag, stringResource(R.string.mod_dash_tile_reports), tiles.reports, ink, soft, Modifier.weight(1f))
+            PendingCount(Lucide.Hourglass, stringResource(R.string.mod_dash_tile_pending), tiles.pending, ink, soft, Modifier.weight(1f)) {
+                onOpenTab(ReviewTab.Held)
+            }
+            PendingCount(Lucide.Flag, stringResource(R.string.mod_dash_tile_reports), tiles.reports, ink, soft, Modifier.weight(1f)) {
+                onOpenTab(ReviewTab.Reports)
+            }
             tiles.appeals?.let {
-                PendingCount(Lucide.Scale, stringResource(R.string.mod_dash_tile_appeals), it, ink, soft, Modifier.weight(1f))
+                PendingCount(Lucide.Scale, stringResource(R.string.mod_dash_tile_appeals), it, ink, soft, Modifier.weight(1f)) {
+                    onOpenTab(ReviewTab.Appeals)
+                }
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -486,8 +501,14 @@ private fun PendingCard(
 }
 
 @Composable
-private fun PendingCount(icon: ImageVector, label: String, value: Int, ink: Color, soft: Color, modifier: Modifier) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+private fun PendingCount(icon: ImageVector, label: String, value: Int, ink: Color, soft: Color, modifier: Modifier, onClick: () -> Unit) {
+    Column(
+        modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(4.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             Icon(icon, null, tint = soft, modifier = Modifier.size(14.dp))
             Text(label, style = Type.body(12), color = soft, maxLines = 1)
@@ -525,8 +546,11 @@ private fun waitedFor(raw: String): String? {
 }
 
 @Composable
-private fun TodayCell(value: Int, label: String, modifier: Modifier = Modifier) {
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+private fun TodayCell(value: Int, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Column(
+        modifier.clip(RoundedCornerShape(12.dp)).clickable(role = Role.Button, onClick = onClick).padding(vertical = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
         Text(value.toString(), style = Type.heading(20, FontWeight.Bold), color = Nocturne.text, textAlign = TextAlign.Center)
         Spacer(Modifier.height(2.dp))
         Text(label, style = Type.body(12), color = Nocturne.textSecondary, textAlign = TextAlign.Center)
